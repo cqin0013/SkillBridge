@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 
 /**
- * Search page — backend + mock fallback + driving directions
+ * Search page — backend + robust normalization + directions
  *
- * - After destination search: fetch bays (backend → mock fallback).
- * - Click a bay: show latest status, draw route, open InfoWindow.
- * - Bay label (A/B/C...) is consistent across list, map, and InfoWindow.
- * - Route endpoints use custom markers "Start" and "End" (no default A/B).
+ * - Uses Places Autocomplete (no SearchBox deprecation).
+ * - Backend returns [] => show "No parking bays nearby." (no mock).
+ * - Backend error => fall back to local mock bays.
+ * - Frontend normalizes coords (lat/lng/lon) and ids (id/bayId) to avoid errors.
+ * - Click a bay => latest status, InfoWindow, route with custom Start/End markers.
  */
 
 export default function Search() {
@@ -34,7 +35,7 @@ export default function Search() {
   const directionsRendererRef = useRef(null);             // directions renderer
   const infoWindowRef = useRef(null);                     // single InfoWindow
 
-  // optional: user location cache + marker
+  // user location cache + marker
   const userLocRef = useRef(null);                        // {lat,lng} | null
   const userLocMarkerRef = useRef(null);
 
@@ -43,6 +44,13 @@ export default function Search() {
   const routeEndMarkerRef = useRef(null);
 
   const defaultCenter = { lat: -37.8136, lng: 144.9631 };
+
+  /* ===== Validation & normalize helpers ===== */
+  const toNum = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
+  const isFiniteNum = (n) => typeof n === "number" && Number.isFinite(n);
+  const isLat = (n) => isFiniteNum(n) && n >= -90 && n <= 90;
+  const isLng = (n) => isFiniteNum(n) && n >= -180 && n <= 180;
+  const hasLatLng = (o) => o && isLat(o.lat) && isLng(o.lng);
 
   /* ===== Responsive grid styles for bay list ===== */
   const gridContainerStyle = {
@@ -73,7 +81,7 @@ export default function Search() {
     textOverflow: "ellipsis",
   });
 
-  /* ===== Init map + Places SearchBox ===== */
+  /* ===== Init map + Places Autocomplete (no initial fetch) ===== */
   useEffect(() => {
     const loader = new Loader({
       apiKey: GOOGLE_MAPS_API_KEY,
@@ -95,14 +103,15 @@ export default function Search() {
       });
       mapRef.current = map;
 
+      // Autocomplete (recommended alternative to SearchBox)
       const input = document.getElementById("search-box");
-      const searchBox = new google.maps.places.SearchBox(input);
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        fields: ["geometry", "name", "place_id"],
+      });
 
-      searchBox.addListener("places_changed", async () => {
-        const places = searchBox.getPlaces();
-        if (!places || places.length === 0) return;
-        const p = places[0];
-        if (!p.geometry || !p.geometry.location) return;
+      autocomplete.addListener("place_changed", async () => {
+        const p = autocomplete.getPlace();
+        if (!p || !p.geometry || !p.geometry.location) return;
 
         const loc = p.geometry.location;
         const dest = { lat: loc.lat(), lng: loc.lng() };
@@ -229,12 +238,10 @@ export default function Search() {
   };
 
   const addStartEndMarkers = (origin, destination) => {
-    // Create custom "Start" and "End" markers for the current route.
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return;
 
-    // Clear previous Start/End markers
     clearRouteOnlyMarkers();
 
     // Start marker
@@ -286,11 +293,12 @@ export default function Search() {
   };
 
   const addBayMarker = (bay, label) => {
+    if (!hasLatLng(bay)) return; // skip invalid coords
+
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return;
 
-    // Persist the letter label for this bay ID to keep it consistent everywhere
     bayLabelByIdRef.current.set(bay.id, label);
 
     let marker;
@@ -332,9 +340,14 @@ export default function Search() {
 
   /* ===== Directions ===== */
   const drawDrivingRoute = async (origin, destination) => {
+    if (!hasLatLng(origin) || !hasLatLng(destination)) {
+      setError("Invalid coordinates for routing.");
+      return;
+    }
+
     const google = window.google;
     const map = mapRef.current;
-    if (!google || !map || !origin || !destination) return;
+    if (!google || !map) return;
     clearRoute();
 
     const service = new google.maps.DirectionsService();
@@ -379,6 +392,8 @@ export default function Search() {
   }
 
   /* ===== Backend calls ===== */
+
+  // ac2.1 兼容 { bayId, lat, lon } / { id, lat, lng } / { latitude, longitude } 等
   async function apiFetchBays(near) {
     const qs = new URLSearchParams();
     if (near) qs.set("near", `${near.lat},${near.lng}`);
@@ -388,26 +403,53 @@ export default function Search() {
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const list = await res.json();
-    if (!Array.isArray(list)) throw new Error("Invalid payload");
-    return list.map((x, i) => ({
-      id: x.id ?? i + 1,
-      name: x.name || `Bay ${String.fromCharCode(65 + i)}`,
-      lat: x.lat,
-      lng: x.lng,
-    }));
+
+    const raw = await res.json();               // 可能是 [] 或 [{ bayId, lat, lon, ... }]
+    if (!Array.isArray(raw)) throw new Error("Invalid payload");
+
+    const normalized = raw
+      .map((x, i) => {
+        const id = x.id ?? x.bayId ?? i + 1;
+        const name = x.name || x.title || `Bay ${String.fromCharCode(65 + i)}`;
+        const lat = toNum(x.lat ?? x.latitude);
+        const lng = toNum(x.lng ?? x.lon ?? x.longitude); // 关键：兼容 lon
+        return { id, name, lat, lng };
+      })
+      .filter(hasLatLng);                       // 过滤无效坐标
+
+    return normalized;                           // 可能是 []
   }
 
+  // ac2.3 兼容只有 { unoccupied } 的历史行
   async function apiFetchBayHistoryLatest(bayId) {
     const url = `${API_BASE}/api/bays/${bayId}/history`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const rows = await res.json();
     if (!Array.isArray(rows) || rows.length === 0) throw new Error("Empty history");
-    return rows[rows.length - 1];
+
+    const last = rows[rows.length - 1];
+
+    const hasOccupied = typeof last.occupiedPercent === "number";
+    const unoccupied =
+      typeof last.unoccupied === "boolean"
+        ? last.unoccupied
+        : hasOccupied
+        ? (100 - last.occupiedPercent) >= 50
+        : false;
+
+    const occupiedPercent = hasOccupied ? last.occupiedPercent : (unoccupied ? 0 : 100);
+    const availabilityPercent = Math.max(0, Math.min(100, 100 - occupiedPercent));
+
+    return {
+      timestamp: last.timestamp || new Date().toISOString(),
+      occupiedPercent,
+      availabilityPercent,
+      unoccupied,
+    };
   }
 
-  /* ===== Local mock data ===== */
+  /* ===== Local mock data (only for backend errors) ===== */
   function mockBays(center) {
     const c = center || { lat: -37.8106, lng: 144.9625 };
     return [
@@ -453,12 +495,23 @@ export default function Search() {
 
       let list = [];
       try {
-        list = await apiFetchBays(dest);
+        list = await apiFetchBays(dest); // normalized & filtered already
       } catch {
         setError("Backend unavailable. Using mock bays around your destination.");
         list = mockBays(dest);
       }
 
+      // If list is empty, show empty state (no mock in this case)
+      if (Array.isArray(list) && list.length === 0) {
+        setBays([]);
+        const map = mapRef.current;
+        const bounds = new window.google.maps.LatLngBounds();
+        bounds.extend(new window.google.maps.LatLng(dest.lat, dest.lng));
+        if (!bounds.isEmpty()) map.fitBounds(bounds);
+        return;
+      }
+
+      // Normal render
       const map = mapRef.current;
       const bounds = new window.google.maps.LatLngBounds();
       bounds.extend(new window.google.maps.LatLng(dest.lat, dest.lng));
@@ -467,7 +520,7 @@ export default function Search() {
       list.forEach((b, i) => {
         const label = String.fromCharCode(65 + i); // A/B/C...
         addBayMarker(b, label);
-        bounds.extend(new window.google.maps.LatLng(b.lat, b.lng));
+        if (hasLatLng(b)) bounds.extend(new window.google.maps.LatLng(b.lat, b.lng));
       });
 
       if (!bounds.isEmpty()) map.fitBounds(bounds);
@@ -478,6 +531,14 @@ export default function Search() {
 
   /* ===== Bay selection ===== */
   async function onSelectBay(bay) {
+    if (!bay) return;
+
+    if (!hasLatLng(bay)) {
+      setSelectedBay(bay?.name || "Unknown bay");
+      setError("This bay has invalid coordinates.");
+      return;
+    }
+
     setSelectedBay(bay.name);
 
     // Keep camera aligned and show name bubble
@@ -514,13 +575,7 @@ export default function Search() {
     // Status
     try {
       const latest = await apiFetchBayHistoryLatest(bay.id);
-      const availabilityPercent = Math.max(0, Math.min(100, 100 - (latest.occupiedPercent ?? 0)));
-      setBayStatus({
-        occupiedPercent: latest.occupiedPercent ?? 0,
-        availabilityPercent,
-        unoccupied: !!latest.unoccupied,
-        timestamp: latest.timestamp,
-      });
+      setBayStatus(latest);
     } catch {
       const m = mockLatest();
       const availabilityPercent = Math.max(0, Math.min(100, 100 - m.occupiedPercent));
@@ -587,7 +642,7 @@ export default function Search() {
             {fetching && bays.length === 0 ? (
               <div style={{ color: "#6b7280" }}>Loading nearby bays…</div>
             ) : bays.length === 0 ? (
-              <div style={{ color: "#6b7280" }}>No bays found near this destination.</div>
+              <div style={{ color: "#6b7280" }}>No parking bays nearby.</div>
             ) : (
               bays.map((bay, i) => {
                 const label = String.fromCharCode(65 + i); // A/B/C...
