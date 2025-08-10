@@ -1,0 +1,127 @@
+/* 全局基础样式 */
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f6fa;
+  color: #333;
+}
+
+/* ===== 导航栏样式 ===== */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #ddd;
+  z-index: 9999;
+  padding: 15px 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center; /* 导航栏内容居中 */
+}
+
+/* 链接组 */
+.nav-links {
+  display: flex;
+  gap: 50px; /* 每个链接之间的间距 */
+}
+
+/* 链接样式 */
+.nav-item {
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: bold; /* 黑体加粗 */
+  color: #000; /* 默认黑色文字 */
+  position: relative;
+  padding-bottom: 5px;
+  transition: color 0.3s ease;
+}
+
+/* Hover 效果 */
+.nav-item:hover {
+  color: #007bff;
+}
+
+/* 下划线动画 */
+.nav-item::after {
+  content: '';
+  position: absolute;
+  width: 0%;
+  height: 3px;
+  bottom: 0;
+  left: 0;
+  background-color: #007bff;
+  transition: width 0.3s ease;
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+/* 选中状态（React Router NavLink 的 active 状态） */
+.nav-item.active {
+  color: #007bff;
+}
+
+.nav-item.active::after {
+  width: 100%;
+}
+
+/* ===== 内容区域 ===== */
+.content {
+  padding-top: 80px; /* 避免内容被导航栏覆盖 */
+  max-width: 1200px;
+  margin: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+
+/* ===== 响应式处理 ===== */
+@media screen and (max-width: 768px) {
+  .nav-links {
+    gap: 20px;
+  }
+
+  .nav-item {
+    font-size: 16px;
+  }
+}
+/* Layout helpers */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+/* Hero */
+.home .hero { padding: 88px 16px 64px; background: linear-gradient(180deg,#0f172a 0%,#111827 100%); color:#fff; }
+.hero-inner { max-width: 860px; margin: 0 auto; text-align:center; }
+.hero-title { font-size: clamp(28px,4.2vw,48px); line-height:1.15; margin: 0 0 12px; font-weight: 800; }
+.hero-sub { font-size: clamp(14px,2.2vw,18px); opacity: .9; margin: 0 auto 24px; max-width: 680px; }
+.hero-cta { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+/* Buttons */
+.btn { display:inline-block; padding:12px 18px; border-radius:12px; font-weight:700; text-decoration:none; }
+.btn-primary { background:#6366f1; color:#fff; }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-outline { border:1px solid #cbd5e1; color:#111827; background:#fff; }
+.btn-outline:hover { background:#f8fafc; }
+
+/* Features */
+.features { display:grid; gap:18px; grid-template-columns: repeat(4,1fr); padding:48px 0; }
+@media (max-width: 900px){ .features { grid-template-columns: repeat(2,1fr);} }
+@media (max-width: 520px){ .features { grid-template-columns: 1fr; } }
+.feature { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; text-align:left; }
+.feat-icon { font-size:24px; margin-bottom:6px; }
+
+/* Social proof */
+.social { padding: 10px 0 42px; text-align:center; }
+.social .quote { font-size:18px; color:#111827; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:16px; display:inline-block; }
+.social .quote span { color:#6b7280; }
+.stats { list-style:none; display:flex; gap:16px; justify-content:center; padding:0; margin:16px 0 0; flex-wrap:wrap; }
+.stats li { background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; padding:10px 14px; }
+.stats strong { font-size:18px; margin-right:6px; }
+
+/* Final CTA */
+.final-cta { padding:48px 0 64px; background:#f8fafc; border-top:1px solid #e5e7eb; }
+.final-inner { text-align:center; }
+.final-inner h2 { margin:0 0 6px; font-size:28px; }
+.final-inner p { color:#4b5563; margin:0 0 16px; }
