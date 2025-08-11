@@ -14,7 +14,7 @@ import { Loader } from "@googlemaps/js-api-loader";
 export default function Search() {
   /*  Configuration */
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = "https://fit-8mtq.onrender.com";
 
   /* State / Refs  */
   const [bays, setBays] = useState([]); // [{id,name,lat,lng,unoccupied,timestamp}]

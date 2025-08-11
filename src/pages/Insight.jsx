@@ -10,7 +10,7 @@ import { Chart } from "chart.js/auto";
  * - English comments, simple structure, consistent formatting
  */
 
-const API_BASE = "http://localhost:3000"; // ← change to your backend if needed
+const API_BASE = "https://fit-8mtq.onrender.com"; // ← change to your backend if needed
 
 function sliceByWindow(labels, data, win) {
   if (win === "all") return { labels, data };
