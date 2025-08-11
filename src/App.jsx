@@ -16,7 +16,7 @@ function App() {
             Search
           </NavLink>
           <NavLink to="/Insight" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
-            Conclusion
+            Insight
           </NavLink>
         </div>
       </nav>

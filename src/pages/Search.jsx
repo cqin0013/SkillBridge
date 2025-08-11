@@ -12,23 +12,23 @@ import { Loader } from "@googlemaps/js-api-loader";
  */
 
 export default function Search() {
-  /* ===== Configuration ===== */
+  /*  Configuration */
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const API_BASE = "http://localhost:3000";
 
-  /* ===== State / Refs ===== */
+  /* State / Refs  */
   const [bays, setBays] = useState([]); // [{id,name,lat,lng,unoccupied,timestamp}]
   const [loadingMap, setLoadingMap] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
 
-  const [selectedBay, setSelectedBay] = useState(null);     // string | null
-  const [availability, setAvailability] = useState(null);   // number 0..100 | null
-  const [updatedAt, setUpdatedAt] = useState(null);         // ISO string | null
-  const [routeInfo, setRouteInfo] = useState(null);         // {distanceText, durationText} | null
+  const [selectedBay, setSelectedBay] = useState(null);     
+  const [availability, setAvailability] = useState(null);   
+  const [updatedAt, setUpdatedAt] = useState(null);         
+  const [routeInfo, setRouteInfo] = useState(null);         
 
   // user-selectable radius (meters)
-  const [radius, setRadius] = useState(300);                // default 300m
+  const [radius, setRadius] = useState(300);                
 
   const mapRef = useRef(null);
   const markersRef = useRef([]);
@@ -45,14 +45,14 @@ export default function Search() {
 
   const defaultCenter = { lat: -37.8136, lng: 144.9631 };
 
-  /* ===== Helpers: validation ===== */
+  /*  Helpers: validation  */
   const toNum = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
   const isFiniteNum = (n) => typeof n === "number" && Number.isFinite(n);
   const isLat = (n) => isFiniteNum(n) && n >= -90 && n <= 90;
   const isLng = (n) => isFiniteNum(n) && n >= -180 && n <= 180;
   const hasLatLng = (o) => o && isLat(o.lat) && isLng(o.lng);
 
-  /* ===== Styles: bay list grid ===== */
+  /*  Styles: bay list grid  */
   const gridContainerStyle = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
@@ -81,7 +81,7 @@ export default function Search() {
     textOverflow: "ellipsis",
   });
 
-  /* ===== Init map + Places Autocomplete ===== */
+  /* Init map + Places Autocomplete */
   useEffect(() => {
     const loader = new Loader({
       apiKey: GOOGLE_MAPS_API_KEY,
@@ -122,7 +122,7 @@ export default function Search() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ===== Clear helpers ===== */
+  /* Clear helpers */
   const clearMarkers = () => {
     markersRef.current.forEach((m) => (m.setMap ? m.setMap(null) : (m.map = null)));
     markersRef.current = [];
@@ -155,7 +155,7 @@ export default function Search() {
     }
   };
 
-  /* ===== Map markers ===== */
+  /* Map markers */
   const addDestinationMarker = (position) => {
     const google = window.google;
     const map = mapRef.current;
@@ -311,7 +311,7 @@ export default function Search() {
     }
   };
 
-  /* ===== Directions ===== */
+  /* Directions */
   const drawDrivingRoute = async (origin, destination) => {
     if (!hasLatLng(origin) || !hasLatLng(destination)) {
       setError("Invalid coordinates for routing.");
@@ -346,7 +346,7 @@ export default function Search() {
     });
   };
 
-  /* ===== Geolocation ===== */
+  /* Geolocation */
   function getUserLocation(options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }) {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) return reject(new Error("Geolocation is not supported by this browser."));
@@ -358,7 +358,7 @@ export default function Search() {
     });
   }
 
-  /* ===== Backend: /api/parking ===== */
+  /* Backend: /api/parking */
   async function apiFetchBays(near, customRadius) {
     const radiusToUse = Math.max(50, Math.min(5000, Number(customRadius) || 300)); // clamp 50–5000m
     const qs = new URLSearchParams();
@@ -388,7 +388,7 @@ export default function Search() {
     return normalized; // may be []
   }
 
-  /* ===== Fetch + render ===== */
+  /* Fetch + render */
   async function fetchAndRenderBays(dest) {
     if (!dest) {
       clearRoute();
@@ -448,7 +448,7 @@ export default function Search() {
     }
   }
 
-  /* ===== Select bay ===== */
+  /* Select bay */
   async function onSelectBay(bay) {
     if (!bay) return;
     if (!hasLatLng(bay)) {
@@ -504,10 +504,10 @@ export default function Search() {
     if (!routed) clearRoute();
   }
 
-  /* ===== Refresh ===== */
+  /* Refresh */
   const onRefresh = () => fetchAndRenderBays(destRef.current);
 
-  /* ===== UI ===== */
+  /* UI */
   const hasDestination = !!destRef.current;
 
   // radius input handlers
@@ -529,11 +529,11 @@ export default function Search() {
           type="text"
           placeholder="Search for a location"
           aria-label="Search for a destination"
-          style={{ width: "100%", padding: "14px 16px", fontSize: 16, border: "1px solid #d1d5db", borderRadius: 12, background: "#fff" }}
+          style={{ width: "90%", padding: "14px 16px", fontSize: 16, border: "1px solid #d1d5db", borderRadius: 12, background: "#fff" }}
         />
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label htmlFor="radius-input" style={{ fontSize: 14, color: "#374151", fontWeight: 600 }}>Radius (m):</label>
+          <label htmlFor="radius-input" style={{ fontSize: 14, color: "#374151", fontWeight: 600 }}>Radius:</label>
           <input
             id="radius-input"
             type="number"
@@ -542,7 +542,7 @@ export default function Search() {
             step={50}
             value={radius}
             onChange={onRadiusInput}
-            style={{ width: 120, padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: 10, background: "#fff" }}
+            style={{ width: 100, padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: 10, background: "#fff" }}
           />
           <button
             onClick={onApplyRadius}
@@ -647,7 +647,7 @@ export default function Search() {
   );
 }
 
-/* ===== Small presentational helper ===== */
+/* Small presentational helper */
 function Badge({ label, value, tone = "ok" }) {
   const bg = tone === "ok" ? "#ecfdf5" : "#fef2f2";
   const bd = tone === "ok" ? "#10b981" : "#ef4444";
