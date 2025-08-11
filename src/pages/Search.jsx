@@ -9,6 +9,7 @@ import { Loader } from "@googlemaps/js-api-loader";
  *   (lon is mapped to lng; bayId mapped to id)
  *
  * UI (status strip): Availability %, Driving distance, ETA.
+ * New: user can choose route origin — Destination (default) or My location.
  */
 
 export default function Search() {
@@ -22,13 +23,18 @@ export default function Search() {
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
 
-  const [selectedBay, setSelectedBay] = useState(null);     
-  const [availability, setAvailability] = useState(null);   
-  const [updatedAt, setUpdatedAt] = useState(null);         
-  const [routeInfo, setRouteInfo] = useState(null);         
+  const [selectedBayName, setSelectedBayName] = useState(null);
+  const [selectedBayObj, setSelectedBayObj] = useState(null); // keep the object for redraws
+  const [availability, setAvailability] = useState(null);
+  const [updatedAt, setUpdatedAt] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null);
 
   // user-selectable radius (meters)
-  const [radius, setRadius] = useState(300);                
+  const [radius, setRadius] = useState(300);
+
+  // NEW: user-selectable route origin
+  // "destination" | "mylocation"
+  const [routeOrigin, setRouteOrigin] = useState("destination");
 
   const mapRef = useRef(null);
   const markersRef = useRef([]);
@@ -395,7 +401,8 @@ export default function Search() {
       clearMarkers();
       closeInfoWindow();
       setBays([]);
-      setSelectedBay(null);
+      setSelectedBayName(null);
+      setSelectedBayObj(null);
       setAvailability(null);
       setUpdatedAt(null);
       setError("");
@@ -404,7 +411,8 @@ export default function Search() {
 
     setFetching(true);
     setError("");
-    setSelectedBay(null);
+    setSelectedBayName(null);
+    setSelectedBayObj(null);
     setAvailability(null);
     setUpdatedAt(null);
     clearRoute();
@@ -448,16 +456,49 @@ export default function Search() {
     }
   }
 
+  /* Route from chosen origin (helper) */
+  async function routeToBay(bay) {
+    if (!bay || !hasLatLng(bay)) return;
+
+    if (routeOrigin === "destination") {
+      // From searched destination (default)
+      if (!destRef.current) {
+        setError("No destination set yet. Please search a place first.");
+        return;
+      }
+      try {
+        await drawDrivingRoute(destRef.current, { lat: bay.lat, lng: bay.lng });
+      } catch {
+        setError("Routing from destination failed.");
+      }
+      return;
+    }
+
+    // routeOrigin === "mylocation"
+    try {
+      if (!userLocRef.current) {
+        const loc = await getUserLocation();
+        userLocRef.current = loc;
+        addUserLocationMarker(loc);
+      }
+      await drawDrivingRoute(userLocRef.current, { lat: bay.lat, lng: bay.lng });
+    } catch {
+      setError("Could not access your location (permission or signal).");
+    }
+  }
+
   /* Select bay */
   async function onSelectBay(bay) {
     if (!bay) return;
     if (!hasLatLng(bay)) {
-      setSelectedBay(bay?.name || "Unknown bay");
+      setSelectedBayName(bay?.name || "Unknown bay");
+      setSelectedBayObj(bay);
       setError("This bay has invalid coordinates.");
       return;
     }
 
-    setSelectedBay(bay.name);
+    setSelectedBayName(bay.name);
+    setSelectedBayObj(bay);
 
     const map = mapRef.current;
     const marker = markerByIdRef.current.get(bay.id);
@@ -477,32 +518,18 @@ export default function Search() {
       setUpdatedAt(null);
     }
 
-    // Routing: try user location → fallback destination
-    let routed = false;
-    try {
-      if (!userLocRef.current) {
-        const loc = await getUserLocation();
-        userLocRef.current = loc;
-        addUserLocationMarker(loc);
-      }
-      await drawDrivingRoute(userLocRef.current, { lat: bay.lat, lng: bay.lng });
-      routed = true;
-    } catch {
-      if (destRef.current) {
-        setError("Could not access your location. Routing from the searched destination instead.");
-        try {
-          await drawDrivingRoute(destRef.current, { lat: bay.lat, lng: bay.lng });
-          routed = true;
-        } catch {
-          setError((prev) => prev || "Fallback routing failed.");
-        }
-      } else {
-        setError("Could not access your location, and no destination is set.");
-      }
-    }
-
-    if (!routed) clearRoute();
+    // Route according to user choice
+    await routeToBay(bay);
   }
+
+  /* Re-draw route when user changes origin option */
+  useEffect(() => {
+    if (!selectedBayObj) return;
+    // clear first to avoid overlap
+    clearRoute();
+    routeToBay(selectedBayObj);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeOrigin]);
 
   /* Refresh */
   const onRefresh = () => fetchAndRenderBays(destRef.current);
@@ -516,14 +543,28 @@ export default function Search() {
     setRadius(val);
   };
   const onApplyRadius = () => {
-    // re-fetch with new radius if already has destination
     if (destRef.current) fetchAndRenderBays(destRef.current);
   };
 
+  // route origin handlers
+  const setOriginDestination = () => setRouteOrigin("destination");
+  const setOriginMyLocation = () => setRouteOrigin("mylocation");
+
+  // simple active button style
+  const originBtnStyle = (active) => ({
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: `1px solid ${active ? "#111827" : "#d1d5db"}`,
+    background: active ? "#111827" : "#fff",
+    color: active ? "#fff" : "#111827",
+    fontWeight: 700,
+    cursor: "pointer",
+  });
+
   return (
     <div style={{ background: "#f5f6fa", minHeight: "calc(100vh - 60px)", padding: 28, marginTop: 60 }}>
-      {/* Toolbar (search + radius + refresh) */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 12, alignItems: "center", marginBottom: 12 }}>
+      {/* Toolbar (search + radius + origin + refresh) */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto auto", gap: 12, alignItems: "center", marginBottom: 12 }}>
         <input
           id="search-box"
           type="text"
@@ -532,6 +573,7 @@ export default function Search() {
           style={{ width: "90%", padding: "14px 16px", fontSize: 16, border: "1px solid #d1d5db", borderRadius: 12, background: "#fff" }}
         />
 
+        {/* Radius */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <label htmlFor="radius-input" style={{ fontSize: 14, color: "#374151", fontWeight: 600 }}>Radius:</label>
           <input
@@ -550,6 +592,16 @@ export default function Search() {
             style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #374151", background: "#374151", color: "#fff", fontWeight: 700 }}
           >
             Apply
+          </button>
+        </div>
+
+        {/* NEW: Route origin (Destination / My location) */}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="button" onClick={setOriginDestination} style={originBtnStyle(routeOrigin === "destination")}>
+            From: Destination
+          </button>
+          <button type="button" onClick={setOriginMyLocation} style={originBtnStyle(routeOrigin === "mylocation")}>
+            From: My location
           </button>
         </div>
 
@@ -596,7 +648,7 @@ export default function Search() {
                     key={bay.id}
                     onClick={() => onSelectBay(bay)}
                     title={`${label} — ${bay.name}`}
-                    style={bayCardBase(selectedBay === bay.name)}
+                    style={bayCardBase(selectedBayName === bay.name)}
                   >
                     {label} — {bay.name}
                   </button>
@@ -611,15 +663,15 @@ export default function Search() {
       {hasDestination && (
         <div style={{ background: "#fff", padding: 20, borderRadius: 16, border: "1px solid #e5e7eb", boxShadow: "0 6px 18px rgba(0,0,0,.05)" }}>
           <h3 style={{ marginTop: 0, marginBottom: 8, fontWeight: 800, color: "#111827" }}>
-            {selectedBay ? "Status" : "Select a Parking Bay"}
+            {selectedBayName ? "Status" : "Select a Parking Bay"}
           </h3>
-          {selectedBay && (
+          {selectedBayName && (
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#111827" }}>
-              {selectedBay}
+              {selectedBayName}
             </div>
           )}
 
-          {selectedBay ? (
+          {selectedBayName ? (
             <>
               <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
                 {availability !== null && (
