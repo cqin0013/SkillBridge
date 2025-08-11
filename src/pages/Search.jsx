@@ -2,57 +2,57 @@ import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 
 /**
- * Search page — backend + robust normalization + directions
+ * Search page — user-selectable radius + backend + normalization + directions
  *
- * - Uses Places Autocomplete (no SearchBox deprecation).
- * - Backend returns [] => show "No parking bays nearby." (no mock).
- * - Backend error => fall back to local mock bays.
- * - Frontend normalizes coords (lat/lng/lon) and ids (id/bayId) to avoid errors.
- * - Click a bay => latest status, InfoWindow, route with custom Start/End markers.
+ * Backend contract:
+ *   /api/parking → [{ bayId, unoccupied, lat, lon, timestamp, name? }, ...]
+ *   (lon is mapped to lng; bayId mapped to id)
+ *
+ * UI (status strip): Availability %, Driving distance, ETA.
  */
 
 export default function Search() {
   /* ===== Configuration ===== */
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const API_BASE = "http://localhost:3000";
-  const DEFAULT_RADIUS = 300;
 
   /* ===== State / Refs ===== */
-  const [bays, setBays] = useState([]);                   // [{id,name,lat,lng}]
+  const [bays, setBays] = useState([]); // [{id,name,lat,lng,unoccupied,timestamp}]
   const [loadingMap, setLoadingMap] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
 
-  const [selectedBay, setSelectedBay] = useState(null);   // string | null
-  const [bayStatus, setBayStatus] = useState(null);       // {occupiedPercent, availabilityPercent, unoccupied, timestamp}
-  const [routeInfo, setRouteInfo] = useState(null);       // {distanceText, durationText}
+  const [selectedBay, setSelectedBay] = useState(null);     // string | null
+  const [availability, setAvailability] = useState(null);   // number 0..100 | null
+  const [updatedAt, setUpdatedAt] = useState(null);         // ISO string | null
+  const [routeInfo, setRouteInfo] = useState(null);         // {distanceText, durationText} | null
+
+  // user-selectable radius (meters)
+  const [radius, setRadius] = useState(300);                // default 300m
 
   const mapRef = useRef(null);
-  const markersRef = useRef([]);                          // general markers (dest, bays, user)
-  const markerByIdRef = useRef(new Map());                // bayId -> marker
-  const bayLabelByIdRef = useRef(new Map());              // bayId -> "A"/"B"/...
-  const destRef = useRef(null);                           // searched destination
-  const directionsRendererRef = useRef(null);             // directions renderer
-  const infoWindowRef = useRef(null);                     // single InfoWindow
+  const markersRef = useRef([]);
+  const markerByIdRef = useRef(new Map());
+  const bayLabelByIdRef = useRef(new Map());
+  const destRef = useRef(null);
+  const directionsRendererRef = useRef(null);
+  const infoWindowRef = useRef(null);
 
-  // user location cache + marker
-  const userLocRef = useRef(null);                        // {lat,lng} | null
+  const userLocRef = useRef(null);
   const userLocMarkerRef = useRef(null);
-
-  // custom Start/End markers for the current route
   const routeStartMarkerRef = useRef(null);
   const routeEndMarkerRef = useRef(null);
 
   const defaultCenter = { lat: -37.8136, lng: 144.9631 };
 
-  /* ===== Validation & normalize helpers ===== */
+  /* ===== Helpers: validation ===== */
   const toNum = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
   const isFiniteNum = (n) => typeof n === "number" && Number.isFinite(n);
   const isLat = (n) => isFiniteNum(n) && n >= -90 && n <= 90;
   const isLng = (n) => isFiniteNum(n) && n >= -180 && n <= 180;
   const hasLatLng = (o) => o && isLat(o.lat) && isLng(o.lng);
 
-  /* ===== Responsive grid styles for bay list ===== */
+  /* ===== Styles: bay list grid ===== */
   const gridContainerStyle = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
@@ -81,7 +81,7 @@ export default function Search() {
     textOverflow: "ellipsis",
   });
 
-  /* ===== Init map + Places Autocomplete (no initial fetch) ===== */
+  /* ===== Init map + Places Autocomplete ===== */
   useEffect(() => {
     const loader = new Loader({
       apiKey: GOOGLE_MAPS_API_KEY,
@@ -103,7 +103,6 @@ export default function Search() {
       });
       mapRef.current = map;
 
-      // Autocomplete (recommended alternative to SearchBox)
       const input = document.getElementById("search-box");
       const autocomplete = new google.maps.places.Autocomplete(input, {
         fields: ["geometry", "name", "place_id"],
@@ -112,11 +111,9 @@ export default function Search() {
       autocomplete.addListener("place_changed", async () => {
         const p = autocomplete.getPlace();
         if (!p || !p.geometry || !p.geometry.location) return;
-
         const loc = p.geometry.location;
         const dest = { lat: loc.lat(), lng: loc.lng() };
         destRef.current = dest;
-
         await fetchAndRenderBays(dest);
       });
 
@@ -125,26 +122,23 @@ export default function Search() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ===== Helpers: clear / markers / InfoWindow ===== */
+  /* ===== Clear helpers ===== */
   const clearMarkers = () => {
     markersRef.current.forEach((m) => (m.setMap ? m.setMap(null) : (m.map = null)));
     markersRef.current = [];
     markerByIdRef.current.clear();
     bayLabelByIdRef.current.clear();
-
     if (userLocMarkerRef.current?.setMap) {
       userLocMarkerRef.current.setMap(null);
       userLocMarkerRef.current = null;
     }
   };
-
   const clearRouteOnlyMarkers = () => {
     if (routeStartMarkerRef.current?.setMap) routeStartMarkerRef.current.setMap(null);
     if (routeEndMarkerRef.current?.setMap) routeEndMarkerRef.current.setMap(null);
     routeStartMarkerRef.current = null;
     routeEndMarkerRef.current = null;
   };
-
   const clearRoute = () => {
     const dr = directionsRendererRef.current;
     if (dr?.setMap) {
@@ -154,7 +148,6 @@ export default function Search() {
     clearRouteOnlyMarkers();
     setRouteInfo(null);
   };
-
   const closeInfoWindow = () => {
     if (infoWindowRef.current) {
       infoWindowRef.current.close();
@@ -162,26 +155,11 @@ export default function Search() {
     }
   };
 
-  const openInfoWindowForBay = (bay, marker) => {
-    const google = window.google;
-    const map = mapRef.current;
-    if (!google || !map || !marker) return;
-
-    closeInfoWindow();
-    const label = bayLabelByIdRef.current.get(bay.id) || "";
-    const iw = new google.maps.InfoWindow({
-      content: `<div style="font-weight:700;color:#111827">${label ? `${label} — ` : ""}${bay.name}</div>`,
-    });
-    iw.open({ anchor: marker, map });
-    infoWindowRef.current = iw;
-  };
-
-  /* ===== Marker factories ===== */
+  /* ===== Map markers ===== */
   const addDestinationMarker = (position) => {
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return;
-
     let marker;
     if (google.maps.marker?.AdvancedMarkerElement) {
       const el = document.createElement("div");
@@ -208,12 +186,10 @@ export default function Search() {
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return;
-
     if (userLocMarkerRef.current?.setMap) {
       userLocMarkerRef.current.setMap(null);
       userLocMarkerRef.current = null;
     }
-
     let marker;
     if (google.maps.marker?.AdvancedMarkerElement) {
       const el = document.createElement("div");
@@ -241,10 +217,8 @@ export default function Search() {
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return;
-
     clearRouteOnlyMarkers();
-
-    // Start marker
+    // Start
     let startMarker;
     if (google.maps.marker?.AdvancedMarkerElement) {
       const el = document.createElement("div");
@@ -258,15 +232,9 @@ export default function Search() {
       el.innerText = "Start";
       startMarker = new google.maps.marker.AdvancedMarkerElement({ map, position: origin, content: el, title: "Start" });
     } else {
-      startMarker = new google.maps.Marker({
-        map,
-        position: origin,
-        title: "Start",
-        label: { text: "S", color: "#2563eb", fontWeight: "800" },
-      });
+      startMarker = new google.maps.Marker({ map, position: origin, title: "Start", label: { text: "S", color: "#2563eb", fontWeight: "800" } });
     }
-
-    // End marker
+    // End
     let endMarker;
     if (google.maps.marker?.AdvancedMarkerElement) {
       const el = document.createElement("div");
@@ -280,21 +248,27 @@ export default function Search() {
       el.innerText = "End";
       endMarker = new google.maps.marker.AdvancedMarkerElement({ map, position: destination, content: el, title: "End" });
     } else {
-      endMarker = new google.maps.Marker({
-        map,
-        position: destination,
-        title: "End",
-        label: { text: "E", color: "#ef4444", fontWeight: "800" },
-      });
+      endMarker = new google.maps.Marker({ map, position: destination, title: "End", label: { text: "E", color: "#ef4444", fontWeight: "800" } });
     }
-
     routeStartMarkerRef.current = startMarker;
     routeEndMarkerRef.current = endMarker;
   };
 
-  const addBayMarker = (bay, label) => {
-    if (!hasLatLng(bay)) return; // skip invalid coords
+  const openInfoWindowForBay = (bay, marker) => {
+    const google = window.google;
+    const map = mapRef.current;
+    if (!google || !map || !marker) return;
+    if (infoWindowRef.current) infoWindowRef.current.close();
+    const label = bayLabelByIdRef.current.get(bay.id) || "";
+    const iw = new google.maps.InfoWindow({
+      content: `<div style="font-weight:700;color:#111827">${label ? `${label} — ` : ""}${bay.name}</div>`,
+    });
+    iw.open({ anchor: marker, map });
+    infoWindowRef.current = iw;
+  };
 
+  const addBayMarker = (bay, label) => {
+    if (!hasLatLng(bay)) return;
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return;
@@ -326,7 +300,6 @@ export default function Search() {
         title: `${label} — ${bay.name}`,
       });
     }
-
     markersRef.current.push(marker);
     markerByIdRef.current.set(bay.id, marker);
 
@@ -344,7 +317,6 @@ export default function Search() {
       setError("Invalid coordinates for routing.");
       return;
     }
-
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return;
@@ -357,7 +329,6 @@ export default function Search() {
       travelMode: google.maps.TravelMode.DRIVING,
     });
 
-    // Suppress default A/B markers so we can place "Start"/"End"
     const renderer = new google.maps.DirectionsRenderer({
       map,
       suppressMarkers: true,
@@ -366,7 +337,6 @@ export default function Search() {
     renderer.setDirections(result);
     directionsRendererRef.current = renderer;
 
-    // Place custom Start/End markers
     addStartEndMarkers(origin, destination);
 
     const leg = result.routes[0].legs[0];
@@ -376,13 +346,10 @@ export default function Search() {
     });
   };
 
-  /* ===== Geolocation (Promise wrapper) ===== */
+  /* ===== Geolocation ===== */
   function getUserLocation(options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }) {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error("Geolocation is not supported by this browser."));
-        return;
-      }
+      if (!navigator.geolocation) return reject(new Error("Geolocation is not supported by this browser."));
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         (err) => reject(err),
@@ -391,85 +358,37 @@ export default function Search() {
     });
   }
 
-  /* ===== Backend calls ===== */
-
-  // ac2.1 兼容 { bayId, lat, lon } / { id, lat, lng } / { latitude, longitude } 等
-  async function apiFetchBays(near) {
+  /* ===== Backend: /api/parking ===== */
+  async function apiFetchBays(near, customRadius) {
+    const radiusToUse = Math.max(50, Math.min(5000, Number(customRadius) || 300)); // clamp 50–5000m
     const qs = new URLSearchParams();
     if (near) qs.set("near", `${near.lat},${near.lng}`);
     qs.set("onlyAvailable", "true");
-    qs.set("radius", String(DEFAULT_RADIUS));
+    qs.set("radius", String(radiusToUse));
     const url = `${API_BASE}/api/parking?${qs.toString()}`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const raw = await res.json();               // 可能是 [] 或 [{ bayId, lat, lon, ... }]
+    const raw = await res.json();
     if (!Array.isArray(raw)) throw new Error("Invalid payload");
 
     const normalized = raw
       .map((x, i) => {
         const id = x.id ?? x.bayId ?? i + 1;
         const name = x.name || x.title || `Bay ${String.fromCharCode(65 + i)}`;
-        const lat = toNum(x.lat ?? x.latitude);
-        const lng = toNum(x.lng ?? x.lon ?? x.longitude); // 关键：兼容 lon
-        return { id, name, lat, lng };
+        const lat = toNum(x.lat);
+        const lng = toNum(x.lng ?? x.lon); // compat: lon → lng
+        const unoccupied = typeof x.unoccupied === "boolean" ? x.unoccupied : null;
+        const timestamp = x.timestamp ?? null;
+        return { id, name, lat, lng, unoccupied, timestamp };
       })
-      .filter(hasLatLng);                       // 过滤无效坐标
+      .filter(hasLatLng);
 
-    return normalized;                           // 可能是 []
+    return normalized; // may be []
   }
 
-  // ac2.3 兼容只有 { unoccupied } 的历史行
-  async function apiFetchBayHistoryLatest(bayId) {
-    const url = `${API_BASE}/api/bays/${bayId}/history`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const rows = await res.json();
-    if (!Array.isArray(rows) || rows.length === 0) throw new Error("Empty history");
-
-    const last = rows[rows.length - 1];
-
-    const hasOccupied = typeof last.occupiedPercent === "number";
-    const unoccupied =
-      typeof last.unoccupied === "boolean"
-        ? last.unoccupied
-        : hasOccupied
-        ? (100 - last.occupiedPercent) >= 50
-        : false;
-
-    const occupiedPercent = hasOccupied ? last.occupiedPercent : (unoccupied ? 0 : 100);
-    const availabilityPercent = Math.max(0, Math.min(100, 100 - occupiedPercent));
-
-    return {
-      timestamp: last.timestamp || new Date().toISOString(),
-      occupiedPercent,
-      availabilityPercent,
-      unoccupied,
-    };
-  }
-
-  /* ===== Local mock data (only for backend errors) ===== */
-  function mockBays(center) {
-    const c = center || { lat: -37.8106, lng: 144.9625 };
-    return [
-      { id: 101, name: "Bay A", lat: c.lat, lng: c.lng },
-      { id: 102, name: "Bay B", lat: c.lat + 0.0006, lng: c.lng + 0.0025 },
-      { id: 103, name: "Bay C", lat: c.lat - 0.0008, lng: c.lng - 0.0015 },
-      { id: 104, name: "Bay D", lat: c.lat + 0.0014, lng: c.lng + 0.0010 },
-    ];
-  }
-
-  function mockLatest() {
-    const occupiedPercent = Math.floor(60 + Math.random() * 40); // 60–99
-    return {
-      timestamp: new Date().toISOString(),
-      occupiedPercent,
-      unoccupied: occupiedPercent < 50,
-    };
-  }
-
-  /* ===== Core flow: fetch and render bays ===== */
+  /* ===== Fetch + render ===== */
   async function fetchAndRenderBays(dest) {
     if (!dest) {
       clearRoute();
@@ -477,7 +396,8 @@ export default function Search() {
       closeInfoWindow();
       setBays([]);
       setSelectedBay(null);
-      setBayStatus(null);
+      setAvailability(null);
+      setUpdatedAt(null);
       setError("");
       return;
     }
@@ -485,7 +405,8 @@ export default function Search() {
     setFetching(true);
     setError("");
     setSelectedBay(null);
-    setBayStatus(null);
+    setAvailability(null);
+    setUpdatedAt(null);
     clearRoute();
     closeInfoWindow();
 
@@ -495,44 +416,41 @@ export default function Search() {
 
       let list = [];
       try {
-        list = await apiFetchBays(dest); // normalized & filtered already
+        list = await apiFetchBays(dest, radius);
       } catch {
-        setError("Backend unavailable. Using mock bays around your destination.");
-        list = mockBays(dest);
+        setError("Backend unavailable.");
+        list = [];
       }
 
-      // If list is empty, show empty state (no mock in this case)
       if (Array.isArray(list) && list.length === 0) {
         setBays([]);
-        const map = mapRef.current;
         const bounds = new window.google.maps.LatLngBounds();
         bounds.extend(new window.google.maps.LatLng(dest.lat, dest.lng));
-        if (!bounds.isEmpty()) map.fitBounds(bounds);
+        const map = mapRef.current;
+        if (!bounds.isEmpty() && map) map.fitBounds(bounds);
         return;
       }
 
-      // Normal render
       const map = mapRef.current;
       const bounds = new window.google.maps.LatLngBounds();
       bounds.extend(new window.google.maps.LatLng(dest.lat, dest.lng));
 
       setBays(list);
       list.forEach((b, i) => {
-        const label = String.fromCharCode(65 + i); // A/B/C...
+        const label = String.fromCharCode(65 + i);
         addBayMarker(b, label);
         if (hasLatLng(b)) bounds.extend(new window.google.maps.LatLng(b.lat, b.lng));
       });
 
-      if (!bounds.isEmpty()) map.fitBounds(bounds);
+      if (!bounds.isEmpty() && map) map.fitBounds(bounds);
     } finally {
       setFetching(false);
     }
   }
 
-  /* ===== Bay selection ===== */
+  /* ===== Select bay ===== */
   async function onSelectBay(bay) {
     if (!bay) return;
-
     if (!hasLatLng(bay)) {
       setSelectedBay(bay?.name || "Unknown bay");
       setError("This bay has invalid coordinates.");
@@ -541,7 +459,6 @@ export default function Search() {
 
     setSelectedBay(bay.name);
 
-    // Keep camera aligned and show name bubble
     const map = mapRef.current;
     const marker = markerByIdRef.current.get(bay.id);
     if (marker && map) {
@@ -550,7 +467,17 @@ export default function Search() {
       openInfoWindowForBay(bay, marker);
     }
 
-    // Try routing from user's current location; fallback to searched destination.
+    // Availability from list item (unoccupied → 100 / 0)
+    if (typeof bay.unoccupied === "boolean") {
+      const avail = bay.unoccupied ? 100 : 0;
+      setAvailability(avail);
+      setUpdatedAt(bay.timestamp || new Date().toISOString());
+    } else {
+      setAvailability(null);
+      setUpdatedAt(null);
+    }
+
+    // Routing: try user location → fallback destination
     let routed = false;
     try {
       if (!userLocRef.current) {
@@ -566,26 +493,12 @@ export default function Search() {
         try {
           await drawDrivingRoute(destRef.current, { lat: bay.lat, lng: bay.lng });
           routed = true;
-        } catch {/* ignore */}
+        } catch {
+          setError((prev) => prev || "Fallback routing failed.");
+        }
       } else {
         setError("Could not access your location, and no destination is set.");
       }
-    }
-
-    // Status
-    try {
-      const latest = await apiFetchBayHistoryLatest(bay.id);
-      setBayStatus(latest);
-    } catch {
-      const m = mockLatest();
-      const availabilityPercent = Math.max(0, Math.min(100, 100 - m.occupiedPercent));
-      setBayStatus({
-        occupiedPercent: m.occupiedPercent,
-        availabilityPercent,
-        unoccupied: m.unoccupied,
-        timestamp: m.timestamp,
-      });
-      setError((e) => e || "History API unavailable. Showing mock status.");
     }
 
     if (!routed) clearRoute();
@@ -597,10 +510,20 @@ export default function Search() {
   /* ===== UI ===== */
   const hasDestination = !!destRef.current;
 
+  // radius input handlers
+  const onRadiusInput = (e) => {
+    const val = e.target.value;
+    setRadius(val);
+  };
+  const onApplyRadius = () => {
+    // re-fetch with new radius if already has destination
+    if (destRef.current) fetchAndRenderBays(destRef.current);
+  };
+
   return (
     <div style={{ background: "#f5f6fa", minHeight: "calc(100vh - 60px)", padding: 28, marginTop: 60 }}>
-      {/* Toolbar */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", marginBottom: 12 }}>
+      {/* Toolbar (search + radius + refresh) */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 12, alignItems: "center", marginBottom: 12 }}>
         <input
           id="search-box"
           type="text"
@@ -608,6 +531,28 @@ export default function Search() {
           aria-label="Search for a destination"
           style={{ width: "100%", padding: "14px 16px", fontSize: 16, border: "1px solid #d1d5db", borderRadius: 12, background: "#fff" }}
         />
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label htmlFor="radius-input" style={{ fontSize: 14, color: "#374151", fontWeight: 600 }}>Radius (m):</label>
+          <input
+            id="radius-input"
+            type="number"
+            min={50}
+            max={5000}
+            step={50}
+            value={radius}
+            onChange={onRadiusInput}
+            style={{ width: 120, padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: 10, background: "#fff" }}
+          />
+          <button
+            onClick={onApplyRadius}
+            disabled={loadingMap || fetching || !hasDestination}
+            style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #374151", background: "#374151", color: "#fff", fontWeight: 700 }}
+          >
+            Apply
+          </button>
+        </div>
+
         <button
           onClick={onRefresh}
           disabled={loadingMap || fetching || !hasDestination}
@@ -633,7 +578,7 @@ export default function Search() {
             <h3 style={{ margin: 0, fontWeight: 800, fontSize: 18, color: "#111827" }}>Available Parking Bays</h3>
             {bays.length > 0 && (
               <span style={{ fontSize: 13, color: "#374151", background: "#eef2ff", border: "1px solid #e5e7eb", padding: "4px 8px", borderRadius: 8 }}>
-                {bays.length} result{bays.length > 1 ? "s" : ""} (±{DEFAULT_RADIUS}m)
+                {bays.length} result{bays.length > 1 ? "s" : ""} (±{Math.max(50, Math.min(5000, Number(radius) || 300))}m)
               </span>
             )}
           </div>
@@ -645,7 +590,7 @@ export default function Search() {
               <div style={{ color: "#6b7280" }}>No parking bays nearby.</div>
             ) : (
               bays.map((bay, i) => {
-                const label = String.fromCharCode(65 + i); // A/B/C...
+                const label = String.fromCharCode(65 + i);
                 return (
                   <button
                     key={bay.id}
@@ -662,7 +607,7 @@ export default function Search() {
         </div>
       )}
 
-      {/* Status panel */}
+      {/* Status panel — ONLY Availability + Distance + ETA */}
       {hasDestination && (
         <div style={{ background: "#fff", padding: 20, borderRadius: 16, border: "1px solid #e5e7eb", boxShadow: "0 6px 18px rgba(0,0,0,.05)" }}>
           <h3 style={{ marginTop: 0, marginBottom: 8, fontWeight: 800, color: "#111827" }}>
@@ -674,28 +619,27 @@ export default function Search() {
             </div>
           )}
 
-          {selectedBay && bayStatus ? (
+          {selectedBay ? (
             <>
-              <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
-                <Badge label="Occupied %" value={`${bayStatus.occupiedPercent}%`} tone={bayStatus.occupiedPercent >= 50 ? "danger" : "ok"} />
-                <Badge label="Availability %" value={`${bayStatus.availabilityPercent}%`} tone={bayStatus.availabilityPercent >= 50 ? "ok" : "danger"} />
-                <Badge label="State" value={bayStatus.unoccupied ? "Available" : "Occupied"} tone={bayStatus.unoccupied ? "ok" : "danger"} />
-                <div style={{ fontSize: 12, color: "#6b7280" }}>
-                  Updated at {new Date(bayStatus.timestamp).toLocaleTimeString()}
-                </div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                {availability !== null && (
+                  <Badge label="Availability %" value={`${availability}%`} tone={availability >= 50 ? "ok" : "danger"} />
+                )}
+                {routeInfo && (
+                  <>
+                    <Badge label="Driving distance" value={routeInfo.distanceText} tone="ok" />
+                    <Badge label="ETA" value={routeInfo.durationText} tone="ok" />
+                  </>
+                )}
+                {updatedAt && (
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>
+                    Updated at {new Date(updatedAt).toLocaleTimeString()}
+                  </div>
+                )}
               </div>
-
-              {routeInfo && (
-                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                  <Badge label="Driving distance" value={routeInfo.distanceText} tone="ok" />
-                  <Badge label="ETA" value={routeInfo.durationText} tone="ok" />
-                </div>
-              )}
             </>
-          ) : selectedBay ? (
-            <div style={{ color: "#6b7280" }}>Loading latest status…</div>
           ) : (
-            <div style={{ color: "#6b7280" }}>Choose a bay to see its status and route.</div>
+            <div style={{ color: "#6b7280" }}>Choose a bay to see availability and route.</div>
           )}
         </div>
       )}
