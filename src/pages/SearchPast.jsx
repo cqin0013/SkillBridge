@@ -2,36 +2,51 @@ import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 
 /**
- * Search page — user-selectable radius + backend + normalization + directions
+ * Search page — real-time bays + per-bay detail lookup
  *
- * Backend contract:
- *   /api/parking → [{ bayId, unoccupied, lat, lon, timestamp, name? }, ...]
- *   (lon is mapped to lng; bayId mapped to id)
+ * Real-time list:
+ *   GET https://fit-8mtq.onrender.com/api/parking?near=lat,lng&radius=300&onlyAvailable=true
  *
- * Status panel shows:
- *   - Availability (no percentage, just available/unavailable)
- *   - Prediction: available   (mock)
- *   - History: available (mock)
- *   - Driving distance, ETA
- * New: user can choose route origin — Destination (default) or My location.
+ * Bay detail by bayId (lat,lng with 6 decimals):
+ *   GET https://fit-8mtq.onrender.com/api/bays/{bayId}
+ *
+ * Rules:
+ *   rt = real-time occupied (boolean), past = detail occupied (boolean)
+ *   - rt=false & past=false → Prediction: "available",   History: "available in the past"
+ *   - rt=false & past=true  → Prediction: "50% possibilities available",   History: "unavailable in the past"
+ *   - rt=true  & past=false → Prediction: "50% possibilities unavailable", History: "available in the past"
+ *   - rt=true  & past=true  → Prediction: "unavailable", History: "unavailable in the past"
  */
 
 export default function Search() {
-  /*  Configuration */
+  /* Config */
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const API_BASE = "https://fit-8mtq.onrender.com";
+  const PARKING_API_BASE = "https://fit-8mtq.onrender.com";     // ← 改成线上
+  const BAY_DETAIL_BASE = "https://fit-8mtq.onrender.com";       // ← 同域
 
-  /* State / Refs  */
-  const [bays, setBays] = useState([]);            // [{id,name,lat,lng,unoccupied,timestamp}]
+  /* State */
+  const [bays, setBays] = useState([]); // [{id,name,lat,lng,occupied,unoccupied,timestamp}]
   const [loadingMap, setLoadingMap] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
 
   const [selectedBayName, setSelectedBayName] = useState(null);
-  const [selectedBayObj, setSelectedBayObj] = useState(null); // keep the object for redraws
-  const [availability, setAvailability] = useState(null);     // "available" | "unavailable" | null
+  const [selectedBayObj, setSelectedBayObj] = useState(null);
+
+  // Availability (from real-time): "available" / "unavailable" / null
+  const [availability, setAvailability] = useState(null);
   const [updatedAt, setUpdatedAt] = useState(null);
+
+  // Route info
   const [routeInfo, setRouteInfo] = useState(null);
+
+  // prediction & history (from detail bay API + comparison)
+  const [prediction, setPrediction] = useState(null);
+  const [historyText, setHistoryText] = useState(null);
+
+  // NEW: expose bayId detail in UI
+  const [bayDetailId, setBayDetailId] = useState(null);
+  const [bayDetail, setBayDetail] = useState(null); // 原始 JSON
 
   // user-selectable radius (meters)
   const [radius, setRadius] = useState(300);
@@ -39,6 +54,7 @@ export default function Search() {
   // route origin: "destination" | "mylocation"
   const [routeOrigin, setRouteOrigin] = useState("destination");
 
+  /* Refs */
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const markerByIdRef = useRef(new Map());
@@ -54,14 +70,13 @@ export default function Search() {
 
   const defaultCenter = { lat: -37.8136, lng: 144.9631 };
 
-  /*  Helpers: validation  */
+  /* Helpers */
   const toNum = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
   const isFiniteNum = (n) => typeof n === "number" && Number.isFinite(n);
   const isLat = (n) => isFiniteNum(n) && n >= -90 && n <= 90;
   const isLng = (n) => isFiniteNum(n) && n >= -180 && n <= 180;
   const hasLatLng = (o) => o && isLat(o.lat) && isLng(o.lng);
 
-  /*  Styles: bay list grid  */
   const gridContainerStyle = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
@@ -164,7 +179,7 @@ export default function Search() {
     }
   };
 
-  /* Map markers */
+  /* Map markers (Destination / You / Start-End / Bay) */
   const addDestinationMarker = (position) => {
     const google = window.google;
     const map = mapRef.current;
@@ -367,16 +382,16 @@ export default function Search() {
     });
   }
 
-  /* Backend: /api/parking */
+  /* Real-time list: /api/parking (online) */
   async function apiFetchBays(near, customRadius) {
     const radiusToUse = Math.max(50, Math.min(5000, Number(customRadius) || 300)); // clamp 50–5000m
     const qs = new URLSearchParams();
     if (near) qs.set("near", `${near.lat},${near.lng}`);
     qs.set("onlyAvailable", "true");
     qs.set("radius", String(radiusToUse));
-    const url = `${API_BASE}/api/parking?${qs.toString()}`;
+    const url = `${PARKING_API_BASE}/api/parking?${qs.toString()}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, { credentials: "omit" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const raw = await res.json();
@@ -387,17 +402,39 @@ export default function Search() {
         const id = x.id ?? x.bayId ?? i + 1;
         const name = x.name || x.title || `Bay ${String.fromCharCode(65 + i)}`;
         const lat = toNum(x.lat);
-        const lng = toNum(x.lng ?? x.lon); // compat: lon → lng
-        const unoccupied = typeof x.unoccupied === "boolean" ? x.unoccupied : null;
+        const lng = toNum(x.lng ?? x.lon);
+        const occupied = typeof x.occupied === "boolean" ? x.occupied
+                        : (typeof x.unoccupied === "boolean" ? !x.unoccupied : null);
+        const unoccupied = typeof x.unoccupied === "boolean" ? x.unoccupied
+                          : (typeof x.occupied === "boolean" ? !x.occupied : null);
         const timestamp = x.timestamp ?? null;
-        return { id, name, lat, lng, unoccupied, timestamp };
+        return { id, name, lat, lng, occupied, unoccupied, timestamp };
       })
       .filter(hasLatLng);
 
-    return normalized; // may be []
+    return normalized;
   }
 
-  /* Fetch + render */
+  /* Bay detail by bayId (lat,lng to 6 decimals) */
+  function makeBayIdFromCoords(lat, lng) {
+    return `${(+lat).toFixed(6)},${(+lng).toFixed(6)}`;
+  }
+
+  async function apiFetchBayDetailById(bay) {
+    if (!hasLatLng(bay)) throw new Error("Bay has no coordinates");
+    const bayId = makeBayIdFromCoords(bay.lat, bay.lng);
+    const url = `${BAY_DETAIL_BASE}/api/bays/${encodeURIComponent(bayId)}`;
+    const res = await fetch(url, { credentials: "omit" });
+    if (!res.ok) throw new Error(`Bay detail HTTP ${res.status}`);
+    const j = await res.json(); // expects { occupied: boolean, ... }
+    const pastOccupied =
+      typeof j.occupied === "boolean"
+        ? j.occupied
+        : (typeof j.unoccupied === "boolean" ? !j.unoccupied : null);
+    return { bayId, pastOccupied, raw: j };
+  }
+
+  /* Fetch + render list */
   async function fetchAndRenderBays(dest) {
     if (!dest) {
       clearRoute();
@@ -407,7 +444,11 @@ export default function Search() {
       setSelectedBayName(null);
       setSelectedBayObj(null);
       setAvailability(null);
+      setPrediction(null);
+      setHistoryText(null);
       setUpdatedAt(null);
+      setBayDetailId(null);
+      setBayDetail(null);
       setError("");
       return;
     }
@@ -417,7 +458,11 @@ export default function Search() {
     setSelectedBayName(null);
     setSelectedBayObj(null);
     setAvailability(null);
+    setPrediction(null);
+    setHistoryText(null);
     setUpdatedAt(null);
+    setBayDetailId(null);
+    setBayDetail(null);
     clearRoute();
     closeInfoWindow();
 
@@ -459,7 +504,7 @@ export default function Search() {
     }
   }
 
-  /* Route from chosen origin (helper) */
+  /* Route from chosen origin */
   async function routeToBay(bay) {
     if (!bay || !hasLatLng(bay)) return;
 
@@ -476,7 +521,7 @@ export default function Search() {
       return;
     }
 
-    // routeOrigin === "mylocation"
+    // mylocation
     try {
       if (!userLocRef.current) {
         const loc = await getUserLocation();
@@ -489,7 +534,7 @@ export default function Search() {
     }
   }
 
-  /* Select bay */
+  /* Click a bay */
   async function onSelectBay(bay) {
     if (!bay) return;
     if (!hasLatLng(bay)) {
@@ -502,6 +547,7 @@ export default function Search() {
     setSelectedBayName(bay.name);
     setSelectedBayObj(bay);
 
+    // center and open label
     const map = mapRef.current;
     const marker = markerByIdRef.current.get(bay.id);
     if (marker && map) {
@@ -510,8 +556,11 @@ export default function Search() {
       openInfoWindowForBay(bay, marker);
     }
 
-    // Availability as text (no %)
-    if (typeof bay.unoccupied === "boolean") {
+    // Availability (from real-time list)
+    if (typeof bay.occupied === "boolean") {
+      setAvailability(bay.occupied ? "unavailable" : "available");
+      setUpdatedAt(bay.timestamp || new Date().toISOString());
+    } else if (typeof bay.unoccupied === "boolean") {
       setAvailability(bay.unoccupied ? "available" : "unavailable");
       setUpdatedAt(bay.timestamp || new Date().toISOString());
     } else {
@@ -519,7 +568,43 @@ export default function Search() {
       setUpdatedAt(null);
     }
 
-    // Route according to user choice
+    // Prediction + History (compare with bay detail API) + show detail
+    try {
+      const detail = await apiFetchBayDetailById(bay);
+      setBayDetailId(detail.bayId);
+      setBayDetail(detail.raw);
+
+      const rtOcc =
+        typeof bay.occupied === "boolean"
+          ? bay.occupied
+          : (typeof bay.unoccupied === "boolean" ? !bay.unoccupied : null);
+
+      if (typeof rtOcc === "boolean" && typeof detail.pastOccupied === "boolean") {
+        if (!rtOcc && !detail.pastOccupied) {
+          setPrediction("available");
+          setHistoryText("available in the past");
+        } else if (!rtOcc && detail.pastOccupied) {
+          setPrediction("50% possibilities available");
+          setHistoryText("unavailable in the past");
+        } else if (rtOcc && !detail.pastOccupied) {
+          setPrediction("50% possibilities unavailable");
+          setHistoryText("available in the past");
+        } else if (rtOcc && detail.pastOccupied) {
+          setPrediction("unavailable");
+          setHistoryText("unavailable in the past");
+        }
+      } else {
+        setPrediction("unknown");
+        setHistoryText("unknown");
+      }
+    } catch {
+      setPrediction("unknown");
+      setHistoryText("unknown");
+      setBayDetailId(null);
+      setBayDetail(null);
+    }
+
+    // draw route
     await routeToBay(bay);
   }
 
@@ -534,14 +619,10 @@ export default function Search() {
   /* Refresh */
   const onRefresh = () => fetchAndRenderBays(destRef.current);
 
-  /* UI */
+  /* UI helpers */
   const hasDestination = !!destRef.current;
-
-  // radius input
   const onRadiusInput = (e) => setRadius(e.target.value);
   const onApplyRadius = () => { if (destRef.current) fetchAndRenderBays(destRef.current); };
-
-  // route origin handlers
   const setOriginDestination = () => setRouteOrigin("destination");
   const setOriginMyLocation = () => setRouteOrigin("mylocation");
 
@@ -555,9 +636,10 @@ export default function Search() {
     cursor: "pointer",
   });
 
+  /* Render */
   return (
     <div style={{ background: "#f5f6fa", minHeight: "calc(100vh - 60px)", padding: 28, marginTop: 60 }}>
-      {/* Toolbar (search + radius + origin + refresh) */}
+      {/* Toolbar */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto auto", gap: 12, alignItems: "center", marginBottom: 12 }}>
         <input
           id="search-box"
@@ -653,12 +735,13 @@ export default function Search() {
         </div>
       )}
 
-      {/* Status panel — Availability (text) + Prediction + History + Distance/ETA */}
+      {/* Status panel */}
       {hasDestination && (
         <div style={{ background: "#fff", padding: 20, borderRadius: 16, border: "1px solid #e5e7eb", boxShadow: "0 6px 18px rgba(0,0,0,.05)" }}>
           <h3 style={{ marginTop: 0, marginBottom: 8, fontWeight: 800, color: "#111827" }}>
             {selectedBayName ? "Status" : "Select a Parking Bay"}
           </h3>
+
           {selectedBayName && (
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#111827" }}>
               {selectedBayName}
@@ -667,13 +750,12 @@ export default function Search() {
 
           {selectedBayName ? (
             <>
-              <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
                 {availability && (
                   <Badge label="Availability" value={availability} tone={availability === "available" ? "ok" : "danger"} />
                 )}
-                {/* Mock add-ons as requested */}
-                <Badge label="Prediction" value="available" tone="ok" />
-                <Badge label="History" value="available in the past" tone="ok" />
+                {prediction && <Badge label="Prediction" value={prediction} tone={prediction.includes("unavail") ? "danger" : "ok"} />}
+                {historyText && <Badge label="History" value={historyText} tone={historyText.includes("unavail") ? "danger" : "ok"} />}
 
                 {routeInfo && (
                   <>
@@ -687,9 +769,33 @@ export default function Search() {
                   </div>
                 )}
               </div>
+
+              {/* NEW: Bay detail (from bayId) */}
+              {(bayDetailId || bayDetail) && (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontWeight: 800, marginBottom: 6, color: "#111827" }}>
+                    Detail (by bayId){bayDetailId ? ` — ${bayDetailId}` : ""}
+                  </div>
+                  <pre
+                    style={{
+                      margin: 0,
+                      padding: 12,
+                      background: "#0b1220",
+                      color: "#d1e7ff",
+                      borderRadius: 12,
+                      border: "1px solid #0f1b37",
+                      maxHeight: 240,
+                      overflow: "auto",
+                      fontSize: 12,
+                    }}
+                  >
+{JSON.stringify(bayDetail ?? { message: "No detail" }, null, 2)}
+                  </pre>
+                </div>
+              )}
             </>
           ) : (
-            <div style={{ color: "#6b7280" }}>Choose a bay to see availability and route.</div>
+            <div style={{ color: "#6b7280" }}>Choose a bay to see availability, prediction, and route.</div>
           )}
         </div>
       )}

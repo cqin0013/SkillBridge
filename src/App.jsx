@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-do
 import Search from './pages/Search';
 import Insight from './pages/Insight';
 import './App.css';
+import SearchPast from './pages/SearchPast';
 import Home from "./pages/Home";
 
 function App() {
@@ -15,6 +16,9 @@ function App() {
           <NavLink to="/Search" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
             Search
           </NavLink>
+          <NavLink to="/SearchPast" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
+            SearchPast
+          </NavLink>
           <NavLink to="/Insight" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
             Insight
           </NavLink>
@@ -26,6 +30,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/Home" element={<Home />} />
           <Route path="/Search" element={<Search />} />
+          <Route path="/SearchPast" element={<SearchPast />} />
           <Route path="/Insight" element={<Insight />} />
         </Routes>
       </div>
