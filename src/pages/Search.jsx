@@ -8,7 +8,11 @@ import { Loader } from "@googlemaps/js-api-loader";
  *   /api/parking → [{ bayId, unoccupied, lat, lon, timestamp, name? }, ...]
  *   (lon is mapped to lng; bayId mapped to id)
  *
- * UI (status strip): Availability %, Driving distance, ETA.
+ * Status panel shows:
+ *   - Availability (no percentage, just available/unavailable)
+ *   - Prediction: 预计available   (mock)
+ *   - History: 过去时间段available (mock)
+ *   - Driving distance, ETA
  * New: user can choose route origin — Destination (default) or My location.
  */
 
@@ -18,22 +22,21 @@ export default function Search() {
   const API_BASE = "https://fit-8mtq.onrender.com";
 
   /* State / Refs  */
-  const [bays, setBays] = useState([]); // [{id,name,lat,lng,unoccupied,timestamp}]
+  const [bays, setBays] = useState([]);            // [{id,name,lat,lng,unoccupied,timestamp}]
   const [loadingMap, setLoadingMap] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
 
   const [selectedBayName, setSelectedBayName] = useState(null);
   const [selectedBayObj, setSelectedBayObj] = useState(null); // keep the object for redraws
-  const [availability, setAvailability] = useState(null);
+  const [availability, setAvailability] = useState(null);     // "available" | "unavailable" | null
   const [updatedAt, setUpdatedAt] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
 
   // user-selectable radius (meters)
   const [radius, setRadius] = useState(300);
 
-  // NEW: user-selectable route origin
-  // "destination" | "mylocation"
+  // route origin: "destination" | "mylocation"
   const [routeOrigin, setRouteOrigin] = useState("destination");
 
   const mapRef = useRef(null);
@@ -461,7 +464,6 @@ export default function Search() {
     if (!bay || !hasLatLng(bay)) return;
 
     if (routeOrigin === "destination") {
-      // From searched destination (default)
       if (!destRef.current) {
         setError("No destination set yet. Please search a place first.");
         return;
@@ -508,10 +510,9 @@ export default function Search() {
       openInfoWindowForBay(bay, marker);
     }
 
-    // Availability from list item (unoccupied → 100 / 0)
+    // Availability as text (no %)
     if (typeof bay.unoccupied === "boolean") {
-      const avail = bay.unoccupied ? 100 : 0;
-      setAvailability(avail);
+      setAvailability(bay.unoccupied ? "available" : "unavailable");
       setUpdatedAt(bay.timestamp || new Date().toISOString());
     } else {
       setAvailability(null);
@@ -525,7 +526,6 @@ export default function Search() {
   /* Re-draw route when user changes origin option */
   useEffect(() => {
     if (!selectedBayObj) return;
-    // clear first to avoid overlap
     clearRoute();
     routeToBay(selectedBayObj);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -537,20 +537,14 @@ export default function Search() {
   /* UI */
   const hasDestination = !!destRef.current;
 
-  // radius input handlers
-  const onRadiusInput = (e) => {
-    const val = e.target.value;
-    setRadius(val);
-  };
-  const onApplyRadius = () => {
-    if (destRef.current) fetchAndRenderBays(destRef.current);
-  };
+  // radius input
+  const onRadiusInput = (e) => setRadius(e.target.value);
+  const onApplyRadius = () => { if (destRef.current) fetchAndRenderBays(destRef.current); };
 
   // route origin handlers
   const setOriginDestination = () => setRouteOrigin("destination");
   const setOriginMyLocation = () => setRouteOrigin("mylocation");
 
-  // simple active button style
   const originBtnStyle = (active) => ({
     padding: "10px 12px",
     borderRadius: 10,
@@ -595,7 +589,7 @@ export default function Search() {
           </button>
         </div>
 
-        {/* NEW: Route origin (Destination / My location) */}
+        {/* Route origin */}
         <div style={{ display: "flex", gap: 8 }}>
           <button type="button" onClick={setOriginDestination} style={originBtnStyle(routeOrigin === "destination")}>
             From: Destination
@@ -659,7 +653,7 @@ export default function Search() {
         </div>
       )}
 
-      {/* Status panel — ONLY Availability + Distance + ETA */}
+      {/* Status panel — Availability (text) + Prediction + History + Distance/ETA */}
       {hasDestination && (
         <div style={{ background: "#fff", padding: 20, borderRadius: 16, border: "1px solid #e5e7eb", boxShadow: "0 6px 18px rgba(0,0,0,.05)" }}>
           <h3 style={{ marginTop: 0, marginBottom: 8, fontWeight: 800, color: "#111827" }}>
@@ -674,9 +668,13 @@ export default function Search() {
           {selectedBayName ? (
             <>
               <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                {availability !== null && (
-                  <Badge label="Availability %" value={`${availability}%`} tone={availability >= 50 ? "ok" : "danger"} />
+                {availability && (
+                  <Badge label="Availability" value={availability} tone={availability === "available" ? "ok" : "danger"} />
                 )}
+                {/* Mock add-ons as requested */}
+                <Badge label="Prediction" value="available" tone="ok" />
+                <Badge label="History" value="available in the past" tone="ok" />
+
                 {routeInfo && (
                   <>
                     <Badge label="Driving distance" value={routeInfo.distanceText} tone="ok" />
