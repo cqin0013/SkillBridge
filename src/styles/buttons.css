@@ -1,0 +1,7 @@
+
+.btn { display:inline-flex; align-items:center; justify-content:center; padding:.7rem 1rem; border-radius:12px; text-decoration:none; border:1px solid transparent; transition: transform .15s, box-shadow .15s, opacity .15s; }
+.btn-primary { background:#2563eb; color:#fff; }
+.btn-outline { background:rgba(255,255,255,.06); color:#fff; border-color:rgba(255,255,255,.22); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.btn:active { transform: translateY(0) scale(.98); }
+.btn { min-height: 44px; min-width: 44px; }

@@ -1,0 +1,81 @@
+/* 顶部栏：全宽、粘顶、简单边线 */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background: #fff;
+  border-bottom: 1px solid #e6e8eb;
+}
+
+/* 内层：左右布局，居中对齐 */
+.row {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 品牌区 */
+.brand { display: flex; align-items: center; gap: 10px; }
+.badge { font-weight: 700; font-size: 12px; padding: 4px 8px; border-radius: 999px; background: #0f172a; color: #fff; }
+.title { margin: 0; font-size: 18px; font-weight: 800; }
+.sub   { margin: 0; font-size: 13px; color: #556; }
+
+/* 导航（桌面） */
+.nav { display: flex; align-items: center; gap: 8px; }
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav-link {
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #0f172a;
+}
+.nav-link:hover { background: #f1f5f9; }
+.nav-link.active { color: #2563eb; background: #e8efff; }
+
+/* CTA 使用你全局的 .btn 样式 */
+.cta { margin-left: 8px; }
+
+/* 手机菜单按钮（桌面隐藏，手机显示） */
+.menu-btn {
+  display: none;
+  width: 40px; height: 40px;
+  border: 1px solid #e6e8eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+/* 断点：900px 以下切换为下拉菜单 */
+@media (max-width: 900px) {
+  .row { flex-wrap: wrap; }
+
+  .menu-btn { display: block; }
+
+  /* 默认收起，下拉时占满一行 */
+  .nav {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-top: 8px;
+  }
+  .nav.show { display: flex; }
+
+  .menu { flex-direction: column; gap: 6px; }
+  .nav-link { width: 100%; }     /* 链接占满整行，便于手指点击 */
+  .cta { width: 100%; text-align: center; }
+}
