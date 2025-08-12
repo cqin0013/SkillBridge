@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
-import Search from './pages/Search/Search';
-import Insight from './pages/Insight/Insight';
+import Search from './pages/Search/Search.jsx';
+import Insight from './pages/Insight/Insight.jsx';
 import './App.css';
 import MainLayout from "./layouts/MainLayout";
-import Home from "./pages/Home/Home";
+import Home from "./pages/Home/Home.jsx";
 
 function App() {
   return (
