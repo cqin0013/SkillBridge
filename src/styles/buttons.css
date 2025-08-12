@@ -1,7 +1,82 @@
 
-.btn { display:inline-flex; align-items:center; justify-content:center; padding:.7rem 1rem; border-radius:12px; text-decoration:none; border:1px solid transparent; transition: transform .15s, box-shadow .15s, opacity .15s; }
-.btn-primary { background:#2563eb; color:#fff; }
-.btn-outline { background:rgba(255,255,255,.06); color:#fff; border-color:rgba(255,255,255,.22); }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
-.btn:active { transform: translateY(0) scale(.98); }
-.btn { min-height: 44px; min-width: 44px; }
+/* 让 a/button 都像按钮一样 */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+
+    transition: transform .12s ease, box-shadow .12s ease, background .2s ease, border-color .2s ease, color .2s ease;
+    user-select: none;
+}
+
+/* 变体 */
+.btn-primary {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .12);
+}
+
+.btn-primary:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.btn-outline {
+    background: #fff;
+    color: #111827;
+    border-color: #d1d5db;
+}
+
+.btn-outline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-outline:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* 尺寸（可选） */
+.btn-sm {
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.btn-lg {
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 15px;
+}
+
+/* 深色主题（可选） */
+@media (prefers-color-scheme: dark) {
+    .btn-outline {
+        background: #0b1220;
+        color: #e5e7eb;
+        border-color: #233047;
+    }
+
+    .btn-outline:hover {
+        background: #111827;
+        border-color: #334155;
+    }
+}

@@ -1,0 +1,27 @@
+.insight-chart-page { padding: 24px; }
+.insight-chart-wrap { max-width: 1080px; margin: 0 auto; }
+
+/* 返回按钮区 */
+.insight-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.insight-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.insight-btn:hover { background: #f8fafc; }
+
+.insight-title { margin: 0 0 8px; font-size: 24px; font-weight: 800; }
+
+.insight-note { color: #6b7280; margin: 4px 0; }
+.insight-error { color: #b45309; }
+
+.insight-canvas { width: 100%; max-height: 480px; }

@@ -1,0 +1,57 @@
+.insight-page {
+    padding: 24px;
+}
+
+.insight-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.insight-header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.insight-header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.insight-header p {
+    margin-top: 6px;
+    color: #6b7280;
+}
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.insight-card {
+    display: block;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+
+.insight-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .10);
+    border-color: #d8dde4;
+}
+
+.insight-card-title {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.insight-card-sub {
+    margin: 0;
+    color: #4b5563;
+}

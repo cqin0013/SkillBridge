@@ -1,0 +1,147 @@
+/* --- Toolbar --- */
+.search-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.search-box {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.refresh-btn {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #111827;
+  background: #111827;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 110px;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+}
+.refresh-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.12);
+}
+.refresh-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* --- Notices --- */
+.notice {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #6b7280;
+}
+.notice.error { color: #b45309; }
+
+/* --- Map --- */
+.map {
+  width: 100%;
+  height: 360px;                 /* 固定高度：即使没数据也可见 */
+  border-radius: 16px;
+  margin-bottom: 16px;
+  background: #e5e7eb;           /* 地图未挂载时的灰底 */
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+
+/* --- Available Bays 面板 --- */
+.panel {
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panel-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 18px;
+  color: #111827;
+}
+
+.count-badge {
+  font-size: 13px;
+  color: #374151;
+  background: #eef2ff;
+  border: 1px solid #e5e7eb;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.muted { color: #6b7280; }
+
+/* --- Bay cards grid --- */
+.bay-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: stretch;
+}
+
+.bay-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  min-height: 52px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease;
+}
+.bay-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.08);
+  border-color: #cbd5e1;
+}
+.bay-card:active { transform: translateY(-1px) scale(.99); }
+.bay-card.active { background: #ecfeff; border-color: #06b6d4; }
+
+/* --- Mobile tweaks --- */
+@media (max-width: 720px) {
+  .search-toolbar { grid-template-columns: 1fr; } /* 输入框与按钮上下排 */
+  .map { height: 320px; }
+}
+
+/* 深色模式（可选） */
+@media (prefers-color-scheme: dark) {
+  .search-box { background:#0b1220; color:#e5e7eb; border-color:#233047; }
+  .refresh-btn { border-color:#e5e7eb; }
+  .map { background:#111827; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  .panel { background:#0b1220; border-color:#233047; box-shadow:none; }
+  .panel-title { color:#e5e7eb; }
+  .count-badge { background:#0b1a34; border-color:#233047; color:#93c5fd; }
+  .muted { color:#94a3b8; }
+  .bay-card { background:#0b1220; border-color:#233047; color:#e5e7eb; }
+  .bay-card.active { background:#052a30; border-color:#0ea5b7; }
+}
