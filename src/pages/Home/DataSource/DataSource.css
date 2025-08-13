@@ -31,28 +31,25 @@
   box-shadow: none;
 }
 
-/* ===== 列表：自适应网格，展示全部卡片，不再滚动 ===== */
+/* 列表：自适应网格，展示全部卡片，不再滚动 */
 .data-source-list {
-  /* 网格：列数随屏幕变化自动增减，所有卡片都能看到 */
   display: grid;
   gap: clamp(1rem, 2.4vw, 2rem);
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-
-  /* 让左右更宽松一点 */
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   padding: 0 clamp(1rem, 4vw, 2.25rem);
-
-  /* 关键：不需要横向滚动，也不显示滚动条 */
-  overflow: visible; /* 默认即可，明确说明不滚动 */
+overflow: visible;
 }
 
-/* 超小屏时把最小卡片宽调小一些，避免拥挤 */
+/* 超小屏时把最小卡片宽调小一些，避免拥挤 —— 这里要正确闭合大括号！ */
 @media (max-width: 420px) {
   .data-source-list {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
+}
 
+/* ←← 这一行是你之前缺失的大括号 */
 
-/* ===== 卡片样式（不再使用 flex 固定宽度） ===== */
+/* 卡片样式 */
 .data-source-item {
   display: block;
   width: 100%;                 /* 占满网格单元 */
@@ -64,7 +61,6 @@
   text-decoration: none;
   transition: box-shadow .2s, transform .2s, border-color .2s;
 }
-
 .data-source-item:hover,
 .data-source-item:focus-visible {
   transform: translateY(-4px);
@@ -72,7 +68,6 @@
   border-color: #d8dde4;
   outline: none;
 }
-
 .data-source-item:active {
   transform: translateY(-1px) scale(.99);
 }
@@ -88,5 +83,4 @@
   color: #4b5563;
   font-size: .925rem;
   line-height: 1.45;
-}
 }
