@@ -50,9 +50,74 @@
 }
 .ds-link:hover{ background: #f8fafc; }
 
-/* 移动端微缩，保持可读 */
+/* === 仅移动端：两张卡片，左右滑动切换；桌面端不变 === */
 @media (max-width: 768px){
-  .ds-table{ font-size: 16px; min-width: 720px; }
-  .ds-table th, .ds-table td{ padding: 12px 14px; }
-  .ds-link{ padding: 8px 12px; font-size: 15px; }
+/* 拉到全屏宽，便于边缘手势滑动 */
+    .ds-slider {
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        width: 100vw;
+    }
+
+    /* 轨道改为横向滑动，单页占据大部分屏宽 */
+    .ds-track {
+        display: flex;
+        /* 改为横向排布 */
+        gap: 12px;
+        padding: 0 12px 10px;
+        /* 侧边内边距 + 滚动条空间 */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 12px;
+    }
+
+    /* 每个卡片一页：占 88% 屏宽，手指好滑、内容易读 */
+    .ds-card {
+        flex: 0 0 88vw;
+        /* 你也可以调 90vw/92vw */
+        max-width: 88vw;
+        scroll-snap-align: start;
+
+        border-radius: 12px;
+        padding: 14px 14px;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, .06);
+    }
+
+    .ds-card-title {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .ds-list {
+        margin: 0 0 10px 1.1em;
+    }
+
+    .ds-list li {
+        margin: 6px 0;
+    }
+
+    /* 控件：更易点的箭头 & 小圆点 */
+    .ds-controls {
+        grid-template-columns: auto 1fr auto;
+        gap: 8px;
+        padding: 0 12px;
+        margin-top: 8px;
+    }
+
+    .ds-arrow {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .ds-dots {
+        gap: 8px;
+    }
+
+    .ds-dot {
+        width: 8px;
+        height: 8px;
+    }
 }

@@ -3,9 +3,8 @@
 padding: 32px;
     color: #000;
 }
-
 .insight-page a {
-    color: inherit;
+color: inherit;
     text-decoration: none;
 }
 
@@ -17,13 +16,13 @@ max-width: 1280px;
 /* ===== 标题与说明：居中 + 留空 ===== */
 .insight-header {
 text-align: center;
-margin-top: 8px;
+    margin-top: 8px;
     margin-bottom: 28px;
 }
 .insight-header h1 {
 margin: 0 0 8px;
     font-weight: 800;
-letter-spacing: -.01em;
+    letter-spacing: -.01em;
     font-size: clamp(28px, 3.2vw, 36px);
 }
 .insight-header p {
@@ -33,78 +32,75 @@ margin: 0;
 
 /* 小分组标题：居中 + 上下留空 */
 .insight-subheading {
-    text-align: center;
+text-align: center;
     margin: 32px 0 12px;
     font-weight: 800;
     font-size: clamp(18px, 2.4vw, 22px);
 }
 
-/* ===== 顶部两张缩略图：始终一排（两列），居中 & 无外框 ===== */
+/* ===== 顶部两张缩略图：桌面两列，居中；无外框 ===== */
 .insight-gallery {
-    /* 固定两列，但列宽由内容决定，让整组能居中 */
-    display: grid !important;
-    grid-template-columns: repeat(2, max-content) !important;
+display: grid !important;
+/* 两列且列宽自适应，避免溢出；比 max-content 更稳妥 */
+    grid-template-columns: repeat(2, minmax(260px, 1fr)) !important;
     gap: 16px;
-margin-bottom: 24px;
+    margin-bottom: 24px;
 
-    /* 不加底框：去掉外层 padding / 边框 / 阴影 / 背景 */
+/* 不加底框：去掉外层 padding / 边框 / 阴影 / 背景 */
     padding: 0;
     border: none;
     background: transparent;
     box-shadow: none;
 
-    /* 让两张卡片整体居中，且卡片在格子内也居中 */
+/* 居中摆放 */
     justify-content: center;
     justify-items: center;
     align-items: start;
 }
 
-/* 缩略图卡片：稍微宽一点；无边框阴影 */
+/* 缩略图卡片：适中宽度；无边框阴影 */
 .img-card {
-    position: relative;
-    /* 修正：原来写成了 position:center（无效） */
-    display: block;
-width: 100%;
+position: relative;
+display: block;
+    width: 100%;
     max-width: 360px;
-    /* ← 稍微宽一点：原 320 -> 360 */
+    /* 桌面理想卡片最大宽度 */
     border: none;
     /* 不加底框 */
     border-radius: 12px;
-overflow: hidden;
-    background: transparent;
+    overflow: hidden;
+        background: transparent;
     /* 不加底框背景 */
     transition: transform .15s ease;
 }
-
 .img-card:hover {
     transform: translateY(-2px);
 }
 
 /* 正方形画布容器：完整展示，不裁切、不缩放 */
 .thumb-canvas-wrap {
-    position: relative;
+position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1;
+aspect-ratio: 1 / 1;
     /* 正方形 */
     height: auto;
     overflow: hidden;
     border-radius: inherit;
-    background: #fff;
-    /* 可选：留白背景，便于对比；极简可改为 transparent */
+background: #fff;
+    /* 需极简可设为 transparent */
 }
-
 .thumb-canvas {
-    width: 100%;
+width: 100%;
     height: 100%;
     display: block;
-    transform: none !important;
+transform: none !important;
     /* 取消缩放，完整展示 */
     transform-origin: center center;
 }
 
 /* 预览加载骨架（覆盖在上面） */
 .thumb-skeleton {
-    position: absolute;
+position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
@@ -114,9 +110,8 @@ overflow: hidden;
     color: #6b7280;
     font-size: 14px;
 }
-
 @keyframes pulse {
-    0% {
+0% {
         background-position: 0 0;
     }
 
@@ -127,7 +122,7 @@ overflow: hidden;
 
 /* 覆盖文字：小一号、浅遮罩；仍可读 */
 .img-overlay {
-    position: absolute;
+position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
@@ -136,40 +131,44 @@ overflow: hidden;
     color: #000;
     text-align: center;
 }
-
 .img-title {
-    margin: 0 0 2px;
+margin: 0 0 2px;
     font-weight: 800;
     font-size: 15px;
 }
-
 .img-sub {
-    margin: 0;
-font-size: 12px;
+margin: 0;
+    font-size: 12px;
 }
-/* ===== 响应式：小屏也保持一排（两列），卡片稍微大于之前但依然较小 ===== */
-@media (max-width: 768px) {
-    .insight-gallery {
-        gap: 12px;
-    }
+/* ===== 移动端（≤768px）：一排横向滑动，更大触控面积 ===== */
 
-    .img-card {
-        max-width: 280px;
-    }
-
-    /* 小屏稍微放大于之前的 260 */
-    .img-title {
+.insight-gallery {
+    /* 改为横向滑动的一排，防止卡片被压得太小 */
+        display: flex !important;
+    gap: 12px;
+    padding: 0 12px 8px;
+        /* 内边距 + 给滚动条留空间 */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+}
+.img-card {
+    flex: 0 0 82vw;
+        /* 每张卡片占 82% 屏宽，足够大好点 */
+        max-width: 82vw;
+        scroll-snap-align: start;
+.img-title {
         font-size: 14px;
     }
 
-    .img-sub {
-        font-size: 12px;
-    }
+  .img-sub {
+      font-size: 12px;
+  }
 }
 
 /* 超大屏：可略微放大（可按需调整或删除） */
 @media (min-width: 1440px) {
-    .img-card {
+.img-card {
         max-width: 380px;
     }
 }
