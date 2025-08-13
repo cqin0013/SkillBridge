@@ -1,11 +1,11 @@
 /* 顶部栏：全宽、粘顶、简单边线 */
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #e6e8eb;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+    background: #fff;
+    border-bottom: 1px solid #e6e8eb;
 }
 
 /* 内层：左右布局，居中对齐（桌面） */

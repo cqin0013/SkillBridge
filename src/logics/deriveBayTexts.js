@@ -1,8 +1,8 @@
 /**
  * Pure logic: derive UI texts from API booleans.
  *
- * Rules (English):
- * - availability (from /api/parking):  rtAvailable -> "available"/"unavailable"
+ * Rules :
+ * - availability (from /api/parking):  "available"/"unavailable"
  * - history & prediction (from /api/bays/{bayId}):
  *    pastOccupied = true  -> history: "occupied in the past",   prediction: "50% available"
  *    pastOccupied = false -> history: "available in the past",   prediction: "available"
