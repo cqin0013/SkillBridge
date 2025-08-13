@@ -1,9 +1,5 @@
 /* =========================================================
-   MapSearch.css (mobile friendly)
-   - 兼容现有 HTML/JS，不需要改结构
-   - 桌面：三列工具栏；移动：自动折叠为一列，控件100%宽
-   - 可访问性：focus-visible 高对比描边
-   - 触控优化：按钮≥44px，range拇指更大
+   MapSearch.css (统一样式；无 pointer/dark/reduced-motion 模式) - 桌面：三列工具栏；移动：自动折叠为一列 - range 滑块：拇指 22px / 轨道 6px，垂直居中
    ========================================================= */
 
 /* --- Global touch/accessibility tweaks --- */
@@ -13,13 +9,13 @@ button,
 .solo-btn,
 input,
 select {
-    -webkit-tap-highlight-color: transparent;
+-webkit-tap-highlight-color: transparent;
 }
-
 :focus-visible {
-    outline: 2px solid #2563eb;
+outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
+
 /* --- Toolbar --- */
 .search-toolbar {
   display: grid;
@@ -34,12 +30,12 @@ grid-template-columns: 1fr auto auto;
   width: 100%;
   padding: 14px 16px;
 font-size: 16px;
-    /* 16px 避免 iOS 缩放 */
+    /* 避免 iOS 缩放 */
   border: 1px solid #d1d5db;
   border-radius: 12px;
   background: #fff;
 }
-/* 半径控件 */
+/* 半径控件（统一样式） */
 .radius-control {
 display: flex;
     align-items: center;
@@ -48,61 +44,54 @@ white-space: nowrap;
     /* 文本不换行 */
 }
 
-/* 统一自定义 range 样式（桌面+移动） */
+/* 统一自定义 range 样式（拇指居中） */
 .radius-control input[type="range"] {
 width: 180px;
-    /* 桌面宽度；移动端见媒体查询 */
+    /* 桌面宽度；移动端见下方媒体查询 */
     appearance: none;
     -webkit-appearance: none;
-    height: 6px;
+height: 22px;
+    /* 与拇指同高，便于居中 */
+    background: transparent;
+    /* 轨道单独绘制 */
+    outline: none;
+    cursor: pointer;
+}
+
+/* WebKit 轨道 / 拇指 */
+.radius-control input[type="range"]::-webkit-slider-runnable-track {
+height: 6px;
     border-radius: 999px;
     background: #e5e7eb;
-    outline: none;
 }
 .radius-control input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
+-webkit-appearance: none;
     appearance: none;
     width: 22px;
     height: 22px;
     border-radius: 50%;
     background: #111827;
     border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+    /* 核心：用负 margin-top 让拇指垂直居中在 6px 轨道上 */
+    margin-top: calc((22px - 6px) / -2);
 }
 
-.radius-control input[type="range"]::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #111827;
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
-}
-
-.radius-control input[type="range"]::-webkit-slider-runnable-track {
-    height: 6px;
-    border-radius: 999px;
-    background: #e5e7eb;
-}
-
+/* Firefox 轨道 / 拇指 */
 .radius-control input[type="range"]::-moz-range-track {
     height: 6px;
     border-radius: 999px;
     background: #e5e7eb;
 }
-
-/* 触控设备：拇指更大，便于拖动 */
-@media (pointer: coarse) {
-    .radius-control input[type="range"]::-webkit-slider-thumb {
-        width: 28px;
-        height: 28px;
-    }
-
-    .radius-control input[type="range"]::-moz-range-thumb {
-        width: 28px;
-        height: 28px;
-    }
+.radius-control input[type="range"]::-moz-range-thumb {
+width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #111827;
+    border: 2px solid #fff;
+box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
 }
+
 .refresh-btn {
   padding: 12px 16px;
   border-radius: 12px;
@@ -228,7 +217,7 @@ padding: 10px 14px;
     cursor: pointer;
 min-height: 44px;
     /* 触控更易点 */
-transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+    transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
 .solo-btn:hover:not(:disabled) {
 transform: translateY(-1px);
@@ -244,46 +233,42 @@ background: #111827;
     border-color: #111827;
 }
 
-/* --- Mobile tweaks --- */
+/* --- Mobile tweaks（仅保留响应式断点；非“模式”） --- */
 @media (max-width: 720px) {
-
-    /* 工具栏折叠为一列，控件顺序竖排 */
-    .search-toolbar {
+.search-toolbar {
         grid-template-columns: 1fr;
         gap: 10px;
         align-items: stretch;
     }
+  .radius-control {
+      width: 100%;
+  }
 
-    .radius-control {
-        width: 100%;
-    }
+  .radius-control input[type="range"] {
+      width: 100%;
+  }
 
-    .radius-control input[type="range"] {
-        width: 100%;
-        /* 滑杆全宽 */
-    }
+  /* 滑杆全宽 */
+  .refresh-btn {
+      width: 100%;
+      justify-self: stretch;
+  }
 
-    .refresh-btn {
-        width: 100%;
-        /* 按钮撑满一行 */
-        justify-self: stretch;
-    }
+  .map {
+      height: 320px;
+  }
 
-    .map {
-        height: 320px;
-    }
+  .panel {
+      padding: 16px;
+  }
 
-    .panel {
-        padding: 16px;
-    }
-
-    .count-badge {
-        margin-left: auto;
-    }
+  .count-badge {
+      margin-left: auto;
+  }
 }
 
 @media (max-width: 420px) {
-    .search-box {
+.search-box {
         padding: 12px 14px;
         font-size: 16px;
     }
@@ -304,107 +289,5 @@ background: #111827;
 
     .radius-control {
         gap: 6px;
-    }
-
-    .radius-control input[type="range"]::-webkit-slider-thumb {
-        width: 30px;
-        height: 30px;
-    }
-
-    .radius-control input[type="range"]::-moz-range-thumb {
-        width: 30px;
-        height: 30px;
-    }
-}
-
-/* 深色模式 */
-@media (prefers-color-scheme: dark) {
-.search-box {
-        background: #0b1220;
-        color: #e5e7eb;
-        border-color: #233047;
-    }
-
-    .refresh-btn {
-        border-color: #e5e7eb;
-    }
-
-    .map {
-        background: #111827;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
-    }
-
-    .panel {
-        background: #0b1220;
-        border-color: #233047;
-        box-shadow: none;
-    }
-
-    .panel-title {
-        color: #e5e7eb;
-    }
-
-    .count-badge {
-        background: #0b1a34;
-        border-color: #233047;
-        color: #93c5fd;
-    }
-
-    .muted {
-        color: #94a3b8;
-    }
-
-    .bay-card {
-        background: #0b1220;
-        border-color: #233047;
-        color: #e5e7eb;
-    }
-
-    .bay-card.active {
-        background: #052a30;
-        border-color: #0ea5b7;
-    }
-
-    .solo-btn {
-        background: #0b1220;
-        color: #e5e7eb;
-        border-color: #233047;
-    }
-
-    .solo-btn.active {
-        background: #e5e7eb;
-        color: #0b1220;
-        border-color: #e5e7eb;
-    }
-
-    /* 深色下的 range 轨道/拇指 */
-    .radius-control input[type="range"] {
-        background: #233047;
-    }
-
-    .radius-control input[type="range"]::-webkit-slider-runnable-track {
-        background: #233047;
-    }
-
-    .radius-control input[type="range"]::-moz-range-track {
-        background: #233047;
-    }
-
-    .radius-control input[type="range"]::-webkit-slider-thumb {
-        background: #e5e7eb;
-        border-color: #0b1220;
-    }
-
-    .radius-control input[type="range"]::-moz-range-thumb {
-        background: #e5e7eb;
-        border-color: #0b1220;
-    }
-}
-
-/* 减少动效：遵守系统设置 */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        transition: none !important;
-        animation: none !important;
     }
 }
