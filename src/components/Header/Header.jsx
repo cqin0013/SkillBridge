@@ -13,7 +13,7 @@ export default function Header() {
           <span className="badge">TE17</span>
           <div>
             <h1 className="title">Melbourne CBD Parking Finder</h1>
-            <p className="sub">Realtime availability, history & guidance</p>
+            <p className="sub">Availability, history & guidance</p>
           </div>
         </div>
 

@@ -1,0 +1,39 @@
+/* 整个图表区域容器：更宽、更居中 */
+.insight-chart-wrap{
+  width: min(96vw, 1200px);  /* 跟屏幕走，上限 1200px */
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+/* 画布随容器自适应：Chart.js 会根据容器宽度自动计算高度 */
+.insight-canvas{
+  display: block;
+  width: 100%;
+  max-width: 1200px;         /* 与容器一致 */
+  margin: 12px auto 0;
+}
+
+/* 可选：如果你希望高度也更“高一些”，在 JS 里把 maintainAspectRatio 设为 false，
+   然后在这里固定一个响应式高度，例如： */
+/*
+.insight-canvas{ height: clamp(300px, 52vh, 640px); }
+*/
+
+/* 返回按钮保持现状（如果你之前已有 .insight-btn 样式可以沿用） */
+.insight-actions{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+.insight-btn{
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #111827;
+  background: #fff; color: #111827; font-weight: 700;
+  text-decoration: none; cursor: pointer;
+  transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.insight-btn:hover{ background: #f8fafc; box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+.insight-btn:active{ transform: translateY(1px); }

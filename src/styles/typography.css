@@ -1,0 +1,62 @@
+/* ---- 全局字体与排版（统一所有页面） ---- */
+
+/* 可选：使用 Google Fonts（或换成本地 @font-face） */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+:root{
+  /* 英文 + 中文的优先/回退栈（可按需调整） */
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+               "Noto Sans CJK SC", "Source Han Sans SC", "Helvetica Neue",
+               Arial, system-ui, "Apple Color Emoji", "Segoe UI Emoji",
+               "Segoe UI Symbol", sans-serif;
+
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+               "Liberation Mono", "Courier New", monospace;
+
+  --font-size-base: 16px;      /* 全站基础字号 */
+  --leading-base: 1.6;         /* 全站基础行高 */
+  --text-color: #0f172a;       /* 全站默认文字颜色 */
+}
+
+html { font-size: var(--font-size-base); }
+
+body{
+  margin: 0;
+  font-family: var(--font-sans);
+  line-height: var(--leading-base);
+  color: var(--text-color);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 让表单/按钮也继承字体与字号 */
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* 链接默认跟随父色，交互时下划线 */
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* 标题的统一风格（响应式大小） */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 .5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+}
+h1 { font-size: clamp(1.75rem, 2.8vw, 2.25rem); }
+h2 { font-size: clamp(1.35rem, 2.2vw, 1.75rem); }
+h3 { font-size: clamp(1.15rem, 1.9vw, 1.35rem); }
+
+/* 常用文本工具（可选） */
+.text-sm { font-size: .875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.lead { font-size: 1.125rem; line-height: 1.55; }
+.muted { color: #6b7280; }
+.text-center { text-align: center; }
+
+/* 代码/等宽 */
+code, pre, kbd, samp { font-family: var(--font-mono); }

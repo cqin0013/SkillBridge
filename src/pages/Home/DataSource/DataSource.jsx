@@ -14,16 +14,6 @@ export default function DataSource() {
       <section className="data-source-card" aria-label="External data sources">
         <div className="data-source-list">
           <a
-            href="https://developers.google.com/maps/documentation/javascript/overview"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="data-source-item"
-          >
-            <h3>Google Maps JavaScript API</h3>
-            <p>Integrate interactive maps, markers and more into your app.</p>
-          </a>
-
-          <a
             href="https://data.melbourne.vic.gov.au/explore/dataset/on-street-parking-bay-sensors/information/"
             target="_blank"
             rel="noopener noreferrer"

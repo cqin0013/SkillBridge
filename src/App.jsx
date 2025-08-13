@@ -5,7 +5,7 @@ import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home/Home.jsx";
 import SearchPage from "./pages/Search/SearchPage.jsx";
 import Insight from "./pages/Insight/Insight.jsx";
-import InsightChart from "./pages/Insight/InsightChart.jsx";
+import InsightChart from "./pages/Insight/InsightChart/InsightChart.jsx";
 
 import "./App.css";
 

@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
 import "./Insight.css";
+import ChartThumb from "./ChartThumb";
+import DataInsight from "./DataInsight/DataInsight";
 
 export default function Insight() {
   return (
@@ -7,24 +8,28 @@ export default function Insight() {
       <div className="insight-wrap">
         <header className="insight-header">
           <h1>Insights</h1>
-          <p>Choose a metric to view.</p>
+          <p>Preview the charts below. Tap a card to view the full chart.</p>
         </header>
 
-        <div className="insight-grid">
-          <Link to="/insight/ownership" className="insight-card">
-            <h3 className="insight-card-title">Car ownership</h3>
-            <p className="insight-card-sub">
-              Passenger vehicles per 1,000 residents.
-            </p>
-          </Link>
+        {/* 顶部：两张缩略图（ChartThumb 使用后端数据实时渲染） */}
+        <section className="insight-gallery" aria-label="Insight previews">
+          <ChartThumb
+            type="ownership"
+            title="Car ownership"
+            sub="Passenger vehicles per 1,000 residents."
+            to="/insight/ownership"
+          />
+          <ChartThumb
+            type="population"
+            title="CBD population"
+            sub="Resident population in Melbourne CBD."
+            to="/insight/population"
+          />
+        </section>
 
-          <Link to="/insight/population" className="insight-card">
-            <h3 className="insight-card-title">CBD population</h3>
-            <p className="insight-card-sub">
-              Resident population in Melbourne CBD.
-            </p>
-          </Link>
-        </div>
+        {/* 下方：数据源表格（可复用） */}
+        <h2 className="insight-subheading">Data sources</h2>
+        <DataInsight />
       </div>
     </main>
   );

@@ -1,0 +1,58 @@
+/* 外框放大 */
+.ds-table-wrapper{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  border: 1px solid #cfd6e0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(0,0,0,.07);
+  padding: 12px;                /* 外框留点内边距，让表格不贴边 */
+}
+
+/* 表格更大、更易读 */
+.ds-table{
+  width: 100%;
+  min-width: 960px;             /* 原 640/720 -> 960，更宽视野 */
+  border-collapse: collapse;
+  font-size: 18px;              /* 原 14/16 -> 18 */
+  color: #000;
+  background: #fff;
+}
+
+.ds-table thead th{
+  background: #f5f7fa;
+  font-weight: 800;
+  text-align: left;
+  padding: 16px 18px;           /* 原 12/14 -> 16/18 */
+  border: 1px solid #e5e7eb;
+}
+.ds-table tbody td{
+  padding: 16px 18px;           /* 原 12/14 -> 16/18 */
+  border: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.ds-table tbody tr:hover{ background: #f9fafb; }
+
+/* 链接按钮也放大一点 */
+.ds-link{
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 10px 14px;           /* 原 6~8 / 10~12 -> 10 / 14 */
+  border: 1px solid #111827;
+  border-radius: 12px;
+  text-decoration: none;
+  background: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+.ds-link:hover{ background: #f8fafc; }
+
+/* 移动端微缩，保持可读 */
+@media (max-width: 768px){
+  .ds-table{ font-size: 16px; min-width: 720px; }
+  .ds-table th, .ds-table td{ padding: 12px 14px; }
+  .ds-link{ padding: 8px 12px; font-size: 15px; }
+}
