@@ -50,7 +50,7 @@
   .data-source-list {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
-}
+
 
 /* ===== 卡片样式（不再使用 flex 固定宽度） ===== */
 .data-source-item {
@@ -88,4 +88,5 @@
   color: #4b5563;
   font-size: .925rem;
   line-height: 1.45;
+}
 }
