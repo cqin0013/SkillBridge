@@ -1,0 +1,11 @@
+.site-footer {
+    background: #f9fafb;
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.footer-inner {
+    max-width: 1240px;
+    margin: auto;
+}

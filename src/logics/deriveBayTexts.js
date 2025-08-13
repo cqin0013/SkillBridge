@@ -3,10 +3,20 @@
  *
  * Rules :
  * - availability (from /api/parking):  "available"/"unavailable"
- * - history & prediction (from /api/bays/{bayId}):
- *    pastOccupied = true  -> history: "occupied in the past",   prediction: "50% available"
- *    pastOccupied = false -> history: "available in the past",   prediction: "available"
- *    pastOccupied = null  -> history/prediction: "unknown"
+ * - history (from /api/bays/{bayId}):
+ *    pastOccupied = true  -> "occupied in the past"
+ *    pastOccupied = false -> "available in the past"
+ *    pastOccupied = null  -> "unknown"
+ *
+ * - prediction 优先使用实时：
+ *    rtAvailable === true  -> "available"
+ *    rtAvailable === false && pastOccupied === false -> "50% available"
+ *    rtAvailable === false && pastOccupied === true  -> "unavailable"
+ *    rtAvailable === false && pastOccupied == null   -> "unknown"
+ *    rtAvailable == null -> 回退到历史规则：
+ *        pastOccupied === true  -> "50% available"
+ *        pastOccupied === false -> "available"
+ *        pastOccupied == null   -> "unknown"
  */
 
 /**
@@ -22,17 +32,25 @@ export function deriveBayTexts({ rtAvailable, pastOccupied }) {
       ? "available"
       : "unavailable";
 
+  // history
   let history = "unknown";
-  let prediction = "unknown";
-
   if (typeof pastOccupied === "boolean") {
-    if (pastOccupied) {
-      history = "occupied in the past";
-      prediction = "50% available";
-    } else {
-      history = "available in the past";
-      prediction = "available";
-    }
+    history = pastOccupied ? "occupied in the past" : "available in the past";
+  }
+
+  // prediction: realtime first, then fall back to history
+  let prediction = "unknown";
+  if (rtAvailable === true) {
+    prediction = "available";
+  } else if (rtAvailable === false) {
+    if (pastOccupied === false) prediction = "50% available";
+    else if (pastOccupied === true) prediction = "unavailable";
+    else prediction = "unknown";
+  } else {
+    // no realtime, use historical heuristic
+    if (pastOccupied === true) prediction = "50% available";
+    else if (pastOccupied === false) prediction = "available";
+    else prediction = "unknown";
   }
 
   return { availability, history, prediction };

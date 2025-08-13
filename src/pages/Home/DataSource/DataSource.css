@@ -3,28 +3,28 @@
   padding: 2rem 1rem;
 }
 
-/* 标题区 */
+/* 标题区容器 */
 .data-source-header,
 .data-source-card {
   max-width: 1240px;
 margin: auto;
 }
+/* 标题与副标题 */
 .ds-title {
     font-weight: 700;
 }
-
 .ds-sub {
     color: var(--muted-color, gray);
 }
 
 /* 列表布局 */
 .data-source-list {
-  display: grid;
-gap: 1.5rem;
+    display: grid;
+    gap: 1.5rem;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 @media (max-width: 420px) {
-  .data-source-list {
+    .data-source-list {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 }
@@ -38,15 +38,14 @@ border: 1px solid #ccc;
 transition: transform .2s, box-shadow .2s;
 }
 .data-source-item:hover {
-  transform: translateY(-4px);
-box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
 }
 
 /* 文案 */
 .data-source-item h3 {
-    font-weight: 700;
+font-weight: 700;
 }
-
 .data-source-item p {
-    color: var(--muted-color, #555);
+color: var(--muted-color, #555);
 }

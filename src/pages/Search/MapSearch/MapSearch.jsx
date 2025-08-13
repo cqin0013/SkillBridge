@@ -14,7 +14,8 @@ export default function MapSearch() {
   const [loadingMap, setLoadingMap] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
-  const [radius] = useState(300);
+  const [radius, setRadius] = useState(300);              // ✅ 可调半径
+  const [onlyAvailable, setOnlyAvailable] = useState(false); // ✅ 只显示可用切换
 
   const mapRef = useRef(null);
   const destRef = useRef(null);
@@ -45,7 +46,9 @@ export default function MapSearch() {
       mapRef.current = map;
 
       const input = document.getElementById("search-box");
-      const ac = new google.maps.places.Autocomplete(input, { fields: ["geometry", "name", "place_id"] });
+      const ac = new google.maps.places.Autocomplete(input, {
+        fields: ["geometry", "name", "place_id"],
+      });
 
       ac.addListener("place_changed", async () => {
         const p = ac.getPlace();
@@ -64,7 +67,9 @@ export default function MapSearch() {
   }, []);
 
   const clearMarkers = () => {
-    markersRef.current.forEach((m) => (m.setMap ? m.setMap(null) : (m.map = null)));
+    markersRef.current.forEach((m) =>
+      m.setMap ? m.setMap(null) : (m.map = null)
+    );
     markersRef.current = [];
   };
 
@@ -76,22 +81,41 @@ export default function MapSearch() {
     markersRef.current.push(marker);
   };
 
-  async function loadBays(dest) {
+  async function loadBays(dest, forceOnlyAvailable = onlyAvailable) {
     if (!dest) {
-      setBays([]); setError(""); clearMarkers(); return;
+      setBays([]);
+      setError("");
+      clearMarkers();
+      return;
     }
-    setFetching(true); setError(""); clearMarkers();
+    setFetching(true);
+    setError("");
+    clearMarkers();
     try {
       addMarker(dest, "Search destination");
-      const list = await fetchAvailableBays({ lat: dest.lat, lng: dest.lng, radius });
-      setBays(list);
+      const list = await fetchAvailableBays({
+        lat: dest.lat,
+        lng: dest.lng,
+        radius, // ✅ 使用当前半径
+        onlyAvailable: forceOnlyAvailable,
+      });
+
+      const finalList = forceOnlyAvailable
+        ? list.filter((b) => b.rtAvailable === true)
+        : list;
+
+      setBays(finalList);
+
+      if (selectedBay && !finalList.some((b) => b.bayId === selectedBay.bayId)) {
+        clearSelectedBay();
+      }
 
       const google = window.google;
       const map = mapRef.current;
       if (google && map) {
         const bounds = new google.maps.LatLngBounds();
         bounds.extend(new google.maps.LatLng(dest.lat, dest.lng));
-        list.forEach((b) => {
+        finalList.forEach((b) => {
           addMarker({ lat: b.lat, lng: b.lng }, `${b.bayId} bay`);
           bounds.extend(new google.maps.LatLng(b.lat, b.lng));
         });
@@ -108,8 +132,8 @@ export default function MapSearch() {
 
   return (
     <div className="search-page">
-      {/* 搜索栏：总是显示 */}
-      <div className="search-toolbar">
+      {/* 搜索栏 + 半径 + 刷新 同一行 */}
+      <div className="search-toolbar" style={{ gap: 12 }}>
         <input
           id="search-box"
           type="text"
@@ -117,6 +141,28 @@ export default function MapSearch() {
           aria-label="Search for a destination"
           className="search-box"
         />
+
+        {/* ✅ 半径滑块（300~1000） */}
+        <div
+          className="radius-control"
+          style={{ display: "flex", alignItems: "center", gap: 8 }}
+        >
+          <label htmlFor="radius" style={{ whiteSpace: "nowrap" }}>
+            Radius
+          </label>
+          <input
+            id="radius"
+            type="range"
+            min={300}
+            max={1000}
+            step={50}
+            value={radius}
+            onChange={(e) => setRadius(Number(e.target.value))}
+            aria-label="Search radius in meters"
+          />
+          <span style={{ width: 60, textAlign: "right" }}>{radius} m</span>
+        </div>
+
         <button
           onClick={() => loadBays(destRef.current)}
           disabled={loadingMap || fetching || !hasDestination}
@@ -132,18 +178,37 @@ export default function MapSearch() {
         </div>
       )}
 
-      {/* 地图：总是显示（有固定高度） */}
+      {/* 地图 */}
       <div id="map" className="map" />
 
-      {/* Available Bays 面板：总是显示；内部切换占位/列表 */}
+      {/* Bays 面板 */}
       <div className="panel">
         <div className="panel-head">
-          <h3 className="panel-title">Available Parking Bays</h3>
+          <h3 className="panel-title">
+            {onlyAvailable ? "Available Parking Bays" : "Parking Bays"}
+          </h3>
+
           {hasDestination && bays.length > 0 && (
             <span className="count-badge">
               {bays.length} result{bays.length > 1 ? "s" : ""} (±{radius}m)
             </span>
           )}
+
+          {/* ✅ 只显示 available 开关 */}
+          <label className="toggle-only-available" style={{ marginLeft: "auto" }}>
+            <input
+              type="checkbox"
+              checked={onlyAvailable}
+              onChange={async (e) => {
+                const checked = e.target.checked;
+                setOnlyAvailable(checked);
+                if (destRef.current) {
+                  await loadBays(destRef.current, checked);
+                }
+              }}
+            />
+            <span style={{ marginLeft: 6 }}>Only available</span>
+          </label>
         </div>
 
         {!hasDestination ? (

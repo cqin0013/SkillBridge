@@ -3,12 +3,11 @@ import { NavLink, Link } from "react-router-dom";
 import "./Header.css";
 
 export default function Header() {
-  const [open, setOpen] = useState(false); // 手机菜单开关
+  const [open, setOpen] = useState(false); // mobile menu button
 
   return (
     <header className="header">
       <div className="row">
-        {/* 左侧：品牌区 */}
         <div className="brand">
           <span className="badge">TE17</span>
           <div>
@@ -17,10 +16,8 @@ export default function Header() {
           </div>
         </div>
 
-        {/* 手机端：菜单按钮 */}
+        {/* mobile nav button*/}
         <button className="menu-btn" onClick={() => setOpen(!open)}>☰</button>
-
-        {/* 右侧：导航 + CTA（桌面水平，手机下拉） */}
         <nav className={`nav ${open ? "show" : ""}`}>
           <ul className="menu" onClick={() => setOpen(false)}>
             <li><NavLink to="/"          className={({isActive}) => "nav-link" + (isActive ? " active" : "")}>Home</NavLink></li>
