@@ -8,7 +8,7 @@
   border-bottom: 1px solid #e6e8eb;
 }
 
-/* 内层：左右布局，居中对齐 */
+/* 内层：左右布局，居中对齐（桌面） */
 .row {
   max-width: 1240px;
   margin: 0 auto;
@@ -19,7 +19,7 @@
   gap: 12px;
 }
 
-/* 品牌区 */
+/* 品牌区（通用） */
 .brand { display: flex; align-items: center; gap: 10px; }
 .badge { font-weight: 700; font-size: 12px; padding: 4px 8px; border-radius: 999px; background: #0f172a; color: #fff; }
 .title { margin: 0; font-size: 18px; font-weight: 800; }
@@ -44,7 +44,7 @@
 .nav-link:hover { background: #f1f5f9; }
 .nav-link.active { color: #2563eb; background: #e8efff; }
 
-/* CTA 使用你全局的 .btn 样式 */
+/* CTA 使用全局 .btn */
 .cta { margin-left: 8px; }
 
 /* 手机菜单按钮（桌面隐藏，手机显示） */
@@ -58,61 +58,80 @@
   font-size: 20px;
 }
 
-/* 断点：900px 以下切换为下拉菜单 */
-/* 断点：900px 以下，让品牌和菜单按钮同一行，导航下拉占满一行 */
+/* ===== 手机端（≤900px）：品牌在左、汉堡在右，同一行；下拉导航占满下一行 ===== */
 @media (max-width: 900px) {
-/* 用 2 列网格：左=品牌，右=菜单按钮；下一行铺满给导航 */
-    .row {
+.row {
         display: grid;
         grid-template-columns: 1fr auto;
-        /* 左宽右窄 */
+    grid-auto-rows: min-content;
         align-items: center;
         gap: 8px 12px;
-        /* 行/列间距 */
+    padding: 10px max(16px, env(safe-area-inset-left)) 10px max(16px, env(safe-area-inset-right));
         max-width: 1240px;
         margin: 0 auto;
-        padding: 10px 16px;
+.brand {
+        min-width: 0;
     }
 
+    .title,
+    .sub {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .title {
+        font-size: 16px;
+    }
+
+  .sub {
+      font-size: 12px;
+      color: #556;
+  }
   .menu-btn {
-      display: block;
-      /* 手机显示汉堡按钮 */
-      justify-self: end;
-      /* 贴右侧 */
-      width: 40px;
-      height: 40px;
-      border: 1px solid #e6e8eb;
-      border-radius: 8px;
-      background: #fff;
-      cursor: pointer;
-      font-size: 20px;
+    display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        justify-self: end;
+    width: 40px;
+        height: 40px;
+        border: 1px solid #e6e8eb;
+        border-radius: 8px;
+        background: #fff;
+    font-size: 20px;
+    cursor: pointer;
   }
 
-  /* 下拉导航：默认隐藏；展开后占满第二行（整行） */
   .nav {
     display: none;
     grid-column: 1 / -1;
-        /* 跨两列，占满整行 */
+        /* 占满第二行 */
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
-    padding-top: 8px;
+    padding: 8px 0 10px;
+        background: #fff;
+        border-top: 1px solid #e6e8eb;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, .06);
   }
   .nav.show { display: flex; }
 
   .menu {
-      flex-direction: column;
-      gap: 6px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
+    display: flex;
+    flex-direction: column;
+        gap: 6px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
   }
 
   .nav-link {
-      width: 100%;
+    width: 100%;
+    padding: 12px 10px;
+        border-radius: 8px;
   }
 
-  /* 链接占满行，便于点击 */
   .cta { width: 100%; text-align: center; }
+}
 }
 

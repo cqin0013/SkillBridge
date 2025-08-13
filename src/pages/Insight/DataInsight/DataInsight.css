@@ -1,4 +1,4 @@
-/* ========== 桌面端：表格样式（保留你现有的桌面设计） ========== */
+/* ========== 桌面端：表格样式（保留你的桌面设计） ========== */
 /* 外框放大 */
 .ds-table-wrapper{
   overflow-x: auto;
@@ -8,44 +8,41 @@
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 10px 28px rgba(0,0,0,.07);
-  padding: 12px;                /* 外框留点内边距，让表格不贴边 */
-max-width: 1240px;
-    /* 可选：与页面主体对齐 */
-    margin: 0 auto;
-    /* 居中 */
+padding: 12px;
+    /* 外框留点内边距，让表格不贴边 */
+    max-width: 1240px;
+margin: 0 auto;
 }
 
 /* 表格更大、更易读 */
 .ds-table{
   width: 100%;
-  min-width: 960px;             /* 原 640/720 -> 960，更宽视野 */
+min-width: 960px;
   border-collapse: collapse;
-  font-size: 18px;              /* 原 14/16 -> 18 */
+font-size: 18px;
   color: #000;
   background: #fff;
 }
-
 .ds-table thead th{
   background: #f5f7fa;
   font-weight: 800;
   text-align: left;
-  padding: 16px 18px;           /* 原 12/14 -> 16/18 */
+padding: 16px 18px;
   border: 1px solid #e5e7eb;
 }
 .ds-table tbody td{
-  padding: 16px 18px;           /* 原 12/14 -> 16/18 */
+padding: 16px 18px;
   border: 1px solid #e5e7eb;
   vertical-align: top;
 }
-
 .ds-table tbody tr:hover{ background: #f9fafb; }
 
-/* 链接按钮也放大一点（可复用在卡片里） */
+/* 通用外链按钮（表格/卡片都可复用） */
 .ds-link{
   display: inline-flex;
   align-items: center;
   gap: .5rem;
-  padding: 10px 14px;           /* 原 6~8 / 10~12 -> 10 / 14 */
+padding: 10px 14px;
   border: 1px solid #111827;
   border-radius: 12px;
   text-decoration: none;
@@ -56,186 +53,75 @@ color: #111827;
 }
 .ds-link:hover{ background: #f8fafc; }
 
-/* ========== 移动端：滑动卡片视图（桌面隐藏） ========== */
 
-/* 基础结构（在桌面不显示，样式仍可存在） */
-.ds-slider {
-    /* 容器 */
-}
+/* ========== 视图切换：桌面显示表格，移动端显示“上下两张卡片” ========== */
 
-.ds-track {
-    /* 轨道 */
-}
-
-.ds-card {
-    /* 卡片 */
-}
-
-.ds-card-title {
-    /* 标题 */
-}
-
-.ds-list {
-    /* 要点列表 */
-}
-
-.ds-actions {
-    /* 按钮区域 */
-}
-
-.ds-controls {
-    /* 箭头 + 圆点容器 */
-}
-
-.ds-arrow {
-    /* 左右箭头 */
-}
-
-.ds-dots {
-    /* 圆点容器 */
-}
-
-.ds-dot {
-    /* 单个圆点 */
-}
-
-/* ===== 视图切换：桌面显示表格，移动端显示滑动卡片 ===== */
-
-/* 桌面（≥769px）：显示表格，隐藏滑动卡片 */
+/* 桌面（≥769px）：显示表格，隐藏移动端卡片容器 */
 @media (min-width: 769px) {
     .ds-table-wrapper {
         display: block;
     }
 
-    .ds-slider,
-    .ds-controls {
+    .ds-stack {
         display: none;
     }
 }
 
-/* 移动端（≤768px）：隐藏表格，显示滑动卡片 */
+/* 移动端（≤768px）：隐藏表格，显示上下两张卡片 */
 @media (max-width: 768px){
 .ds-table-wrapper {
         display: none;
     }
 
-    /* 外层拉到全宽，便于边缘手势滑动 */
-    .ds-slider {
+  /* 外层容器：居中+左右留白 */
+  .ds-stack {
     display: block;
-    margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
-        width: 100vw;
+    max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 12px;
     }
 
-  /* 轨道：横向滑动 + 贴合停靠 */
+  /* 列表：一列垂直排列（不滚动） */
   .ds-track {
-    display: flex;
-        /* 横向排布 */
-        gap: 12px;
-    padding: 0 12px 10px;
-        /* 侧边内边距 + 滚动条空间 */
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        scroll-padding-left: 12px;
-    }
-  .ds-track::-webkit-scrollbar {
-      height: 8px;
+      display: grid;
+      grid-template-columns: 1fr;
+      /* 单列 */
+      gap: 12px;
+    padding: 0;
+        overflow: visible;
+        /* 不横向滚动 */
   }
 
-  .ds-track::-webkit-scrollbar-thumb {
-      background: #d1d5db;
-      border-radius: 999px;
-  }
-
-  .ds-track::-webkit-scrollbar-track {
-      background: transparent;
-  }
-
-  /* 每个卡片一页：占 88% 屏宽，手指好滑、内容易读 */
+  /* 卡片样式 */
   .ds-card {
-    flex: 0 0 88vw;
-        /* 你也可以调 90vw / 92vw */
-        max-width: 88vw;
-        scroll-snap-align: start;
-
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
     border: 1px solid #d1d5db;
     border-radius: 12px;
     background: #fff;
-        box-shadow: 0 8px 18px rgba(0, 0, 0, .06);
-    padding: 14px 14px;
-
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .06);
+        padding: 14px;
+    }
 
   .ds-card-title {
       font-size: 16px;
     font-weight: 800;
-        margin: 0 0 8px;
+    margin: 0 0 8px;
         color: #0f172a;
     }
 
   .ds-list {
       margin: 0 0 10px 1.1em;
     padding: 0;
-        color: #111827;
-
+    color: #111827;
+  }
   .ds-list li {
       margin: 6px 0;
   }
 
   .ds-actions {
-      display: flex;
-      gap: 8px;
-  }
-
-  /* 控件：更易点的箭头 & 小圆点 */
-  .ds-controls {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 8px;
-        padding: 0 12px;
-        margin-top: 8px;
-    }
-  .ds-arrow {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-    border: 1px solid #d1d5db;
-        background: #fff;
-    font-size: 18px;
-    line-height: 1;
-        cursor: pointer;
-        transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
-
-  .ds-arrow:hover {
-      background: #f8fafc;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, .06);
-  }
-
-  .ds-arrow:active {
-      transform: translateY(1px);
-  }
-
-  .ds-arrow:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-  }
-
-  .ds-dots {
     display: flex;
-        align-items: center;
-        justify-content: center;
     gap: 8px;
-    }
-  .ds-dot {
-      width: 8px;
-      height: 8px;
-    border-radius: 999px;
-        background: #cbd5e1;
-        border: none;
-        cursor: pointer;
-
-  .ds-dot.is-active {
-      background: #111827;
   }
 }
