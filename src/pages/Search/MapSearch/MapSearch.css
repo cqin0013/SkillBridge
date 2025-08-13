@@ -1,31 +1,107 @@
+/* =========================================================
+   MapSearch.css (mobile friendly)
+   - 兼容现有 HTML/JS，不需要改结构
+   - 桌面：三列工具栏；移动：自动折叠为一列，控件100%宽
+   - 可访问性：focus-visible 高对比描边
+   - 触控优化：按钮≥44px，range拇指更大
+   ========================================================= */
+
+/* --- Global touch/accessibility tweaks --- */
+button,
+.bay-card,
+.refresh-btn,
+.solo-btn,
+input,
+select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
 /* --- Toolbar --- */
 .search-toolbar {
   display: grid;
 grid-template-columns: 1fr auto auto;
-    /* ← 三列：搜索 | 半径 | 刷新 */
+    /* 搜索 | 半径 | 刷新（桌面） */
   gap: 12px;
   align-items: center;
   margin-bottom: 12px;
 }
+
 .search-box {
   width: 100%;
   padding: 14px 16px;
-  font-size: 16px;
+font-size: 16px;
+    /* 16px 避免 iOS 缩放 */
   border: 1px solid #d1d5db;
   border-radius: 12px;
   background: #fff;
 }
+/* 半径控件 */
 .radius-control {
-    display: flex;
+display: flex;
     align-items: center;
     gap: 8px;
-    white-space: nowrap;
+white-space: nowrap;
     /* 文本不换行 */
 }
 
+/* 统一自定义 range 样式（桌面+移动） */
 .radius-control input[type="range"] {
-    width: 180px;
-    /* 可按需调整 */
+width: 180px;
+    /* 桌面宽度；移动端见媒体查询 */
+    appearance: none;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    outline: none;
+}
+.radius-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #111827;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.radius-control input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #111827;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.radius-control input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #e5e7eb;
+}
+
+.radius-control input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #e5e7eb;
+}
+
+/* 触控设备：拇指更大，便于拖动 */
+@media (pointer: coarse) {
+    .radius-control input[type="range"]::-webkit-slider-thumb {
+        width: 28px;
+        height: 28px;
+    }
+
+    .radius-control input[type="range"]::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
+    }
 }
 .refresh-btn {
   padding: 12px 16px;
@@ -36,6 +112,8 @@ grid-template-columns: 1fr auto auto;
   font-weight: 700;
   cursor: pointer;
   min-width: 110px;
+min-height: 44px;
+    /* 触控更易点 */
   transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
 justify-self: end;
 }
@@ -66,7 +144,7 @@ justify-self: end;
   box-shadow: 0 8px 24px rgba(0,0,0,.08);
 }
 
-/* --- Available Bays 面板 --- */
+/* --- Panel --- */
 .panel {
   background: #fff;
   padding: 20px;
@@ -80,6 +158,8 @@ justify-self: end;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+flex-wrap: wrap;
+    /* 小屏自动换行，避免挤压 */
   margin-bottom: 12px;
 }
 
@@ -114,20 +194,18 @@ justify-self: end;
   align-items: center;
   justify-content: center;
   text-align: center;
-
-  min-height: 52px;
+min-height: 52px;
+    /* 可点击高度 */
   padding: 14px;
   border-radius: 14px;
   border: 1px solid #e5e7eb;
-  background: #fff;
-
+background: #fff;
   font-weight: 700;
   font-size: 15px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-
+text-overflow: ellipsis;
   cursor: pointer;
   transition: transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease;
 }
@@ -139,57 +217,154 @@ justify-self: end;
 .bay-card:active { transform: translateY(-1px) scale(.99); }
 .bay-card.active { background: #ecfeff; border-color: #06b6d4; }
 
-/* --- Mobile tweaks --- */
-@media (max-width: 720px) {
-  .search-toolbar { grid-template-columns: 1fr; } /* 输入框与按钮上下排 */
-  .map { height: 320px; }
-  .radius-control input[type="range"] {
-      width: 100%;
-  }
-}
-
-/* 深色模式（可选） */
-@media (prefers-color-scheme: dark) {
-  .search-box { background:#0b1220; color:#e5e7eb; border-color:#233047; }
-  .refresh-btn { border-color:#e5e7eb; }
-  .map { background:#111827; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
-  .panel { background:#0b1220; border-color:#233047; box-shadow:none; }
-  .panel-title { color:#e5e7eb; }
-  .count-badge { background:#0b1a34; border-color:#233047; color:#93c5fd; }
-  .muted { color:#94a3b8; }
-  .bay-card { background:#0b1220; border-color:#233047; color:#e5e7eb; }
-  .bay-card.active { background:#052a30; border-color:#0ea5b7; }
-}
-/* 只看已选按钮样式 */
+/* --- Solo button (Show all / Show only selected) --- */
 .solo-btn {
-    padding: 10px 14px;
+padding: 10px 14px;
     border-radius: 12px;
     border: 1px solid #6b7280;
     background: #fff;
     color: #111827;
     font-weight: 700;
     cursor: pointer;
-    transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+min-height: 44px;
+    /* 触控更易点 */
+transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
-
 .solo-btn:hover:not(:disabled) {
-    transform: translateY(-1px);
+transform: translateY(-1px);
     box-shadow: 0 8px 18px rgba(0, 0, 0, .10);
 }
-
 .solo-btn:disabled {
-    opacity: .6;
+opacity: .6;
     cursor: not-allowed;
 }
-
 .solo-btn.active {
-    background: #111827;
+background: #111827;
     color: #fff;
     border-color: #111827;
 }
 
-/* 深色模式（可选） */
+/* --- Mobile tweaks --- */
+@media (max-width: 720px) {
+
+    /* 工具栏折叠为一列，控件顺序竖排 */
+    .search-toolbar {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .radius-control {
+        width: 100%;
+    }
+
+    .radius-control input[type="range"] {
+        width: 100%;
+        /* 滑杆全宽 */
+    }
+
+    .refresh-btn {
+        width: 100%;
+        /* 按钮撑满一行 */
+        justify-self: stretch;
+    }
+
+    .map {
+        height: 320px;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .count-badge {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 420px) {
+    .search-box {
+        padding: 12px 14px;
+        font-size: 16px;
+    }
+
+    .map {
+        height: 280px;
+    }
+
+    .bay-card {
+        min-height: 48px;
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .panel-title {
+        font-size: 16px;
+    }
+
+    .radius-control {
+        gap: 6px;
+    }
+
+    .radius-control input[type="range"]::-webkit-slider-thumb {
+        width: 30px;
+        height: 30px;
+    }
+
+    .radius-control input[type="range"]::-moz-range-thumb {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+/* 深色模式 */
 @media (prefers-color-scheme: dark) {
+.search-box {
+        background: #0b1220;
+        color: #e5e7eb;
+        border-color: #233047;
+    }
+
+    .refresh-btn {
+        border-color: #e5e7eb;
+    }
+
+    .map {
+        background: #111827;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    }
+
+    .panel {
+        background: #0b1220;
+        border-color: #233047;
+        box-shadow: none;
+    }
+
+    .panel-title {
+        color: #e5e7eb;
+    }
+
+    .count-badge {
+        background: #0b1a34;
+        border-color: #233047;
+        color: #93c5fd;
+    }
+
+    .muted {
+        color: #94a3b8;
+    }
+
+    .bay-card {
+        background: #0b1220;
+        border-color: #233047;
+        color: #e5e7eb;
+    }
+
+    .bay-card.active {
+        background: #052a30;
+        border-color: #0ea5b7;
+    }
+
     .solo-btn {
         background: #0b1220;
         color: #e5e7eb;
@@ -200,5 +375,36 @@ justify-self: end;
         background: #e5e7eb;
         color: #0b1220;
         border-color: #e5e7eb;
+    }
+
+    /* 深色下的 range 轨道/拇指 */
+    .radius-control input[type="range"] {
+        background: #233047;
+    }
+
+    .radius-control input[type="range"]::-webkit-slider-runnable-track {
+        background: #233047;
+    }
+
+    .radius-control input[type="range"]::-moz-range-track {
+        background: #233047;
+    }
+
+    .radius-control input[type="range"]::-webkit-slider-thumb {
+        background: #e5e7eb;
+        border-color: #0b1220;
+    }
+
+    .radius-control input[type="range"]::-moz-range-thumb {
+        background: #e5e7eb;
+        border-color: #0b1220;
+    }
+}
+
+/* 减少动效：遵守系统设置 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
     }
 }

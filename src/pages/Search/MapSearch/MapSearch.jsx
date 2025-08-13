@@ -14,8 +14,8 @@ export default function MapSearch() {
   const [loadingMap, setLoadingMap] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
-  const [radius, setRadius] = useState(300);               // 可调半径
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
+  const [radius, setRadius] = useState(300);                 // 可调半径
+  const [onlyAvailable, setOnlyAvailable] = useState(false); // 只显示可用
   const [showOnlySelected, setShowOnlySelected] = useState(false); // 只看已选
 
   const mapRef = useRef(null);
@@ -73,26 +73,28 @@ export default function MapSearch() {
   }, []);
 
   const clearMarkers = () => {
-    markersRef.current.forEach((m) =>
-      m.setMap ? m.setMap(null) : (m.map = null)
-    );
+    markersRef.current.forEach((m) => (m.setMap ? m.setMap(null) : (m.map = null)));
     markersRef.current = [];
   };
 
-  // ⬇️ 支持给 marker 绑定点击行为（比如选中 bay）
+  // 统一的“选中某个 bay”动作：选中 + 自动切到“只看已选”
+  const selectBay = (b) => {
+    setSelectedBay(b);
+    setShowOnlySelected(true); // ✅ 自动切换
+  };
+
+  // 支持点击 marker 的回调
   const addMarker = (position, title, onClick) => {
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return null;
     const marker = new google.maps.Marker({ map, position, title });
-    if (typeof onClick === "function") {
-      marker.addListener("click", onClick);
-    }
+    if (typeof onClick === "function") marker.addListener("click", onClick);
     markersRef.current.push(marker);
     return marker;
   };
 
-  // 按当前过滤（只看已选）重画 markers；bay marker 绑定点击=>选中该 bay
+  // 根据当前过滤绘制 markers
   const drawMarkers = (list) => {
     const google = window.google;
     const map = mapRef.current;
@@ -101,15 +103,15 @@ export default function MapSearch() {
 
     clearMarkers();
 
-    // 目的地 marker（无点击）
+    // 目的地 marker
     addMarker(dest, "Search destination");
 
-    // bay markers：点击后选中该 bay
+    // bay markers（点击 => 选中并自动只看已选）
     list.forEach((b) => {
       addMarker(
         { lat: b.lat, lng: b.lng },
         `${b.bayId} bay`,
-        () => setSelectedBay(b) // ✅ 点击 marker 选中 bay
+        () => selectBay(b) // ✅
       );
     });
 
@@ -120,7 +122,7 @@ export default function MapSearch() {
     if (!bounds.isEmpty()) map.fitBounds(bounds);
   };
 
-  // 当“只看已选”或选中项变化时，按当前 bays 重画 markers
+  // “只看已选”或选中变化时重画
   useEffect(() => {
     if (!destRef.current) return;
     const filtered =
@@ -133,13 +135,9 @@ export default function MapSearch() {
 
   async function loadBays(dest, forceOnlyAvailable = onlyAvailable) {
     if (!dest) {
-      setBays([]);
-      setError("");
-      clearMarkers();
-      return;
+      setBays([]); setError(""); clearMarkers(); return;
     }
-    setFetching(true);
-    setError("");
+    setFetching(true); setError("");
     try {
       const list = await fetchAvailableBays({
         lat: dest.lat,
@@ -148,10 +146,7 @@ export default function MapSearch() {
         onlyAvailable: forceOnlyAvailable,
       });
 
-      const finalList = forceOnlyAvailable
-        ? list.filter((b) => b.rtAvailable === true)
-        : list;
-
+      const finalList = forceOnlyAvailable ? list.filter((b) => b.rtAvailable === true) : list;
       setBays(finalList);
 
       // 选中项不在结果中则清空
@@ -159,7 +154,7 @@ export default function MapSearch() {
         clearSelectedBay();
       }
 
-      // 根据当前 toggle 决定实际显示的列表并画 markers
+      // 根据当前开关决定显示的列表
       const toRender =
         showOnlySelected && selectedBay
           ? finalList.filter((b) => b.bayId === selectedBay.bayId)
@@ -182,7 +177,7 @@ export default function MapSearch() {
 
   return (
     <div className="search-page">
-      {/* 搜索栏 + 半径 + 刷新 同一行（配合你的 CSS Grid 三列） */}
+      {/* 搜索栏 + 半径 + 刷新 */}
       <div className="search-toolbar" style={{ gap: 12 }}>
         <input
           id="search-box"
@@ -193,13 +188,8 @@ export default function MapSearch() {
         />
 
         {/* 半径滑块（300~1000） */}
-        <div
-          className="radius-control"
-          style={{ display: "flex", alignItems: "center", gap: 8 }}
-        >
-          <label htmlFor="radius" style={{ whiteSpace: "nowrap" }}>
-            Radius
-          </label>
+        <div className="radius-control" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label htmlFor="radius" style={{ whiteSpace: "nowrap" }}>Radius</label>
           <input
             id="radius"
             type="range"
@@ -238,7 +228,6 @@ export default function MapSearch() {
             {onlyAvailable ? "Available Parking Bays" : "Parking Bays"}
           </h3>
 
-          {/* 计数（显示当前可见数量） */}
           {hasDestination && (
             <span className="count-badge">
               {visibleBays.length} result{visibleBays.length !== 1 ? "s" : ""} (±{radius}m)
@@ -253,29 +242,21 @@ export default function MapSearch() {
               onChange={async (e) => {
                 const checked = e.target.checked;
                 setOnlyAvailable(checked);
-                if (destRef.current) {
-                  await loadBays(destRef.current, checked);
-                }
+                if (destRef.current) await loadBays(destRef.current, checked);
               }}
             />
             <span style={{ marginLeft: 6 }}>Only available</span>
           </label>
 
-          {/* 只看已选/显示全部 */}
+          {/* 显示全部 / 只看已选：此处按钮只负责“恢复显示全部” */}
           <button
             className={`solo-btn ${showOnlySelected ? "active" : ""}`}
-            onClick={() => setShowOnlySelected((v) => !v)}
-            disabled={!selectedBay || visibleBays.length === 0}
-            title={
-              !selectedBay
-                ? "Select a bay first"
-                : showOnlySelected
-                ? "Show all bays"
-                : "Show only the selected bay"
-            }
+            onClick={() => setShowOnlySelected(false)}
+            disabled={!showOnlySelected}
+            title={showOnlySelected ? "Show all bays" : "Select a bay to focus"}
             style={{ marginLeft: 8 }}
           >
-            {showOnlySelected ? "Show all bays" : "Show only selected"}
+            Show all bays
           </button>
         </div>
 
@@ -292,7 +273,7 @@ export default function MapSearch() {
               return (
                 <button
                   key={b.bayId}
-                  onClick={() => setSelectedBay(b)}
+                  onClick={() => selectBay(b)}           
                   className={`bay-card ${active ? "active" : ""}`}
                   title={`${b.bayId} bay`}
                 >
