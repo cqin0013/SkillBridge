@@ -14,14 +14,20 @@ export default function MapSearch() {
   const [loadingMap, setLoadingMap] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
-  const [radius, setRadius] = useState(300);              // ✅ 可调半径
-  const [onlyAvailable, setOnlyAvailable] = useState(false); // ✅ 只显示可用切换
+  const [radius, setRadius] = useState(300);               // 可调半径
+  const [onlyAvailable, setOnlyAvailable] = useState(false);
+  const [showOnlySelected, setShowOnlySelected] = useState(false); // 只看已选
 
   const mapRef = useRef(null);
   const destRef = useRef(null);
   const markersRef = useRef([]);
 
   const defaultCenter = { lat: -37.8136, lng: 144.9631 };
+
+  // 若开启“只看已选”但选中被清空，则自动回到显示全部
+  useEffect(() => {
+    if (showOnlySelected && !selectedBay) setShowOnlySelected(false);
+  }, [showOnlySelected, selectedBay]);
 
   useEffect(() => {
     const loader = new Loader({
@@ -73,13 +79,57 @@ export default function MapSearch() {
     markersRef.current = [];
   };
 
-  const addMarker = (position, title) => {
+  // ⬇️ 支持给 marker 绑定点击行为（比如选中 bay）
+  const addMarker = (position, title, onClick) => {
     const google = window.google;
     const map = mapRef.current;
-    if (!google || !map) return;
+    if (!google || !map) return null;
     const marker = new google.maps.Marker({ map, position, title });
+    if (typeof onClick === "function") {
+      marker.addListener("click", onClick);
+    }
     markersRef.current.push(marker);
+    return marker;
   };
+
+  // 按当前过滤（只看已选）重画 markers；bay marker 绑定点击=>选中该 bay
+  const drawMarkers = (list) => {
+    const google = window.google;
+    const map = mapRef.current;
+    const dest = destRef.current;
+    if (!google || !map || !dest) return;
+
+    clearMarkers();
+
+    // 目的地 marker（无点击）
+    addMarker(dest, "Search destination");
+
+    // bay markers：点击后选中该 bay
+    list.forEach((b) => {
+      addMarker(
+        { lat: b.lat, lng: b.lng },
+        `${b.bayId} bay`,
+        () => setSelectedBay(b) // ✅ 点击 marker 选中 bay
+      );
+    });
+
+    // 自适应边界
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(new google.maps.LatLng(dest.lat, dest.lng));
+    list.forEach((b) => bounds.extend(new google.maps.LatLng(b.lat, b.lng)));
+    if (!bounds.isEmpty()) map.fitBounds(bounds);
+  };
+
+  // 当“只看已选”或选中项变化时，按当前 bays 重画 markers
+  useEffect(() => {
+    if (!destRef.current) return;
+    const filtered =
+      showOnlySelected && selectedBay
+        ? bays.filter((b) => b.bayId === selectedBay.bayId)
+        : bays;
+    drawMarkers(filtered);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOnlySelected, selectedBay]);
 
   async function loadBays(dest, forceOnlyAvailable = onlyAvailable) {
     if (!dest) {
@@ -90,13 +140,11 @@ export default function MapSearch() {
     }
     setFetching(true);
     setError("");
-    clearMarkers();
     try {
-      addMarker(dest, "Search destination");
       const list = await fetchAvailableBays({
         lat: dest.lat,
         lng: dest.lng,
-        radius, // ✅ 使用当前半径
+        radius,
         onlyAvailable: forceOnlyAvailable,
       });
 
@@ -106,33 +154,35 @@ export default function MapSearch() {
 
       setBays(finalList);
 
+      // 选中项不在结果中则清空
       if (selectedBay && !finalList.some((b) => b.bayId === selectedBay.bayId)) {
         clearSelectedBay();
       }
 
-      const google = window.google;
-      const map = mapRef.current;
-      if (google && map) {
-        const bounds = new google.maps.LatLngBounds();
-        bounds.extend(new google.maps.LatLng(dest.lat, dest.lng));
-        finalList.forEach((b) => {
-          addMarker({ lat: b.lat, lng: b.lng }, `${b.bayId} bay`);
-          bounds.extend(new google.maps.LatLng(b.lat, b.lng));
-        });
-        if (!bounds.isEmpty()) map.fitBounds(bounds);
-      }
+      // 根据当前 toggle 决定实际显示的列表并画 markers
+      const toRender =
+        showOnlySelected && selectedBay
+          ? finalList.filter((b) => b.bayId === selectedBay.bayId)
+          : finalList;
+
+      drawMarkers(toRender);
     } catch {
       setError("Backend unavailable.");
+      clearMarkers();
     } finally {
       setFetching(false);
     }
   }
 
   const hasDestination = !!destRef.current;
+  const visibleBays =
+    showOnlySelected && selectedBay
+      ? bays.filter((b) => b.bayId === selectedBay.bayId)
+      : bays;
 
   return (
     <div className="search-page">
-      {/* 搜索栏 + 半径 + 刷新 同一行 */}
+      {/* 搜索栏 + 半径 + 刷新 同一行（配合你的 CSS Grid 三列） */}
       <div className="search-toolbar" style={{ gap: 12 }}>
         <input
           id="search-box"
@@ -142,7 +192,7 @@ export default function MapSearch() {
           className="search-box"
         />
 
-        {/* ✅ 半径滑块（300~1000） */}
+        {/* 半径滑块（300~1000） */}
         <div
           className="radius-control"
           style={{ display: "flex", alignItems: "center", gap: 8 }}
@@ -188,13 +238,14 @@ export default function MapSearch() {
             {onlyAvailable ? "Available Parking Bays" : "Parking Bays"}
           </h3>
 
-          {hasDestination && bays.length > 0 && (
+          {/* 计数（显示当前可见数量） */}
+          {hasDestination && (
             <span className="count-badge">
-              {bays.length} result{bays.length > 1 ? "s" : ""} (±{radius}m)
+              {visibleBays.length} result{visibleBays.length !== 1 ? "s" : ""} (±{radius}m)
             </span>
           )}
 
-          {/* ✅ 只显示 available 开关 */}
+          {/* 只显示 available */}
           <label className="toggle-only-available" style={{ marginLeft: "auto" }}>
             <input
               type="checkbox"
@@ -209,17 +260,34 @@ export default function MapSearch() {
             />
             <span style={{ marginLeft: 6 }}>Only available</span>
           </label>
+
+          {/* 只看已选/显示全部 */}
+          <button
+            className={`solo-btn ${showOnlySelected ? "active" : ""}`}
+            onClick={() => setShowOnlySelected((v) => !v)}
+            disabled={!selectedBay || visibleBays.length === 0}
+            title={
+              !selectedBay
+                ? "Select a bay first"
+                : showOnlySelected
+                ? "Show all bays"
+                : "Show only the selected bay"
+            }
+            style={{ marginLeft: 8 }}
+          >
+            {showOnlySelected ? "Show all bays" : "Show only selected"}
+          </button>
         </div>
 
         {!hasDestination ? (
           <div className="muted">Please enter a location.</div>
         ) : fetching && bays.length === 0 ? (
           <div className="muted">Loading nearby bays…</div>
-        ) : bays.length === 0 ? (
-          <div className="muted">No parking bays nearby.</div>
+        ) : visibleBays.length === 0 ? (
+          <div className="muted">No parking bays.</div>
         ) : (
           <div className="bay-grid">
-            {bays.map((b) => {
+            {visibleBays.map((b) => {
               const active = selectedBay?.bayId === b.bayId;
               return (
                 <button

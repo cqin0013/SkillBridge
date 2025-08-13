@@ -160,3 +160,45 @@ justify-self: end;
   .bay-card { background:#0b1220; border-color:#233047; color:#e5e7eb; }
   .bay-card.active { background:#052a30; border-color:#0ea5b7; }
 }
+/* 只看已选按钮样式 */
+.solo-btn {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid #6b7280;
+    background: #fff;
+    color: #111827;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.solo-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .10);
+}
+
+.solo-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.solo-btn.active {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+}
+
+/* 深色模式（可选） */
+@media (prefers-color-scheme: dark) {
+    .solo-btn {
+        background: #0b1220;
+        color: #e5e7eb;
+        border-color: #233047;
+    }
+
+    .solo-btn.active {
+        background: #e5e7eb;
+        color: #0b1220;
+        border-color: #e5e7eb;
+    }
+}
