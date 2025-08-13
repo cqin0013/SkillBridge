@@ -41,7 +41,7 @@ text-align: center;
 /* ===== 顶部两张缩略图：桌面两列，居中；无外框 ===== */
 .insight-gallery {
 display: grid !important;
-/* 两列且列宽自适应，避免溢出；比 max-content 更稳妥 */
+/* 两列且列宽自适应，避免溢出 */
     grid-template-columns: repeat(2, minmax(260px, 1fr)) !important;
     gap: 16px;
     margin-bottom: 24px;
@@ -61,20 +61,20 @@ display: grid !important;
 /* 缩略图卡片：适中宽度；无边框阴影 */
 .img-card {
 position: relative;
-display: block;
+    display: block;
     width: 100%;
-    max-width: 360px;
+max-width: 360px;
     /* 桌面理想卡片最大宽度 */
     border: none;
     /* 不加底框 */
     border-radius: 12px;
     overflow: hidden;
-        background: transparent;
+background: transparent;
     /* 不加底框背景 */
     transition: transform .15s ease;
 }
 .img-card:hover {
-    transform: translateY(-2px);
+transform: translateY(-2px);
 }
 
 /* 正方形画布容器：完整展示，不裁切、不缩放 */
@@ -140,26 +140,30 @@ margin: 0 0 2px;
 margin: 0;
     font-size: 12px;
 }
-/* ===== 移动端（≤768px）：一排横向滑动，更大触控面积 ===== */
 
+/* ===== 移动端（≤768px）：上下展示两张 thumb（单列） ===== */
+@media (max-width: 768px) {
 .insight-gallery {
-    /* 改为横向滑动的一排，防止卡片被压得太小 */
-        display: flex !important;
+    display: grid !important;
+        grid-template-columns: 1fr !important;
+        /* 单列堆叠 */
     gap: 12px;
-    padding: 0 12px 8px;
-        /* 内边距 + 给滚动条留空间 */
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x proximity;
-}
-.img-card {
-    flex: 0 0 82vw;
-        /* 每张卡片占 82% 屏宽，足够大好点 */
-        max-width: 82vw;
-        scroll-snap-align: start;
-.img-title {
-        font-size: 14px;
+    padding: 0 12px;
+        /* 两侧留白 */
+        margin-left: auto;
+        margin-right: auto;
+        overflow: visible;
+        /* 不横向滚动 */
     }
+    
+    .img-card {
+    max-width: 100%;
+        /* 占满一行 */
+        width: 100%;
+    }
+  .img-title {
+      font-size: 14px;
+  }
 
   .img-sub {
       font-size: 12px;

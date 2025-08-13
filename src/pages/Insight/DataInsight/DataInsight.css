@@ -1,3 +1,4 @@
+/* ========== 桌面端：表格样式（保留你现有的桌面设计） ========== */
 /* 外框放大 */
 .ds-table-wrapper{
   overflow-x: auto;
@@ -8,6 +9,10 @@
   background: #fff;
   box-shadow: 0 10px 28px rgba(0,0,0,.07);
   padding: 12px;                /* 外框留点内边距，让表格不贴边 */
+max-width: 1240px;
+    /* 可选：与页面主体对齐 */
+    margin: 0 auto;
+    /* 居中 */
 }
 
 /* 表格更大、更易读 */
@@ -35,7 +40,7 @@
 
 .ds-table tbody tr:hover{ background: #f9fafb; }
 
-/* 链接按钮也放大一点 */
+/* 链接按钮也放大一点（可复用在卡片里） */
 .ds-link{
   display: inline-flex;
   align-items: center;
@@ -47,77 +52,190 @@
   background: #fff;
   font-size: 16px;
   font-weight: 700;
+color: #111827;
 }
 .ds-link:hover{ background: #f8fafc; }
 
-/* === 仅移动端：两张卡片，左右滑动切换；桌面端不变 === */
+/* ========== 移动端：滑动卡片视图（桌面隐藏） ========== */
+
+/* 基础结构（在桌面不显示，样式仍可存在） */
+.ds-slider {
+    /* 容器 */
+}
+
+.ds-track {
+    /* 轨道 */
+}
+
+.ds-card {
+    /* 卡片 */
+}
+
+.ds-card-title {
+    /* 标题 */
+}
+
+.ds-list {
+    /* 要点列表 */
+}
+
+.ds-actions {
+    /* 按钮区域 */
+}
+
+.ds-controls {
+    /* 箭头 + 圆点容器 */
+}
+
+.ds-arrow {
+    /* 左右箭头 */
+}
+
+.ds-dots {
+    /* 圆点容器 */
+}
+
+.ds-dot {
+    /* 单个圆点 */
+}
+
+/* ===== 视图切换：桌面显示表格，移动端显示滑动卡片 ===== */
+
+/* 桌面（≥769px）：显示表格，隐藏滑动卡片 */
+@media (min-width: 769px) {
+    .ds-table-wrapper {
+        display: block;
+    }
+
+    .ds-slider,
+    .ds-controls {
+        display: none;
+    }
+}
+
+/* 移动端（≤768px）：隐藏表格，显示滑动卡片 */
 @media (max-width: 768px){
-/* 拉到全屏宽，便于边缘手势滑动 */
+.ds-table-wrapper {
+        display: none;
+    }
+
+    /* 外层拉到全宽，便于边缘手势滑动 */
     .ds-slider {
-        margin-left: calc(50% - 50vw);
+    display: block;
+    margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
         width: 100vw;
     }
 
-    /* 轨道改为横向滑动，单页占据大部分屏宽 */
-    .ds-track {
-        display: flex;
-        /* 改为横向排布 */
+  /* 轨道：横向滑动 + 贴合停靠 */
+  .ds-track {
+    display: flex;
+        /* 横向排布 */
         gap: 12px;
-        padding: 0 12px 10px;
+    padding: 0 12px 10px;
         /* 侧边内边距 + 滚动条空间 */
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scroll-snap-type: x mandatory;
         scroll-padding-left: 12px;
     }
+  .ds-track::-webkit-scrollbar {
+      height: 8px;
+  }
 
-    /* 每个卡片一页：占 88% 屏宽，手指好滑、内容易读 */
-    .ds-card {
-        flex: 0 0 88vw;
-        /* 你也可以调 90vw/92vw */
+  .ds-track::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 999px;
+  }
+
+  .ds-track::-webkit-scrollbar-track {
+      background: transparent;
+  }
+
+  /* 每个卡片一页：占 88% 屏宽，手指好滑、内容易读 */
+  .ds-card {
+    flex: 0 0 88vw;
+        /* 你也可以调 90vw / 92vw */
         max-width: 88vw;
         scroll-snap-align: start;
 
-        border-radius: 12px;
-        padding: 14px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #fff;
         box-shadow: 0 8px 18px rgba(0, 0, 0, .06);
+    padding: 14px 14px;
+
+
+  .ds-card-title {
+      font-size: 16px;
+    font-weight: 800;
+        margin: 0 0 8px;
+        color: #0f172a;
     }
 
-    .ds-card-title {
-        font-size: 16px;
-        margin-bottom: 8px;
-    }
+  .ds-list {
+      margin: 0 0 10px 1.1em;
+    padding: 0;
+        color: #111827;
 
-    .ds-list {
-        margin: 0 0 10px 1.1em;
-    }
+  .ds-list li {
+      margin: 6px 0;
+  }
 
-    .ds-list li {
-        margin: 6px 0;
-    }
+  .ds-actions {
+      display: flex;
+      gap: 8px;
+  }
 
-    /* 控件：更易点的箭头 & 小圆点 */
-    .ds-controls {
-        grid-template-columns: auto 1fr auto;
-        gap: 8px;
+  /* 控件：更易点的箭头 & 小圆点 */
+  .ds-controls {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
         padding: 0 12px;
         margin-top: 8px;
     }
+  .ds-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+    border: 1px solid #d1d5db;
+        background: #fff;
+    font-size: 18px;
+    line-height: 1;
+        cursor: pointer;
+        transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
 
-    .ds-arrow {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        font-size: 18px;
-    }
+  .ds-arrow:hover {
+      background: #f8fafc;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .06);
+  }
 
-    .ds-dots {
-        gap: 8px;
-    }
+  .ds-arrow:active {
+      transform: translateY(1px);
+  }
 
-    .ds-dot {
-        width: 8px;
-        height: 8px;
+  .ds-arrow:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+  }
+
+  .ds-dots {
+    display: flex;
+        align-items: center;
+        justify-content: center;
+    gap: 8px;
     }
+  .ds-dot {
+      width: 8px;
+      height: 8px;
+    border-radius: 999px;
+        background: #cbd5e1;
+        border: none;
+        cursor: pointer;
+
+  .ds-dot.is-active {
+      background: #111827;
+  }
 }

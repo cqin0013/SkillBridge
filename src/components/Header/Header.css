@@ -59,15 +59,40 @@
 }
 
 /* 断点：900px 以下切换为下拉菜单 */
+/* 断点：900px 以下，让品牌和菜单按钮同一行，导航下拉占满一行 */
 @media (max-width: 900px) {
-  .row { flex-wrap: wrap; }
+/* 用 2 列网格：左=品牌，右=菜单按钮；下一行铺满给导航 */
+    .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        /* 左宽右窄 */
+        align-items: center;
+        gap: 8px 12px;
+        /* 行/列间距 */
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 10px 16px;
+    }
 
-  .menu-btn { display: block; }
+  .menu-btn {
+      display: block;
+      /* 手机显示汉堡按钮 */
+      justify-self: end;
+      /* 贴右侧 */
+      width: 40px;
+      height: 40px;
+      border: 1px solid #e6e8eb;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 20px;
+  }
 
-  /* 默认收起，下拉时占满一行 */
+  /* 下拉导航：默认隐藏；展开后占满第二行（整行） */
   .nav {
     display: none;
-    width: 100%;
+    grid-column: 1 / -1;
+        /* 跨两列，占满整行 */
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
@@ -75,7 +100,19 @@
   }
   .nav.show { display: flex; }
 
-  .menu { flex-direction: column; gap: 6px; }
-  .nav-link { width: 100%; }     /* 链接占满整行，便于手指点击 */
+  .menu {
+      flex-direction: column;
+      gap: 6px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+  }
+
+  .nav-link {
+      width: 100%;
+  }
+
+  /* 链接占满行，便于点击 */
   .cta { width: 100%; text-align: center; }
 }
+
