@@ -1,7 +1,6 @@
 import { createContext, useContext, useState } from "react";
 
 /**
- * 提供全局的 selectedBay 状态：
  * { bayId, lat, lng, rtAvailable, timestamp }
  */
 const SearchCtx = createContext(null);

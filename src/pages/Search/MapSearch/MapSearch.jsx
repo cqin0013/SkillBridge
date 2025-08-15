@@ -1,7 +1,3 @@
-// src/pages/Search/MapSearch.jsx
-// Map Search page: Google Maps + Places Autocomplete + parking bay markers.
-// This version keeps ALL original code and adds clearer comments & formatting only.
-
 import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { fetchAvailableBays } from "../../../services/parkingAPI";
@@ -11,14 +7,8 @@ import "./MapSearch.css";
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 export default function MapSearch() {
-  /* ----------------------------------------------------------------
-   * Global selection (from Context)
-   * ---------------------------------------------------------------- */
-  const { selectedBay, setSelectedBay, clearSelectedBay } = useSearch();
 
-  /* ----------------------------------------------------------------
-   * Local UI state
-   * ---------------------------------------------------------------- */
+  const { selectedBay, setSelectedBay, clearSelectedBay } = useSearch();
   const [bays, setBays] = useState([]);                  // current bay list in panel
   const [loadingMap, setLoadingMap] = useState(true);    // true until Google Map is ready
   const [fetching, setFetching] = useState(false);       // true while /api/parking is in-flight
@@ -26,38 +16,25 @@ export default function MapSearch() {
   const [radius, setRadius] = useState(300);             // search radius (meters)
   const [onlyAvailable, setOnlyAvailable] = useState(false); // filter: only show available bays
   const [showOnlySelected, setShowOnlySelected] = useState(false); // focus mode: show only selected bay
-
-  /* ----------------------------------------------------------------
-   * Refs (non-reactive; no re-render on change)
-   * ---------------------------------------------------------------- */
   const mapRef = useRef(null);       // google.maps.Map instance
   const destRef = useRef(null);      // destination {lat,lng} from Autocomplete
   const markersRef = useRef([]);     // active google.maps.Marker[] on the map
 
   const defaultCenter = { lat: -37.8136, lng: 144.9631 }; // Melbourne
 
-  /* ----------------------------------------------------------------
-   * Effect: leave "show-only-selected" if selection is cleared
-   * ---------------------------------------------------------------- */
   useEffect(() => {
     if (showOnlySelected && !selectedBay) setShowOnlySelected(false);
   }, [showOnlySelected, selectedBay]);
 
-  /* ----------------------------------------------------------------
-   * Effect: bootstrap Google Maps + Places Autocomplete (runs once)
-   * NOTE: Keep Loader options consistent across your app to avoid
-   *       "Loader must not be called again with different options".
-   * ---------------------------------------------------------------- */
   useEffect(() => {
     const loader = new Loader({
       apiKey: GOOGLE_MAPS_API_KEY,
-      version: "beta",             // ⚠ If you change this somewhere else, keep it the same here.
+      version: "beta",             
       libraries: ["places"],
       language: "en",
     });
 
     loader.load().then((google) => {
-      // Guard against re-initialization (HMR / double mount)
       if (mapRef.current) return;
 
       // 1) Map
@@ -96,10 +73,6 @@ export default function MapSearch() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /* ----------------------------------------------------------------
-   * Map helpers: clear markers / add markers / draw markers
-   * ---------------------------------------------------------------- */
 
   // Remove all current markers from the map.
   const clearMarkers = () => {
@@ -150,9 +123,6 @@ export default function MapSearch() {
     if (!bounds.isEmpty()) map.fitBounds(bounds);
   };
 
-  /* ----------------------------------------------------------------
-   * Effect: redraw markers when focus-mode or selection changes
-   * ---------------------------------------------------------------- */
   useEffect(() => {
     if (!destRef.current) return;
     const filtered =
@@ -163,10 +133,6 @@ export default function MapSearch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showOnlySelected, selectedBay]);
 
-  /* ----------------------------------------------------------------
-   * Fetch & normalize nearby bays, then render markers
-   * NOTE: This function is used by Autocomplete and the Refresh button.
-   * ---------------------------------------------------------------- */
   async function loadBays(dest, forceOnlyAvailable = onlyAvailable) {
     if (!dest) {
       // No destination yet: clear UI quietly.
@@ -211,18 +177,13 @@ export default function MapSearch() {
     }
   }
 
-  /* ----------------------------------------------------------------
-   * Derived UI values
-   * ---------------------------------------------------------------- */
+
   const hasDestination = !!destRef.current;
   const visibleBays =
     showOnlySelected && selectedBay
       ? bays.filter((b) => b.bayId === selectedBay.bayId)
       : bays;
 
-  /* ----------------------------------------------------------------
-   * Render
-   * ---------------------------------------------------------------- */
   return (
     <div className="search-page">
       {/* Toolbar: search input + radius slider + refresh */}
