@@ -1,6 +1,5 @@
-/* typography.css */
 
-/* Variables */
+/* Typography Tokens */
 :root {
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
             Roboto,
@@ -12,34 +11,32 @@
                "Liberation Mono", "Courier New", monospace;
 
 --font-size-base: 16px;
---leading-base: 1.6;
---text-color: #0f172a;
---muted-color: #6b7280;
+    --leading-base: 1.6;
 }
 
-/* Base */
+/* Base font sizing */
 html { font-size: var(--font-size-base); }
 
+/* Body text (uses color/background tokens from base.css) */
 body {
-  margin: 0;
   font-family: var(--font-sans);
   line-height: var(--leading-base);
-  color: var(--text-color);
+color: var(--ds-text);
+    background: var(--ds-bg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-button, input, select, textarea { font: inherit; color: inherit; }
-
 /* Links */
 a {
-    color: inherit;
+color: inherit;
     text-decoration: none;
+text-decoration-skip-ink: auto;
 }
 a:hover,
 a:focus-visible {
-    text-decoration: underline;
+text-decoration: underline;
 }
 
 /* Headings */
@@ -54,6 +51,7 @@ h6 {
   line-height: 1.2;
   letter-spacing: -.01em;
 }
+
 h1 {
     font-size: clamp(1.75rem, 2.8vw, 2.25rem);
 }
@@ -98,7 +96,8 @@ blockquote {
 margin: 0 0 1rem;
     padding-left: 1rem;
     border-left: 3px solid #e5e7eb;
-    color: var(--muted-color);
+color: var(--muted-color);
+    /* defined in base.css */
 }
 
 /* Code */

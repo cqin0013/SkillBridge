@@ -1,16 +1,10 @@
-// src/pages/Insight/ChartThumb.jsx
+// fetches and normalizes data based on the type, then uses Chart.js to draw a small line chart on a <canvas> and wraps the whole thing in a <Link> so clicking opens the detail page.
 import { useEffect, useRef, useState } from "react";
 import { Chart } from "chart.js/auto";
 import { Link } from "react-router-dom";
 
 const API_BASE = "https://fit-8mtq.onrender.com";
 
-/**
- * 在卡片里渲染一个小号 Chart.js 做缩略图：
- * - canvas 始终渲染（保证能拿到 context）
- * - 第一段 effect 只负责取数
- * - 第二段 effect 在 canvas 存在 + 数据就绪时再创建图表
- */
 export default function ChartThumb({ type, title, sub, to }) {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
@@ -20,7 +14,7 @@ export default function ChartThumb({ type, title, sub, to }) {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  // 1) 取数据
+  // 1) get data
   useEffect(() => {
     let alive = true;
 
@@ -60,16 +54,13 @@ export default function ChartThumb({ type, title, sub, to }) {
     };
   }, [type]);
 
-  // 2) 渲染图表（确保 canvas 已挂载 + 有数据）
+  // 2) graph
   useEffect(() => {
     if (loading) return;
     if (!canvasRef.current) return;
     if (labels.length === 0 || values.length === 0) return;
-
-    // 销毁旧实例
     if (chartRef.current) chartRef.current.destroy();
 
-    // 用 requestAnimationFrame 确保 DOM 布局完成
     const id = requestAnimationFrame(() => {
       chartRef.current = new Chart(canvasRef.current, {
         type: "line",
@@ -93,7 +84,7 @@ export default function ChartThumb({ type, title, sub, to }) {
         options: {
           animation: false,
           responsive: true,
-          maintainAspectRatio: false, // 由容器高度控制
+          maintainAspectRatio: false, 
           plugins: { legend: { display: false } },
           scales: { x: { display: false }, y: { display: false } },
         },
@@ -110,7 +101,6 @@ export default function ChartThumb({ type, title, sub, to }) {
   return (
     <Link to={to} className="img-card" aria-label={`Open ${title}`}>
       <div className="thumb-canvas-wrap">
-        {/* ⚠️ canvas 永远渲染在 DOM，避免拿不到 context */}
         <canvas ref={canvasRef} className="thumb-canvas" />
         {(loading || err) && (
           <div className="thumb-skeleton">{err || "Loading…"}</div>
