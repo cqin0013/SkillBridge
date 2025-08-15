@@ -1,4 +1,7 @@
 // src/pages/Search/MapSearch.jsx
+// Map Search page: Google Maps + Places Autocomplete + parking bay markers.
+// This version keeps ALL original code and adds clearer comments & formatting only.
+
 import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { fetchAvailableBays } from "../../../services/parkingAPI";
@@ -8,37 +11,56 @@ import "./MapSearch.css";
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 export default function MapSearch() {
+  /* ----------------------------------------------------------------
+   * Global selection (from Context)
+   * ---------------------------------------------------------------- */
   const { selectedBay, setSelectedBay, clearSelectedBay } = useSearch();
 
-  const [bays, setBays] = useState([]);
-  const [loadingMap, setLoadingMap] = useState(true);
-  const [fetching, setFetching] = useState(false);
-  const [error, setError] = useState("");
-  const [radius, setRadius] = useState(300);                 // 可调半径
-  const [onlyAvailable, setOnlyAvailable] = useState(false); // 只显示可用
-  const [showOnlySelected, setShowOnlySelected] = useState(false); // 只看已选
+  /* ----------------------------------------------------------------
+   * Local UI state
+   * ---------------------------------------------------------------- */
+  const [bays, setBays] = useState([]);                  // current bay list in panel
+  const [loadingMap, setLoadingMap] = useState(true);    // true until Google Map is ready
+  const [fetching, setFetching] = useState(false);       // true while /api/parking is in-flight
+  const [error, setError] = useState("");                // backend error message
+  const [radius, setRadius] = useState(300);             // search radius (meters)
+  const [onlyAvailable, setOnlyAvailable] = useState(false); // filter: only show available bays
+  const [showOnlySelected, setShowOnlySelected] = useState(false); // focus mode: show only selected bay
 
-  const mapRef = useRef(null);
-  const destRef = useRef(null);
-  const markersRef = useRef([]);
+  /* ----------------------------------------------------------------
+   * Refs (non-reactive; no re-render on change)
+   * ---------------------------------------------------------------- */
+  const mapRef = useRef(null);       // google.maps.Map instance
+  const destRef = useRef(null);      // destination {lat,lng} from Autocomplete
+  const markersRef = useRef([]);     // active google.maps.Marker[] on the map
 
-  const defaultCenter = { lat: -37.8136, lng: 144.9631 };
+  const defaultCenter = { lat: -37.8136, lng: 144.9631 }; // Melbourne
 
-  // 若开启“只看已选”但选中被清空，则自动回到显示全部
+  /* ----------------------------------------------------------------
+   * Effect: leave "show-only-selected" if selection is cleared
+   * ---------------------------------------------------------------- */
   useEffect(() => {
     if (showOnlySelected && !selectedBay) setShowOnlySelected(false);
   }, [showOnlySelected, selectedBay]);
 
+  /* ----------------------------------------------------------------
+   * Effect: bootstrap Google Maps + Places Autocomplete (runs once)
+   * NOTE: Keep Loader options consistent across your app to avoid
+   *       "Loader must not be called again with different options".
+   * ---------------------------------------------------------------- */
   useEffect(() => {
     const loader = new Loader({
       apiKey: GOOGLE_MAPS_API_KEY,
-      version: "beta",
+      version: "beta",             // ⚠ If you change this somewhere else, keep it the same here.
       libraries: ["places"],
       language: "en",
     });
 
     loader.load().then((google) => {
+      // Guard against re-initialization (HMR / double mount)
       if (mapRef.current) return;
+
+      // 1) Map
       const el = document.getElementById("map");
       if (!el) return;
 
@@ -51,11 +73,13 @@ export default function MapSearch() {
       });
       mapRef.current = map;
 
+      // 2) Places Autocomplete on the input
       const input = document.getElementById("search-box");
       const ac = new google.maps.places.Autocomplete(input, {
         fields: ["geometry", "name", "place_id"],
       });
 
+      // When a place is picked, center to it + request nearby bays.
       ac.addListener("place_changed", async () => {
         const p = ac.getPlace();
         if (!p?.geometry?.location) return;
@@ -63,38 +87,46 @@ export default function MapSearch() {
         const dest = { lat: loc.lat(), lng: loc.lng() };
         destRef.current = dest;
 
-        clearSelectedBay();
-        await loadBays(dest);
+        clearSelectedBay();         // clear previous selection
+        await loadBays(dest);       // fetch + plot new markers
       });
 
       setLoadingMap(false);
     });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* ----------------------------------------------------------------
+   * Map helpers: clear markers / add markers / draw markers
+   * ---------------------------------------------------------------- */
+
+  // Remove all current markers from the map.
   const clearMarkers = () => {
     markersRef.current.forEach((m) => (m.setMap ? m.setMap(null) : (m.map = null)));
     markersRef.current = [];
   };
 
-  // 统一的“选中某个 bay”动作：选中 + 自动切到“只看已选”
+  // Select a bay => update global selection + enter focus mode.
   const selectBay = (b) => {
     setSelectedBay(b);
-    setShowOnlySelected(true); // ✅ 自动切换
+    setShowOnlySelected(true); // focus to the selected one
   };
 
-  // 支持点击 marker 的回调
+  // Add a marker with optional click handler.
+  // NOTE: google.maps.Marker shows a deprecation warning; AdvancedMarkerElement is the modern API.
   const addMarker = (position, title, onClick) => {
     const google = window.google;
     const map = mapRef.current;
     if (!google || !map) return null;
+
     const marker = new google.maps.Marker({ map, position, title });
     if (typeof onClick === "function") marker.addListener("click", onClick);
     markersRef.current.push(marker);
     return marker;
   };
 
-  // 根据当前过滤绘制 markers
+  // Draw destination marker + bay markers, then fit bounds.
   const drawMarkers = (list) => {
     const google = window.google;
     const map = mapRef.current;
@@ -103,26 +135,24 @@ export default function MapSearch() {
 
     clearMarkers();
 
-    // 目的地 marker
+    // Destination
     addMarker(dest, "Search destination");
 
-    // bay markers（点击 => 选中并自动只看已选）
+    // Bay markers (click => select & enter focus mode)
     list.forEach((b) => {
-      addMarker(
-        { lat: b.lat, lng: b.lng },
-        `${b.bayId} bay`,
-        () => selectBay(b) // ✅
-      );
+      addMarker({ lat: b.lat, lng: b.lng }, `${b.bayId} bay`, () => selectBay(b));
     });
 
-    // 自适应边界
+    // Fit bounds to destination + bays
     const bounds = new google.maps.LatLngBounds();
     bounds.extend(new google.maps.LatLng(dest.lat, dest.lng));
     list.forEach((b) => bounds.extend(new google.maps.LatLng(b.lat, b.lng)));
     if (!bounds.isEmpty()) map.fitBounds(bounds);
   };
 
-  // “只看已选”或选中变化时重画
+  /* ----------------------------------------------------------------
+   * Effect: redraw markers when focus-mode or selection changes
+   * ---------------------------------------------------------------- */
   useEffect(() => {
     if (!destRef.current) return;
     const filtered =
@@ -133,11 +163,22 @@ export default function MapSearch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showOnlySelected, selectedBay]);
 
+  /* ----------------------------------------------------------------
+   * Fetch & normalize nearby bays, then render markers
+   * NOTE: This function is used by Autocomplete and the Refresh button.
+   * ---------------------------------------------------------------- */
   async function loadBays(dest, forceOnlyAvailable = onlyAvailable) {
     if (!dest) {
-      setBays([]); setError(""); clearMarkers(); return;
+      // No destination yet: clear UI quietly.
+      setBays([]);
+      setError("");
+      clearMarkers();
+      return;
     }
-    setFetching(true); setError("");
+
+    setFetching(true);
+    setError("");
+
     try {
       const list = await fetchAvailableBays({
         lat: dest.lat,
@@ -146,15 +187,16 @@ export default function MapSearch() {
         onlyAvailable: forceOnlyAvailable,
       });
 
+      // Backend may filter when onlyAvailable=true, but ensure on client too.
       const finalList = forceOnlyAvailable ? list.filter((b) => b.rtAvailable === true) : list;
       setBays(finalList);
 
-      // 选中项不在结果中则清空
+      // If current selection disappeared from the results, clear it.
       if (selectedBay && !finalList.some((b) => b.bayId === selectedBay.bayId)) {
         clearSelectedBay();
       }
 
-      // 根据当前开关决定显示的列表
+      // Respect focus mode when drawing markers.
       const toRender =
         showOnlySelected && selectedBay
           ? finalList.filter((b) => b.bayId === selectedBay.bayId)
@@ -169,16 +211,23 @@ export default function MapSearch() {
     }
   }
 
+  /* ----------------------------------------------------------------
+   * Derived UI values
+   * ---------------------------------------------------------------- */
   const hasDestination = !!destRef.current;
   const visibleBays =
     showOnlySelected && selectedBay
       ? bays.filter((b) => b.bayId === selectedBay.bayId)
       : bays;
 
+  /* ----------------------------------------------------------------
+   * Render
+   * ---------------------------------------------------------------- */
   return (
     <div className="search-page">
-      {/* 搜索栏 + 半径 + 刷新 */}
+      {/* Toolbar: search input + radius slider + refresh */}
       <div className="search-toolbar" style={{ gap: 12 }}>
+        {/* Autocomplete binds to this input in the effect above */}
         <input
           id="search-box"
           type="text"
@@ -187,9 +236,11 @@ export default function MapSearch() {
           className="search-box"
         />
 
-        {/* 半径滑块（300~1000） */}
+        {/* Radius slider (300–1000m) */}
         <div className="radius-control" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label htmlFor="radius" style={{ whiteSpace: "nowrap" }}>Radius</label>
+          <label htmlFor="radius" style={{ whiteSpace: "nowrap" }}>
+            Radius
+          </label>
           <input
             id="radius"
             type="range"
@@ -203,6 +254,7 @@ export default function MapSearch() {
           <span style={{ width: 60, textAlign: "right" }}>{radius} m</span>
         </div>
 
+        {/* Manual refresh (disabled until map + destination are ready) */}
         <button
           onClick={() => loadBays(destRef.current)}
           disabled={loadingMap || fetching || !hasDestination}
@@ -212,16 +264,17 @@ export default function MapSearch() {
         </button>
       </div>
 
+      {/* Map loader / backend error */}
       {(loadingMap || error) && (
         <div className={`notice ${error ? "error" : ""}`}>
           {loadingMap ? "Loading map…" : error}
         </div>
       )}
 
-      {/* 地图 */}
+      {/* Map canvas target */}
       <div id="map" className="map" />
 
-      {/* Bays 面板 */}
+      {/* Bays panel (list + filters) */}
       <div className="panel">
         <div className="panel-head">
           <h3 className="panel-title">
@@ -234,7 +287,7 @@ export default function MapSearch() {
             </span>
           )}
 
-          {/* 只显示 available */}
+          {/* Only-available filter (re-fetch when toggled) */}
           <label className="toggle-only-available" style={{ marginLeft: "auto" }}>
             <input
               type="checkbox"
@@ -248,7 +301,7 @@ export default function MapSearch() {
             <span style={{ marginLeft: 6 }}>Only available</span>
           </label>
 
-          {/* 显示全部 / 只看已选：此处按钮只负责“恢复显示全部” */}
+          {/* Focus mode: Show all (turn off "show only selected") */}
           <button
             className={`solo-btn ${showOnlySelected ? "active" : ""}`}
             onClick={() => setShowOnlySelected(false)}
@@ -260,6 +313,7 @@ export default function MapSearch() {
           </button>
         </div>
 
+        {/* Empty states / loading / list */}
         {!hasDestination ? (
           <div className="muted">Please enter a location.</div>
         ) : fetching && bays.length === 0 ? (
@@ -273,7 +327,7 @@ export default function MapSearch() {
               return (
                 <button
                   key={b.bayId}
-                  onClick={() => selectBay(b)}           
+                  onClick={() => selectBay(b)}
                   className={`bay-card ${active ? "active" : ""}`}
                   title={`${b.bayId} bay`}
                 >

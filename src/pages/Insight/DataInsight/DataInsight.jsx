@@ -1,10 +1,6 @@
 import "./DataInsight.css";
 
-/**
- * 数据源表格组件
- * - 可通过 props.sources 传入自定义数据；不传则使用默认 ABS 两条
- * - 字段：title, desc, href
- */
+
 export default function DataInsight({ sources }) {
   const defaultSources = [
     {

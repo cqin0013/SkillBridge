@@ -1,51 +1,58 @@
-/* 页面整体 */
+/* Page container */
 .data-source-page {
   padding: 2rem 1rem;
 }
 
-/* 标题区容器 */
+/* Header container */
 .data-source-header,
 .data-source-card {
   max-width: 1240px;
-margin: auto;
+  margin: auto;
 }
-/* 标题与副标题 */
+/* Title & subtitle */
 .ds-title {
-    font-weight: 700;
+  font-weight: 700;
 }
 .ds-sub {
-    color: var(--muted-color, gray);
+  /*try mute color*/
+  color: var(--muted-color, gray);
+    
 }
 
-/* 列表布局 */
+/* List layout */
 .data-source-list {
-    display: grid;
+  display: grid;
     gap: 1.5rem;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
+
 @media (max-width: 420px) {
-    .data-source-list {
+  .data-source-list {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 }
 
-/* 卡片 */
+/* Card */
 .data-source-item {
-  padding: 1rem;
-border: 1px solid #ccc;
-    border-radius: 8px;
   background: #fff;
-transition: transform .2s, box-shadow .2s;
-}
-.data-source-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  padding: 1rem;
+    /*animate*/
+    transition: transform .2s, box-shadow .2s;
+    
 }
 
-/* 文案 */
+.data-source-item:hover {
+  /*animate*/
+  transform: translateY(-4px);
+    
+}
+
+/* Typography inside cards */
 .data-source-item h3 {
-font-weight: 700;
+  font-weight: 700;
 }
 .data-source-item p {
-color: var(--muted-color, #555);
+  color: var(--muted-color, #555);
 }

@@ -6,8 +6,7 @@ import "./InsightChart.css";
 const API_BASE = "https://fit-8mtq.onrender.com";
 
 export default function InsightChart() {
-  const { type } = useParams();                 // "ownership" | "population"
-
+  const { type } = useParams();                 
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
 

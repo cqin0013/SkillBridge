@@ -1,11 +1,9 @@
-/* 全宽出血 + 更扁 */
 .hero {
   position: relative;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   width: 100vw;
 
-  /* ↓ 调低高度，图片看起来更“扁” */
   min-height: clamp(360px, 68vh, 820px);
   padding: 4rem 1rem;
 
@@ -14,8 +12,8 @@
   color: #fff;
   text-align: center;
 
-  background-size: cover;        /* 铺满横向 */
-  background-position: center 40%;/* 视口偏上点，避免裁掉重点 */
+  background-size: cover;
+    background-position: center 40%;
   background-repeat: no-repeat;
 
   text-shadow: 0 1px 2px rgba(0,0,0,.35);
@@ -29,7 +27,7 @@
   padding: 0 .5rem;
 }
 
-/* 字体稍微紧凑点，配合更扁的高度 */
+
 .hero-title {
   margin: 0 0 .5rem;
   font-weight: 800;
@@ -52,14 +50,26 @@
   justify-content: center;
 }
 
-/* 动效 */
-@media (prefers-reduced-motion: no-preference) {
-  .hero-inner { opacity: 0; transform: translateY(8px); animation: heroIn .45s ease .04s forwards; }
-}
-@keyframes heroIn { to { opacity: 1; transform: translateY(0); } }
 
-/* 手机端再压低一点高度，按钮留空隙 */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-inner {
+      opacity: 0;
+      transform: translateY(8px);
+      animation: heroIn .45s ease .04s forwards;
+    }
+}
+
+@keyframes heroIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 480px) {
-  .hero { min-height: clamp(300px, 55vh, 600px); padding: 3rem 1rem; }
+  .hero {
+      min-height: clamp(300px, 55vh, 600px);
+      padding: 3rem 1rem;
+    }
   .hero-cta { gap: .55rem; }
 }

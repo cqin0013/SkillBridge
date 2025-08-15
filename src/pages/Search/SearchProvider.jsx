@@ -17,11 +17,7 @@ export default function SearchProvider({ children }) {
   );
 }
 
-/**
- * 自定义 Hook 便于使用。
- * 注意：如果你的 ESLint 报 `react-refresh/only-export-components`，
- * 可以在下行上方加一条注释关闭这条规则，或把 Hook 单独拆到 useSearch.js。
- */
+
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSearch() {
   const ctx = useContext(SearchCtx);

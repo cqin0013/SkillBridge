@@ -1,7 +1,8 @@
 /* Header sticky, not covered except pop-ups */
 .header {
-    position: sticky;
+  position: sticky;
     top: 0;
+    /* will not be cover by lower 50*/
     z-index: 50;
     background: #fff;
 }
@@ -9,7 +10,7 @@
 /* Inner layout: horizontal on desktop */
 .row {
   max-width: 1240px;
-    margin: auto;
+  margin: auto;
   padding: 10px 16px;
   display: flex;
   align-items: center;
@@ -19,41 +20,43 @@
 
 /* Brand */
 .brand {
-    display: flex;
+  display: flex;
     align-items: center;
     gap: 10px;
 }
 
 .badge {
-    font-weight: 700;
+  font-weight: 700;
     font-size: 12px;
     padding: 4px 8px;
     border-radius: 999px;
+      /* rounded corners */
     background: #0f172a;
     color: #fff;
 }
 
 /* Title and subtitle */
 .title {
-    font-size: 18px;
+  font-size: 18px;
     font-weight: 800;
 }
 
 .sub {
-    font-size: 13px;
+  font-size: 13px;
     color: #556;
 }
 
 /* Navigation (desktop) */
 .nav {
-    display: flex;
+  display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .menu {
-    display: flex;
+  display: flex;
   gap: 6px;
+  /*remove point and num*/
   list-style: none;
   margin: 0;
   padding: 0;
@@ -62,26 +65,27 @@
   padding: 8px 10px;
   border-radius: 8px;
   text-decoration: none;
+    /*no underline*/
   color: #0f172a;
 }
 .nav-link:hover {
-    background: #f1f5f9;
+  background: #f1f5f9;
 }
 
 .nav-link.active {
-    color: #2563eb;
+  color: #2563eb;
     background: #e8efff;
 }
 
 /* Call-to-action */
 .cta {
-    margin-left: 8px;
+  margin-left: 8px;
 }
 
 /* Mobile menu button (desktop hidden) */
 .menu-btn {
   display: none;
-width: 40px;
+  width: 40px;
     height: 40px;
   border: 1px solid #e6e8eb;
   border-radius: 8px;
@@ -90,22 +94,28 @@ width: 40px;
   font-size: 20px;
 }
 
-/* ===== Mobile (≤900px) ===== */
+/* Mobile (≤900px)  */
 @media (max-width: 900px) {
-    .row {
-            display: grid;
-            grid-template-columns: 1fr auto;
+
+  .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
     gap: 8px 12px;
+    /*prevent obstruction*/
     padding: 10px max(16px, env(safe-area-inset-left)) 10px max(16px, env(safe-area-inset-right));
+      
     .brand {
         min-width: 0;
     }
 
   .title,
   .sub {
+    /*one line*/
       white-space: nowrap;
       overflow: hidden;
+      /*show ... when overflow*/
       text-overflow: ellipsis;
+      
   }
 
   .title {
@@ -119,8 +129,8 @@ width: 40px;
   .menu-btn {
     display: inline-flex;
     justify-content: center;
-        align-items: center;
-        justify-self: end;
+    align-items: center;
+      justify-self: end;
   }
 
   .nav {
@@ -130,7 +140,7 @@ width: 40px;
     gap: 10px;
     padding: 8px 0 10px;
     background: #fff;
-        border-top: 1px solid #e6e8eb;
+    border-top: 1px solid #e6e8eb;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
   }
   .nav.show {

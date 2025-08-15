@@ -1,4 +1,4 @@
-/* ===== 页面基础 ===== */
+/* Base */
 .insight-page {
 padding: 32px;
     color: #000;
@@ -7,17 +7,15 @@ padding: 32px;
 color: inherit;
     text-decoration: none;
 }
-
 .insight-wrap {
 max-width: 1280px;
     margin: 0 auto;
 }
 
-/* ===== 标题与说明：居中 + 留空 ===== */
+/* Heading */
 .insight-header {
 text-align: center;
-    margin-top: 8px;
-    margin-bottom: 28px;
+margin: 8px 0 28px;
 }
 .insight-header h1 {
 margin: 0 0 8px;
@@ -29,8 +27,6 @@ margin: 0 0 8px;
 margin: 0;
     font-size: clamp(16px, 2vw, 18px);
 }
-
-/* 小分组标题：居中 + 上下留空 */
 .insight-subheading {
 text-align: center;
     margin: 32px 0 12px;
@@ -38,67 +34,46 @@ text-align: center;
     font-size: clamp(18px, 2.4vw, 22px);
 }
 
-/* ===== 顶部两张缩略图：桌面两列，居中；无外框 ===== */
+/* Gallery (2 columns on desktop) */
 .insight-gallery {
-display: grid !important;
-/* 两列且列宽自适应，避免溢出 */
-    grid-template-columns: repeat(2, minmax(260px, 1fr)) !important;
+display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
-
-/* 不加底框：去掉外层 padding / 边框 / 阴影 / 背景 */
-    padding: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-
-/* 居中摆放 */
-    justify-content: center;
+justify-content: center;
     justify-items: center;
-    align-items: start;
 }
 
-/* 缩略图卡片：适中宽度；无边框阴影 */
+/* Card */
 .img-card {
 position: relative;
     display: block;
     width: 100%;
-max-width: 360px;
-    /* 桌面理想卡片最大宽度 */
-    border: none;
-    /* 不加底框 */
-    border-radius: 12px;
+    max-width: 360px;
+border-radius: 12px;
     overflow: hidden;
-background: transparent;
-    /* 不加底框背景 */
-    transition: transform .15s ease;
+transition: transform .15s ease;
 }
 .img-card:hover {
-transform: translateY(-2px);
+    transform: translateY(-2px);
 }
 
-/* 正方形画布容器：完整展示，不裁切、不缩放 */
+/* Square canvas box */
 .thumb-canvas-wrap {
 position: relative;
     width: 100%;
-aspect-ratio: 1 / 1;
-    /* 正方形 */
-    height: auto;
-    overflow: hidden;
-    border-radius: inherit;
+    aspect-ratio: 1 / 1;
+border-radius: inherit;
+overflow: hidden;
 background: #fff;
-    /* 需极简可设为 transparent */
 }
 .thumb-canvas {
+display: block;
 width: 100%;
     height: 100%;
-    display: block;
-transform: none !important;
-    /* 取消缩放，完整展示 */
-    transform-origin: center center;
 }
 
-/* 预览加载骨架（覆盖在上面） */
+/* Skeleton */
 .thumb-skeleton {
 position: absolute;
     inset: 0;
@@ -120,14 +95,14 @@ position: absolute;
     }
 }
 
-/* 覆盖文字：小一号、浅遮罩；仍可读 */
+/* Overlay text */
 .img-overlay {
 position: absolute;
-    left: 0;
+left: 0;
     right: 0;
     bottom: 0;
     padding: 8px 10px;
-    background: linear-gradient(to top, rgba(255, 255, 255, .75), rgba(255, 255, 255, .2));
+background: linear-gradient(to top, rgba(255, 255, 255, .75), rgba(255, 255, 255, .2));
     color: #000;
     text-align: center;
 }
@@ -141,24 +116,23 @@ margin: 0;
     font-size: 12px;
 }
 
-/* ===== 移动端（≤768px）：上下展示两张 thumb（单列） ===== */
+
 @media (max-width: 768px) {
 .insight-gallery {
     display: grid !important;
         grid-template-columns: 1fr !important;
-        /* 单列堆叠 */
+
     gap: 12px;
     padding: 0 12px;
-        /* 两侧留白 */
+
         margin-left: auto;
         margin-right: auto;
         overflow: visible;
-        /* 不横向滚动 */
+
     }
     
     .img-card {
     max-width: 100%;
-        /* 占满一行 */
         width: 100%;
     }
   .img-title {
@@ -168,11 +142,4 @@ margin: 0;
   .img-sub {
       font-size: 12px;
   }
-}
-
-/* 超大屏：可略微放大（可按需调整或删除） */
-@media (min-width: 1440px) {
-.img-card {
-        max-width: 380px;
-    }
 }

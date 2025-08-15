@@ -1,7 +1,7 @@
-import SearchProvider from "./SearchProvider";
+import SearchProvider from "./SearchProvider.jsx";
 import MapSearch from "./MapSearch/MapSearch";
 import BayInfo from "./BayInfo/BayInfo";
-import "./SearchPage.css"; // 可选，简单写：.searchpage{padding:20px;}
+import "./SearchPage.css"; 
 
 export default function SearchPage() {
   return (

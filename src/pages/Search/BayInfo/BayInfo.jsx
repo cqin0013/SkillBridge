@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearch } from "../SearchProvider";
+import { useSearch } from "../SearchProvider.jsx";
 import { fetchBayPastOccupied } from "../../../services/parkingAPI";
 import { deriveBayTexts, timeAgo, formatBayName } from "../../../logics/deriveBayTexts";
 import "./BayInfo.css";
@@ -82,15 +82,6 @@ export default function BayInfo() {
 
           {loading && <p className="bayinfo__placeholder">Loading…</p>}
           {err && <p className="bayinfo__placeholder" style={{ color: "#b45309" }}>{err}</p>}
-
-          {(bayId || detail) && (
-            <div className="bayinfo__detail">
-              {bayId && <div className="bayinfo__detail-title">Detail — {bayId}</div>}
-              <pre className="bayinfo__json">
-                {detail ? JSON.stringify(detail.raw ?? {}, null, 2) : "{ }"}
-              </pre>
-            </div>
-          )}
         </>
       )}
     </section>

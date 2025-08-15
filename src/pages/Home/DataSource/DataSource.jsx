@@ -10,7 +10,6 @@ export default function DataSource() {
         </p>
       </header>
 
-      {/* 外层不再有边框和阴影，仅作“宽 + 间距”的布局容器 */}
       <section className="data-source-card" aria-label="External data sources">
         <div className="data-source-list">
           <a
