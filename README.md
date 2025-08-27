@@ -1,2 +1,2 @@
 # SkillBridge
-TE17_SkillBridge
+FIT5120_TE17_SkillBridge
