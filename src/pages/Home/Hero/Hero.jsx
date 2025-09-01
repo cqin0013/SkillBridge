@@ -6,7 +6,7 @@ export default function Hero() {
   return (
     <section
       className="sb-hero"
-      style={{ "--hero-bg": `url(${heroBg})` }}  // 把图传给 CSS 变量
+      style={{ "--hero-bg": `url(${heroBg})` }} // 把图传给 CSS 变量
       aria-label="SkillBridge introduction"
     >
       <div className="sb-hero__inner">
@@ -17,7 +17,13 @@ export default function Hero() {
             Assess transferable skills, see role pathways, and get a learning plan.
           </p>
           <div className="sb-hero__cta">
-            <Link to="/Analyzer" className="sb-btn sb-btn--primary">Open Skill Analyzer</Link>
+            {/* ✅ 改成跳到 /Analyzer?step=1 */}
+            <Link
+              to={{ pathname: "/Analyzer", search: "?step=1" }}
+              className="sb-btn sb-btn--primary"
+            >
+              Open Skill Analyzer
+            </Link>
           </div>
         </div>
         <div className="sb-hero__right" aria-hidden="true" />

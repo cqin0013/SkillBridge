@@ -6,6 +6,7 @@ import PageActions from "../../../components/ui/PageActions";
 import { Input, Select } from "antd";
 import "./GetInfo.css";
 
+// 角色库
 const ROLE_MASTER = [
   "Data Analyst",
   "Business Analyst",
@@ -14,6 +15,19 @@ const ROLE_MASTER = [
   "ML Engineer",
   "BI Analyst",
   "Data Scientist",
+];
+
+// 澳大利亚所有州/领地
+const AU_STATES = [
+  { label: "All states", value: "All" },
+  { label: "New South Wales (NSW)", value: "NSW" },
+  { label: "Victoria (VIC)", value: "VIC" },
+  { label: "Queensland (QLD)", value: "QLD" },
+  { label: "South Australia (SA)", value: "SA" },
+  { label: "Western Australia (WA)", value: "WA" },
+  { label: "Tasmania (TAS)", value: "TAS" },
+  { label: "Northern Territory (NT)", value: "NT" },
+  { label: "Australian Capital Territory (ACT)", value: "ACT" },
 ];
 
 export default function GetInfo({
@@ -39,21 +53,26 @@ export default function GetInfo({
   return (
     <section className="getinfo-page">
       <StageBox pill="Step 1" title="Background & Work Location">
-        <h3>Which roles match your experience?</h3>
+        {/* 标题和问号同行 */}
+        <div className="heading-row">
+          <h3 className="heading-title">
+            Which roles match your experience?
+            <HelpToggle
+              show={showHelp}
+              onToggle={() => setShowHelp(!showHelp)}
+            >
+              Type at least 2 letters to see role suggestions. Click on a suggestion
+              to add it below.
+            </HelpToggle>
+          </h3>
+        </div>
+
         <Input
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="Type at least 2 letters to search roles…"
           allowClear
         />
-
-        <HelpToggle
-          show={showHelp}
-          onToggle={() => setShowHelp(!showHelp)}
-          label="Show tips"
-        >
-          输入至少 2 个字母会出现建议列表；点击建议即可添加到下方已选角色。
-        </HelpToggle>
 
         {filtered.length > 0 && (
           <div className="gi-suggest">
@@ -79,21 +98,19 @@ export default function GetInfo({
           />
         )}
 
-        <h3>Where would you like to work?</h3>
+        {/* 第二个问题 */}
+        <div className="heading-row">
+          <h3 className="heading-title">Where would you like to work?</h3>
+        </div>
         <Select
           value={stateCode}
           onChange={setStateCode}
           style={{ width: "100%" }}
-          options={[
-            { label: "All states", value: "All" },
-            { label: "Victoria (VIC)", value: "VIC" },
-            { label: "New South Wales (NSW)", value: "NSW" },
-            { label: "Queensland (QLD)", value: "QLD" },
-          ]}
+          options={AU_STATES}
         />
       </StageBox>
 
-      {/* 页尾按钮：靠内容末尾 */}
+      {/* 页尾按钮 */}
       <PageActions onPrev={onPrev} onNext={onNext} nextDisabled={!roles.length} />
     </section>
   );

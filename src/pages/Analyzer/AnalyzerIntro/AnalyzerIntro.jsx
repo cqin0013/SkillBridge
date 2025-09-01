@@ -1,26 +1,31 @@
 import React from "react";
-import PageActions from "../../../components/ui/PageActions";
 import "./AnalyzerIntro.css";
+import heroImg from "../../../assets/images/Analyzer.png"; // ✅ right-side image
 
 export default function AnalyzerIntro({ onStart }) {
   return (
-    <section className="intro-hero">
+    <section className="intro-hero" aria-label="Analyzer introduction">
       <div className="intro-inner">
+        {/* left: copy */}
         <div className="intro-copy">
+          <p className="intro-kicker">Career Transition • Skills Gap • Roadmaps</p>
           <h1 className="intro-title">Career Ability Analyzer</h1>
           <p className="intro-lede">
-            快速评估你的目标岗位、能力差距与学习路线。
+            Quickly assess your target role, identify skill gaps, and get a personalized
+            learning plan to bridge from where you are to where you want to be.
           </p>
           <div className="intro-cta">
-            <button className="cta" onClick={onStart}>
+            <button className="btn primary" onClick={onStart}>
               Start
             </button>
           </div>
         </div>
-        <div className="intro-spacer" aria-hidden="true" />
-      </div>
 
-      <PageActions />
+        {/* right: centered image */}
+        <div className="intro-visual" aria-hidden="true">
+          <img src={heroImg} alt="" loading="eager" />
+        </div>
+      </div>
     </section>
   );
 }

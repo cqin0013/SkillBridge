@@ -109,3 +109,31 @@
 
 /* 底部按钮（可复用全局 .page-actions） */
 .page-actions{ margin-top:16px; display:flex; gap:10px; justify-content:flex-end; }
+/* 工具条：右对齐，紧挨标题下方 */
+.sg-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: .25rem 0 .75rem;
+}
+
+/* 导出区域白底更清晰 */
+.sg-print-area {
+  background: #fff;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+/* 打印/截图时隐藏操作按钮（可选） */
+@media print {
+
+  .sg-toolbar,
+  .help-btn {
+    display: none !important;
+  }
+
+  .sg-print-area {
+    border: none;
+    padding: 0;
+  }
+}

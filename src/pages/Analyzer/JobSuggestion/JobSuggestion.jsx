@@ -33,13 +33,17 @@ export default function JobSuggestion({
   return (
     <section className="jobs-page">
       <StageBox pill="Step 3" title="Job Suggestions">
-        <HelpToggle
-          show={showHelp}
-          onToggle={() => setShowHelp(!showHelp)}
-          label="Show tips"
-        >
-          根据你的角色与能力推荐的候选岗位，请选择一个进入能力差距分析。
-        </HelpToggle>
+        {/* 标题 + 问号图标 */}
+        <h3>
+          Recommended jobs for you
+          <HelpToggle
+            show={showHelp}
+            onToggle={() => setShowHelp(!showHelp)}
+          >
+            These are suggested roles based on your selected experience and
+            abilities. Please choose one to proceed with skill gap analysis.
+          </HelpToggle>
+        </h3>
 
         <JobCardGrid
           jobs={JOBS}
@@ -48,7 +52,7 @@ export default function JobSuggestion({
         />
       </StageBox>
 
-      {/* 页尾按钮：靠内容末尾 */}
+      {/* 页尾按钮 */}
       <PageActions onPrev={onPrev} onNext={onNext} nextDisabled={!targetJob} />
     </section>
   );

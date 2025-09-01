@@ -1,31 +1,62 @@
+.help-toggle {
+  position: relative;
+  /* 为绝对定位的提示提供参照 */
+  display: inline-block;
+}
 .help-btn {
-  margin-left: 0.5rem;
-  border: none;
-  background: #eee;
-  color: #333;
-  font-weight: bold;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  display: inline-flex;
+    align-items: center;
+    justify-content: center;
   cursor: pointer;
+  background: none;
+    border: none;
+    padding: 0;
 }
 
-.help-btn:hover {
-  background: #ddd;
+.help-icon {
+  font-size: 1.1rem;
+  color: var(--color-muted);
+  transition: color 0.2s ease;
 }
 
+.help-btn:hover .help-icon {
+  color: var(--color-primary);
+}
+
+/* 悬浮提示样式 */
 .help-hint {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: #666;
-  line-height: 1.4;
-  transition: opacity 0.2s ease;
-}
-
-.help-hint.is-hidden {
+  position: absolute;
+  top: 130%;
+  /* 出现在问号正下方 */
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  white-space: normal;
+  width: max-content;
+  max-width: 280px;
+  box-shadow: var(--shadow-sm);
   display: none;
+  z-index: 1000;
 }
 
 .help-hint.is-visible {
   display: block;
+  animation: fadeIn 0.2s ease;
+  }
+  
+  /* 小动画更自然 */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
 }

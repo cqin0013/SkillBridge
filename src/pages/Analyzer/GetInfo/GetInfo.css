@@ -7,24 +7,74 @@
   gap: .5rem;
   margin: .75rem 0 1rem;
 }
+
 .gi-suggest > button {
   border: 1px solid var(--color-border);
   background: #fff;
   border-radius: var(--radius-sm);
   padding: .45rem .6rem;
   text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
+
 .gi-suggest > button:hover {
   border-color: var(--color-primary);
   background: var(--color-primary-100);
 }
 
 /* 角色 Chips 与下方选择器的间距 */
-.getinfo-page .chips { margin-bottom: 1rem; }
+.getinfo-page .chips {
+  margin-bottom: 1rem;
+}
 
-/* 小提示按钮与文本 */
-.gi-help-btn { composes: btn btn-icon from global; }
-.gi-help-hint { color: var(--color-muted); margin-top: .5rem; }
+/* 标题与问号在同一行 */
+.heading-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  /* 标题文字和问号之间的间距 */
+  margin: 1rem 0 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
 
-/* 阶段容器里标题与控件的垂直节奏 */
-.getinfo-page h3 { margin: 1rem 0 .5rem; }
+/* 问号按钮样式 */
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.help-icon {
+  font-size: 1.1rem;
+  color: var(--color-muted);
+  transition: color 0.2s ease;
+}
+
+.help-btn:hover .help-icon {
+  color: var(--color-primary);
+}
+
+/* 提示文本 */
+.help-hint {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  display: none;
+}
+
+.help-hint.is-visible {
+  display: block;
+}
+
+/* 窄屏时：标题和问号自动换行 */
+@media (max-width: 560px) {
+  .heading-title {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+}

@@ -1,0 +1,18 @@
+.profile-page {
+    width: min(1100px, 92%);
+    margin: 0 auto;
+    padding: 1rem 0 2rem;
+}
+
+.profile-header h1 {
+    margin: 0;
+}
+
+.profile-header .muted {
+    color: var(--color-muted);
+    margin-top: .25rem;
+}
+
+.muted {
+    color: var(--color-muted);
+}

@@ -1,9 +1,18 @@
 .jobs-page {}
 
-/* 复用通用 JobCardGrid.css 的卡片样式，这里只做页面级补充 */
-.jobs-page .job-card { min-height: 146px; }
+/* 卡片最小高度 */
+.jobs-page .job-card {
+    min-height: 146px;
+}
 
-.jobs-help-btn { composes: btn btn-icon from global; }
-.jobs-help-hint { color: var(--color-muted); margin-top: .5rem; }
+/* 标题与问号同行 */
+.jobs-page h3 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    /* 标题文字和问号间距 */
+    margin: 1rem 0 0.5rem;
+    font-size: 1.125rem;
+    line-height: 1.35;
+}
 
-.jobs-page h3 { margin: 1rem 0 .5rem; }

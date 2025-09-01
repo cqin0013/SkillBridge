@@ -1,0 +1,121 @@
+.sb-roadmap { }
+.sb-roadmap__header { margin-bottom: .75rem; }
+.sb-roadmap__title { margin: 0; font-size: 1.35rem; }
+.sb-roadmap__sub { color: var(--color-muted); margin: .25rem 0 0; }
+
+.sb-roadmap__grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.sb-roadmap__col {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: .8rem .9rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.sb-roadmap__phase {
+  margin: 0 0 .6rem;
+  color: var(--color-primary);
+  font-size: 1.05rem;
+}
+
+.sb-roadmap__empty { color: var(--color-muted); margin: .25rem 0; }
+
+.sb-roadmap__list { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
+
+.sb-roadmap__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: .6rem .7rem;
+  background: #fff;
+}
+
+.sb-roadmap__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.sb-roadmap__row--tight {
+  margin-top: .35rem;
+}
+
+.sb-roadmap__name { font-weight: 600; }
+.sb-roadmap__meta { display: inline-flex; align-items: center; gap: .5rem; }
+
+.sb-roadmap__levels { display: inline-flex; align-items: center; gap: .35rem; }
+.sb-roadmap__levels .arrow { color: var(--color-muted); }
+
+/* 重要度条 */
+.impbar {
+  position: relative;
+  width: 120px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-primary-100, #eef4ff);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.impbar__fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: var(--color-primary, #3b82f6);
+}
+.impbar__text {
+  margin-left: .5rem;
+  font-size: .8rem;
+  color: var(--color-muted);
+  position: absolute;
+  right: -34px; top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 熟练度进展条（当前/目标） */
+.lvlbar {
+  position: relative;
+  width: 140px;
+  height: 8px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.lvlbar__fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: #22c55e;
+}
+.lvlbar__text {
+  position: absolute;
+  right: -46px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .8rem; color: var(--color-muted);
+}
+
+/* 差距徽标 */
+.gap-badge {
+  font-size: .75rem;
+  padding: .1rem .4rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+}
+.gap-1 { background: #fff9db; }
+.gap-2 { background: #ffe9cc; }
+.gap-3, .gap-4, .gap-5 { background: #ffe2e2; }
+.gap-badge.done { background: #f1f5f9; color: var(--color-muted); }
+
+/* 建议 */
+.sb-roadmap__hint { margin: .4rem 0 0; color: var(--color-muted); font-size: .92rem; }
+.sb-roadmap__actions { margin: .35rem 0 0; padding-left: 1rem; }
+.sb-roadmap__actions li { margin: .1rem 0; }
+.equal-note {
+  margin-top: .25rem;
+  font-size: .85rem;
+  color: var(--color-muted);
+  font-style: italic;
+}

@@ -1,49 +1,103 @@
-/* Intro 大幅横幅区域 */
+/* ====== Full-bleed, responsive intro hero (no card look) ====== */
 .intro-hero {
-  padding: clamp(2rem, 4vw, 4rem) 0;
+  /* 占据接近全屏高度；在小屏不低于 520px，大屏不超过 900px */
+    min-height: clamp(520px, 90vh, 900px);
+    padding-block: clamp(3rem, 8vh, 6rem);
+    /* 纯背景，不要边框/阴影/卡片 */
   background: linear-gradient(180deg, var(--color-surface), #fff);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
 }
 
 .intro-inner {
-  width: min(1100px, 92%);
-  margin: 0 auto;
+  width: min(1200px, 92%);
+    margin-inline: auto;
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 2rem;
+  grid-template-columns: 1.25fr 1fr;
   align-items: center;
+  gap: clamp(1rem, 4vw, 3rem);
 }
 
+/* left copy */
 .intro-copy {
-  padding: 0 var(--space-4);
+  padding-inline: 0;
+  }
+  
+  .intro-kicker {
+    color: var(--color-muted);
+    font-weight: 600;
+    letter-spacing: .3px;
+    margin-bottom: .25rem;
 }
 
 .intro-title {
-  font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
-  margin-bottom: .5rem;
+  font-size: clamp(2.2rem, 1.4rem + 2.6vw, 3.4rem);
+    line-height: 1.12;
+    margin: 0 0 .6rem;
 }
 
 .intro-lede {
-  font-size: 1.125rem;
+  font-size: clamp(1rem, .9rem + .5vw, 1.2rem);
   color: var(--color-muted);
-  margin-bottom: 1.25rem;
+  margin: 0 0 1.4rem;
+    max-width: 60ch;
 }
 
-.intro-cta .cta {
-  composes: btn primary from global;
-  /* 如果没有 CSS Modules，就用下面两行： */
-  /* @supports not (composes: dummy) { } */
-}
-
-.intro-spacer {
-  min-height: 220px; /* 右侧占位插图区（可换成图片容器） */
-  background: radial-gradient(120% 120% at 0% 0%, var(--color-primary-100), transparent);
+.intro-cta .btn {
+  font-size: 1rem;
+  padding: .8rem 1.25rem;
   border-radius: var(--radius-md);
 }
 
-/* 响应式 */
+/* right visual — 只负责居中图片，无卡片边框/背景/阴影 */
+.intro-visual {
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+  padding: 0;
+}
+
+.intro-visual img {
+  width: min(560px, 95%);
+  max-height: 70vh;
+  height: auto;
+  object-fit: contain;
+}
+
+/* ====== Responsive ====== */
 @media (max-width: 920px) {
-  .intro-inner { grid-template-columns: 1fr; }
-  .intro-spacer { min-height: 160px; }
+  .intro-inner {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+  
+    .intro-copy {
+      padding-inline: 0
+    }
+  
+    .intro-lede {
+      margin-inline: auto
+    }
+  
+    .intro-visual {
+      min-height: 200px
+    }
+  }
+  
+  /* 轻微浮动动效（用户未开启减少动效时） */
+  @media (prefers-reduced-motion: no-preference) {
+    .intro-visual img {
+      transform: translateY(0);
+      animation: floatY 6s ease-in-out infinite;
+    }
+  
+    @keyframes floatY {
+  
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+  
+      50% {
+        transform: translateY(-4px)
+      }
+    }
 }

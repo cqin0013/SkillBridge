@@ -13,17 +13,86 @@
   border-radius: var(--radius-sm);
   padding: .35rem .6rem;
   text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .abl-suggest > button:hover {
   border-color: var(--color-primary);
   background: var(--color-primary-100);
 }
 
-/* 已选能力 */
-.ability-page .chips { margin-top: .5rem; }
+/* 已选能力 Chips 区域 */
+.ability-page .chips {
+  margin-top: .5rem;
+}
 
-/* 提示 */
-.abl-help-btn { composes: btn btn-icon from global; }
-.abl-help-hint { color: var(--color-muted); margin-top: .5rem; }
+/* 标题与问号图标同行 */
+.ability-page h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  /* 标题文字和问号之间的间距 */
+  margin: 1rem 0 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
 
-.ability-page h3 { margin: 1rem 0 .5rem; }
+/* 问号按钮 */
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.help-icon {
+  font-size: 1.1rem;
+  color: var(--color-muted);
+  transition: color 0.2s ease;
+}
+
+.help-btn:hover .help-icon {
+  color: var(--color-primary);
+}
+
+/* 提示文字 */
+.help-hint {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  display: none;
+}
+
+.help-hint.is-visible {
+  display: block;
+}
+
+/* 已选技能行 */
+.abl-list {
+  display: grid;
+  gap: .5rem;
+  margin-top: .5rem;
+}
+
+.abl-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: .5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: .4rem .6rem;
+  background: #fff;
+}
+
+.abl-name {
+  font-weight: 600;
+}
+
+.abl-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
