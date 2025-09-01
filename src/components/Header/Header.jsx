@@ -1,31 +1,44 @@
-import { useState } from "react";
-import { NavLink, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
 import "./Header.css";
+import Logo from "./TeamLogo"; // 你的 Logo 组件
 
-export default function Header() {
-  const [open, setOpen] = useState(false); // mobile menu button
+const linkClass = ({ isActive }) =>
+  `st-link${isActive ? " is-active" : ""}`;
+
+const Header = () => {
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="header">
-      <div className="row">
-        <div className="brand">
-          <span className="badge">TE17</span>
-          <div>
-            <h1 className="title">Melbourne CBD Parking Finder</h1>
-            <p className="sub">Availability, history & guidance</p>
-          </div>
-        </div>
-
-        {/* mobile nav button*/}
-        <button className="menu-btn" onClick={() => setOpen(!open)}>☰</button>
-        <nav className={`nav ${open ? "show" : ""}`}>
-          <ul className="menu" onClick={() => setOpen(false)}>
-            <li><NavLink to="/"          className={({isActive}) => "nav-link" + (isActive ? " active" : "")}>Home</NavLink></li>
-            <li><NavLink to="/search"    className={({isActive}) => "nav-link" + (isActive ? " active" : "")}>Search</NavLink></li>
-            <li><NavLink to="/insight"   className={({isActive}) => "nav-link" + (isActive ? " active" : "")}>Insights</NavLink></li>
-          </ul>
-        </nav>
+    <header className="st-header" aria-label="主导航">
+      {/* 左：品牌（不可点击） */}
+      <div className="st-brand" aria-label="SkillBridge 品牌标识">
+        <Logo size="md" theme="light" align="left" />
+        <span className="brand-name">SkillBridge</span>
       </div>
+
+      {/* 右：导航（使用 NavLink 自动高亮当前路由） */}
+      <nav className={`st-nav ${open ? "is-open" : ""}`} aria-label="Primary">
+        <NavLink to="/" end className={linkClass}>Home</NavLink>
+        <NavLink to="/Analyzer" className={linkClass}>Analyzer</NavLink>
+        {/*<NavLink to="/Insight" className={linkClass}>Insight</NavLink> */}
+         <NavLink to="/profile" className={linkClass}>Profile</NavLink> 
+        <NavLink to="/About" className={linkClass}>About</NavLink>
+      </nav>
+
+      {/* 移动端菜单按钮 */}
+      <button
+        className="st-menu"
+        aria-label="Toggle menu"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
+        <span className="st-bar" />
+        <span className="st-bar" />
+        <span className="st-bar" />
+      </button>
     </header>
   );
-}
+};
+
+export default Header;

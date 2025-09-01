@@ -1,0 +1,9 @@
+.jobs-page {}
+
+/* 复用通用 JobCardGrid.css 的卡片样式，这里只做页面级补充 */
+.jobs-page .job-card { min-height: 146px; }
+
+.jobs-help-btn { composes: btn btn-icon from global; }
+.jobs-help-hint { color: var(--color-muted); margin-top: .5rem; }
+
+.jobs-page h3 { margin: 1rem 0 .5rem; }

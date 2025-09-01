@@ -1,0 +1,39 @@
+/* 向导进度条 */
+.wiz-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.wiz-label {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* 上一步摘要 */
+.prev-summary {
+  background: #f8f8f8;
+  border-left: 4px solid #007bff;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.prev-pill {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: bold;
+  background: #007bff;
+  color: white;
+  border-radius: 9999px;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prev-list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+  color: #333;
+}

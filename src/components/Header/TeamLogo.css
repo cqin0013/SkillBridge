@@ -1,0 +1,110 @@
+:root{
+  /* 文字与强调色：蓝/紫对多数色盲友好，保证高对比 */
+  --stg-fg: #0f172a;          /* 主文字（浅色主题） */
+  --stg-subtle:#475569;
+  --stg-accent-1:#0ea5e9;     /* cyan */
+  --stg-accent-2:#6366f1;     /* indigo */
+  --stg-underline:#f2be25;    /* 黄橙强调（与蓝对比强） */
+
+  --stg-ring:#e2e8f0;
+  --stg-bg:#ffffff;
+}
+
+.stg-dark{
+  --stg-fg:#e5e7eb;
+  --stg-subtle:#9ca3af;
+  --stg-ring:#1f2937;
+  --stg-bg:#0b1220;
+  --stg-accent-1:#60a5fa;
+  --stg-accent-2:#a78bfa;
+}
+
+/* 容器：图标 + 两行文字（上下排列） */
+.stg-logo{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  color:var(--stg-fg);
+}
+
+/* 对齐选项 */
+.stg-left   { text-align:left; }
+.stg-center { text-align:center; justify-content:center; }
+.stg-right  { text-align:right; justify-content:flex-end; }
+
+/* 图形徽标 */
+.stg-mark{
+  flex:0 0 auto;
+  width:44px; height:44px;
+  display:block;
+}
+.stg-mark-ring{
+  fill:none;
+  stroke:url(#stg-grad);
+  stroke-width:2.5;
+}
+.stg-mark-curve{
+  stroke:var(--stg-accent-2);
+  stroke-width:3;
+  stroke-linecap:round;
+}
+.stg-mark-dot{
+  fill:var(--stg-accent-1);
+}
+
+/* 文字两行（上下排列） */
+.stg-wordmark{
+  display:flex;
+  flex-direction:column;
+  line-height:1.05;
+}
+.stg-line{
+  font-weight:800;
+  letter-spacing:.2px;
+  margin:0;
+  padding:0;
+}
+
+/* 上：stranger */
+.stg-line--top{
+  font-size:1.25rem; /* md 基准大小，随 size 类缩放 */
+  color:var(--stg-fg);
+}
+
+/* 下：thinks（渐变文字 + 细下划线强调） */
+.stg-line--bottom{
+  font-size:1.25rem;
+  background:linear-gradient(90deg, var(--stg-accent-1), var(--stg-accent-2));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  position:relative;
+}
+.stg-line--bottom::after{
+  content:"";
+  display:block;
+  width:48%;
+  height:3px;
+  border-radius:3px;
+  margin-top:6px;
+  background:var(--stg-underline);
+}
+
+/* 尺寸：sm / md / lg */
+.stg-sm .stg-mark{ width:32px; height:32px; }
+.stg-sm .stg-line--top,
+.stg-sm .stg-line--bottom{ font-size:1rem; }
+
+.stg-md .stg-mark{ width:44px; height:44px; }
+.stg-md .stg-line--top,
+.stg-md .stg-line--bottom{ font-size:1.25rem; }
+
+.stg-lg .stg-mark{ width:60px; height:60px; }
+.stg-lg .stg-line--top,
+.stg-lg .stg-line--bottom{ font-size:1.75rem; }
+
+/* 可选：悬停微交互（尊重无动画用户） */
+.stg-logo{ will-change: transform; }
+@media (prefers-reduced-motion: no-preference){
+  .stg-logo:hover .stg-mark{ transform: translateY(-1px); transition: transform 160ms ease; }
+}

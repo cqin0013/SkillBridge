@@ -1,0 +1,30 @@
+.getinfo-page {}
+
+/* 搜索建议区 */
+.gi-suggest {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .5rem;
+  margin: .75rem 0 1rem;
+}
+.gi-suggest > button {
+  border: 1px solid var(--color-border);
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: .45rem .6rem;
+  text-align: left;
+}
+.gi-suggest > button:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-100);
+}
+
+/* 角色 Chips 与下方选择器的间距 */
+.getinfo-page .chips { margin-bottom: 1rem; }
+
+/* 小提示按钮与文本 */
+.gi-help-btn { composes: btn btn-icon from global; }
+.gi-help-hint { color: var(--color-muted); margin-top: .5rem; }
+
+/* 阶段容器里标题与控件的垂直节奏 */
+.getinfo-page h3 { margin: 1rem 0 .5rem; }

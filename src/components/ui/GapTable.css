@@ -1,0 +1,43 @@
+.gap-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.gap-table th,
+.gap-table td {
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.gap-table thead {
+  background: #f3f3f3;
+}
+
+.gap-table tr.ok {
+  background: #f9fff9;
+}
+
+.gap-table tr.miss {
+  background: #fff9f9;
+}
+
+.sg-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sg-name {
+  font-weight: 500;
+}
+
+.sg-badge {
+  font-size: 0.75rem;
+  background: #007bff;
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+}

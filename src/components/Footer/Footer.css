@@ -1,14 +1,114 @@
-
+/* Ultra-flat & ultra-compact footer */
 .site-footer {
-    background: #f9fafb;
-    padding: 0.75rem;
-        /*root-relative font size*/
-    font-size: 0.75rem;
+    background: #fff;
+        border-top: 1px solid #e5e7eb;
+        padding: .3125rem 0;
+        /* ↓ 更小的上下内边距 */
+        font-size: .6875rem;
+        /* ↓ ~11px */
+        line-height: 1.2;
+        /* ↓ 更紧凑行高 */
+        color: #6b7280;
     text-align: center;
 }
 
 .footer-inner {
-    max-width: 1240px;
-    margin: auto;
-        /*auto center*/
+    max-width: 1200px;
+        margin-inline: auto;
+        padding-inline: 12px;
+        /* ↓ 更窄左右内边距 */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        /* ↓ 缩小间距 */
+        flex-wrap: wrap;
+        /* 换行避免增高 */
+    }
+    
+    /* 可选：链接默认轻描下划线，仍保持极简 */
+    .site-footer a {
+        color: inherit;
+        text-decoration: underline 0.05em dotted;
+        text-underline-offset: 1px;
+    }
+    
+    .site-footer a:hover {
+        text-decoration-style: solid;
+        color: #374151;
+    }
+    
+    /* 小屏再压一点间距 */
+    @media (max-width:640px) {
+        .footer-inner {
+            justify-content: center;
+            gap: 6px;
+        }
+    }
+    
+    /* 深色模式（保持扁平） */
+    @media (prefers-color-scheme: dark) {
+        .site-footer {
+            background: #0b1220;
+            border-top-color: #1f2937;
+            color: #9ca3af;
+        }
+    
+        .site-footer a:hover {
+            color: #e5e7eb;
+        }
+    }
+    
+    /* === Sticky footer at page bottom (non-fixed) === */
+    html,
+    body {
+        height: 100%;
+    }
+    
+    body {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+        /* 支持 svh/dvh 的浏览器更准 */
+    }
+    
+    .main {
+        flex: 1 0 auto;
+        /* 你的主内容容器（请给主容器加 .main 类） */
+    }
+    
+    .site-footer {
+        flex-shrink: 0;
+        /* Footer 不被压缩，始终在最下 */
+        position: static;
+        /* 取消任何 fixed 定位 */
+    }
+    
+    /* === Fixed footer at bottom of viewport === */
+    :root {
+        --footer-h: 36px;
+        /* 估算高度，按需微调 */
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    
+    .site-footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        /* 低于你右下角固定按钮的 z-index */
+        width: 100%;
+        padding-bottom: calc(.3125rem + var(--safe-bottom));
+        /* 适配刘海安全区 */
+}
+/* 避免内容被固定 Footer 遮挡：给页面底部留出空间 */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    padding-bottom: calc(var(--footer-h) + var(--safe-bottom));
 }

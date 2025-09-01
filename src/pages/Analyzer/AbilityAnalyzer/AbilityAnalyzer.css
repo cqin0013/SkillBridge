@@ -1,0 +1,29 @@
+.ability-page {}
+
+/* 搜索建议网格 */
+.abl-suggest {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: .5rem;
+  margin: .75rem 0 1rem;
+}
+.abl-suggest > button {
+  border: 1px solid var(--color-border);
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: .35rem .6rem;
+  text-align: left;
+}
+.abl-suggest > button:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-100);
+}
+
+/* 已选能力 */
+.ability-page .chips { margin-top: .5rem; }
+
+/* 提示 */
+.abl-help-btn { composes: btn btn-icon from global; }
+.abl-help-hint { color: var(--color-muted); margin-top: .5rem; }
+
+.ability-page h3 { margin: 1rem 0 .5rem; }

@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="site-footer">
       <div className="footer-inner">
         <p className="footer-text">
-          Made by Monash IE TE17
+          Made by Stranger Thinks
         </p>
       </div>
     </footer>

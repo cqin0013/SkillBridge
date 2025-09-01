@@ -1,0 +1,49 @@
+/* Intro 大幅横幅区域 */
+.intro-hero {
+  padding: clamp(2rem, 4vw, 4rem) 0;
+  background: linear-gradient(180deg, var(--color-surface), #fff);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.intro-inner {
+  width: min(1100px, 92%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.intro-copy {
+  padding: 0 var(--space-4);
+}
+
+.intro-title {
+  font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
+  margin-bottom: .5rem;
+}
+
+.intro-lede {
+  font-size: 1.125rem;
+  color: var(--color-muted);
+  margin-bottom: 1.25rem;
+}
+
+.intro-cta .cta {
+  composes: btn primary from global;
+  /* 如果没有 CSS Modules，就用下面两行： */
+  /* @supports not (composes: dummy) { } */
+}
+
+.intro-spacer {
+  min-height: 220px; /* 右侧占位插图区（可换成图片容器） */
+  background: radial-gradient(120% 120% at 0% 0%, var(--color-primary-100), transparent);
+  border-radius: var(--radius-md);
+}
+
+/* 响应式 */
+@media (max-width: 920px) {
+  .intro-inner { grid-template-columns: 1fr; }
+  .intro-spacer { min-height: 160px; }
+}

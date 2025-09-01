@@ -1,0 +1,31 @@
+.help-btn {
+  margin-left: 0.5rem;
+  border: none;
+  background: #eee;
+  color: #333;
+  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.help-btn:hover {
+  background: #ddd;
+}
+
+.help-hint {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+  transition: opacity 0.2s ease;
+}
+
+.help-hint.is-hidden {
+  display: none;
+}
+
+.help-hint.is-visible {
+  display: block;
+}

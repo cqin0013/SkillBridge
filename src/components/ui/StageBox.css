@@ -1,0 +1,28 @@
+.stage-box {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+}
+
+.stage-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  margin-bottom: 0.5rem;
+  border-radius: 9999px;
+  background: #007bff;
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.stage-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin: 0.2rem 0 0.5rem;
+}
+
+.stage-sub {
+  color: #555;
+  margin: 0 0 0.75rem;
+}

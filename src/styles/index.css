@@ -1,0 +1,6 @@
+/* 聚合全局样式：入口只需引入本文件一次 */
+@import "./base.css";
+@import "./typography.css";
+@import "./buttons.css";
+
+/* 你也可以在这里追加全局覆盖 */

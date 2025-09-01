@@ -1,0 +1,52 @@
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.job-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.job-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.job-card.is-selected {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.job-title {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.job-score {
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.job-req {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.req-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #f8f8f8;
+  border-radius: 9999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+}

@@ -1,26 +1,26 @@
 import { Link } from "react-router-dom";
 import "./Hero.css";
-import heroBg from "../../../assets/images/Parking.jpg";
+import heroBg from "../../../assets/images/bridge.png"; // 无文字的大桥图
 
 export default function Hero() {
   return (
     <section
-      className="hero"
-      style={{
-        backgroundImage:
-          `linear-gradient(180deg, rgba(5,7,11,.65) 0%, rgba(5,7,11,.35) 40%, rgba(5,7,11,.75) 100%), url(${heroBg})`,
-      }}
-      aria-label="Intro section with call-to-action"
+      className="sb-hero"
+      style={{ "--hero-bg": `url(${heroBg})` }}  // 把图传给 CSS 变量
+      aria-label="SkillBridge introduction"
     >
-      <div className="hero-inner">
-        <h1 className="hero-title">Find Parking Smarter</h1>
-        <p className="hero-sub">
-          Live map search, historical availability and lightweight predictions — all in one place.
-        </p>
-        <div className="hero-cta">
-          <Link to="/search" className="btn btn-primary">Start Searching</Link>
-          <Link to="/Insight" className="btn btn-primary">See Insights</Link>
+      <div className="sb-hero__inner">
+        <div className="sb-hero__left">
+          <p className="sb-hero__kicker">Career Transition • Skills Gap • Roadmaps</p>
+          <h1 className="sb-hero__title">Bridge Your Experience to the Next Role</h1>
+          <p className="sb-hero__sub">
+            Assess transferable skills, see role pathways, and get a learning plan.
+          </p>
+          <div className="sb-hero__cta">
+            <Link to="/Analyzer" className="sb-btn sb-btn--primary">Open Skill Analyzer</Link>
+          </div>
         </div>
+        <div className="sb-hero__right" aria-hidden="true" />
       </div>
     </section>
   );
