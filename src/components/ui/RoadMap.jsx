@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import ProficiencyTag from "./ProficiencyTag";
-import "./Roadmap.css";
+import "./RoadMap.css";
 
 /**
  * items: Array<{
