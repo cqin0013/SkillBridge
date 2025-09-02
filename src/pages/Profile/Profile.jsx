@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import Roadmap from "../../components/ui/RoadMap.jsx";
+import Roadmap from "../../components/ui/Roadmap.jsx";
 import "./Profile.css";
 
 /**
