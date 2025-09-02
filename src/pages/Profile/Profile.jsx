@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import Roadmap from "../../components/ui/Roadmap.jsx";
+import RoadMap from "../../components/ui/RoadMap.jsx";
 import "./Profile.css";
 
 /**
@@ -10,7 +10,7 @@ import "./Profile.css";
  */
 export default function Profile() {
   const location = useLocation();
-  const stateData = location.state?.roadmap;
+  const stateData = location.state?.RoadMap;
 
   const data = useMemo(() => {
     if (stateData) return stateData;
@@ -50,7 +50,7 @@ export default function Profile() {
       {items.length === 0 ? (
         <p className="muted">No roadmap yet. Go to Analyzer to generate one.</p>
       ) : (
-        <Roadmap
+        <RoadMap
           items={items}
           title="SkillBridge Roadmap"
           subtitle="Prioritized by importance, with suggestions based on your proficiency."

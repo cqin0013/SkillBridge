@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import ProficiencyTag from "../ui/ProficiencyTag";
+import ProficiencyTag from "./ProficiencyTag";
 import "./Roadmap.css";
 
 /**
