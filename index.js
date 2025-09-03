@@ -77,18 +77,17 @@ app.get('/health', async (_req, res) => {
     //   5) 备用标题/报告标题的 等于/前缀/包含（依次降低）
     //   同分时按 occupation_title 升序
 // -----------------------------
-// 1) 搜索职位（只返回职业基本信息；支持 includeAliases 开关）
+// 1) 搜索职位（只返回职业基本信息；支持 includeAliases 开关；不返回分数）
 app.get('/occupations/search-and-titles', async (req, res) => {
   const s = (req.query.s || '').trim();
   const limit = Math.min(Math.max(parseInt(req.query.limit ?? '10', 10) || 10, 1), 20); // 1..20
-  const includeScore = String(req.query.includeScore || '0') === '1';
-  const includeAliases = String(req.query.includeAliases || '1') === '1'; // 新增：是否纳入别名/报岗名
+  const includeAliases = String(req.query.includeAliases || '1') === '1'; // 1=包含别名/报岗名
 
   if (s.length < 2) return res.status(400).json({ error: 'query too short (>=2)' });
 
   const conn = await pool.getConnection();
   try {
-    // 相关性打分（主标题权重最高）
+    // 排序表达式（只用于 ORDER BY，不输出给前端）
     let scoreExpr = `
       (LOWER(o.occupation_title) = LOWER(?)) * 100 +
       (LOWER(o.occupation_title) LIKE LOWER(CONCAT(?, '%'))) * 90 +
@@ -97,11 +96,11 @@ app.get('/occupations/search-and-titles', async (req, res) => {
     `;
     const scoreParams = [s, s, s, s];
 
-    // WHERE 过滤条件（至少主标题模糊匹配）
+    // 过滤条件：至少主标题模糊匹配
     let where = `LOWER(o.occupation_title) LIKE LOWER(CONCAT('%', ?, '%'))`;
     const whereParams = [s];
 
-    // 如果包含别名/报岗名，则把两张表加入过滤与打分
+    // 可选：把别名/报岗名纳入过滤与排序
     if (includeAliases) {
       scoreExpr += `
         + EXISTS(SELECT 1 FROM alternative_titles_data a
@@ -140,11 +139,10 @@ app.get('/occupations/search-and-titles', async (req, res) => {
       SELECT
         o.occupation_code,
         o.occupation_title,
-        o.occupation_description,
-        (${scoreExpr}) AS score
+        o.occupation_description
       FROM occupation_data o
       WHERE ${where}
-      ORDER BY score DESC, o.occupation_title ASC
+      ORDER BY ${scoreExpr} DESC, o.occupation_title ASC
       LIMIT ?
     `;
 
@@ -154,8 +152,7 @@ app.get('/occupations/search-and-titles', async (req, res) => {
     const items = rows.map(r => ({
       occupation_code: r.occupation_code,
       occupation_title: (r.occupation_title || '').replace(/[\r\n]/g, ''),
-      occupation_description: (r.occupation_description || '').replace(/[\r\n]/g, ''),
-      ...(includeScore ? { score: r.score } : {})
+      occupation_description: (r.occupation_description || '').replace(/[\r\n]/g, '')
     }));
 
     res.json({ items });
@@ -166,6 +163,7 @@ app.get('/occupations/search-and-titles', async (req, res) => {
     conn.release();
   }
 });
+
 
 
 // -----------------------------
@@ -222,6 +220,7 @@ app.get('/occupations/:code/titles', async (req, res) => {
     conn.release();
   }
 });
+
 
 // -----------------------------
 // 3) 基于“标题”匹配（你之前已经在用）
@@ -289,7 +288,7 @@ app.post('/occupations/match-top', async (req, res) => {
 });
 
 // -----------------------------
-// 4) 新增：基于“code”反向聚合到职业，按命中次数排序
+// 4) 新增：基于skillcode反向聚合到职业，按命中次数排序
 // -----------------------------
 /*
 POST /occupations/rank-by-codes
@@ -320,6 +319,7 @@ B) {
   ]
 }
 */
+// 4) 基于 code 反向聚合到职业，返回【未命中的 codes+titles】
 app.post('/occupations/rank-by-codes', async (req, res) => {
   // 解析两种入参
   let selections = ensureArray(req.body?.selections)
@@ -329,7 +329,6 @@ app.post('/occupations/rank-by-codes', async (req, res) => {
   const kn2 = ensureArray(req.body?.knowledge_codes).map(String).map(x => x.trim()).filter(Boolean).map(code => ({ type: 'knowledge', code }));
   const sk2 = ensureArray(req.body?.skill_codes).map(String).map(x => x.trim()).filter(Boolean).map(code => ({ type: 'skill', code }));
   const te2 = ensureArray(req.body?.tech_codes).map(String).map(x => x.trim()).filter(Boolean).map(code => ({ type: 'tech', code }));
-
   selections = selections.concat(kn2, sk2, te2);
 
   // 去重 + 限制最多 10 个
@@ -348,56 +347,89 @@ app.post('/occupations/rank-by-codes', async (req, res) => {
     return res.status(400).json({ error: 'no codes provided' });
   }
 
+  // 选中 codes 全集（用于后面求未命中）
+  const selKn = new Set(selections.filter(x => x.type === 'knowledge').map(x => x.code));
+  const selSk = new Set(selections.filter(x => x.type === 'skill').map(x => x.code));
+  const selTe = new Set(selections.filter(x => x.type === 'tech').map(x => x.code));
+
   const conn = await pool.getConnection();
   try {
-    // 按类型拆分 code 数组
-    const knCodes = selections.filter(x => x.type === 'knowledge').map(x => x.code);
-    const skCodes = selections.filter(x => x.type === 'skill').map(x => x.code);
-    const teCodes = selections.filter(x => x.type === 'tech').map(x => x.code);
+    // 一次性把选中 codes 的标题查出来，做映射表
+    const knTitleMap = new Map();
+    const skTitleMap = new Map();
+    const teTitleMap = new Map();
 
+    if (selKn.size) {
+      const codes = [...selKn];
+      const [rows] = await conn.query(
+        `SELECT knowledge_code, knowledge_title FROM knowledge_data
+          WHERE knowledge_code IN (${codes.map(()=>'?').join(',')})`,
+        codes
+      );
+      for (const r of rows) knTitleMap.set(r.knowledge_code, strip(r.knowledge_title));
+    }
+    if (selSk.size) {
+      const codes = [...selSk];
+      const [rows] = await conn.query(
+        `SELECT skill_code, skill_title FROM skill_data
+          WHERE skill_code IN (${codes.map(()=>'?').join(',')})`,
+        codes
+      );
+      for (const r of rows) skTitleMap.set(r.skill_code, strip(r.skill_title));
+    }
+    if (selTe.size) {
+      const codes = [...selTe];
+      const [rows] = await conn.query(
+        `SELECT tech_skill_code, tech_title FROM technology_skill_data
+          WHERE tech_skill_code IN (${codes.map(()=>'?').join(',')})`,
+        codes
+      );
+      for (const r of rows) teTitleMap.set(r.tech_skill_code, strip(r.tech_title));
+    }
+
+    // 用三张“关系表”查每个 code 对应的职业（命中的）
     const results = [];
-
-    if (knCodes.length) {
+    if (selKn.size) {
+      const codes = [...selKn];
       const [rows] = await conn.query(
         `SELECT ok.occupation_code, o.occupation_title, ok.knowledge_code AS code, 'knowledge' AS type
            FROM occup_know_data ok
            JOIN occupation_data o ON o.occupation_code = ok.occupation_code
-          WHERE ok.knowledge_code IN (${knCodes.map(() => '?').join(',')})`,
-        knCodes
+          WHERE ok.knowledge_code IN (${codes.map(()=>'?').join(',')})`,
+        codes
       );
       results.push(...rows);
     }
-
-    if (skCodes.length) {
+    if (selSk.size) {
+      const codes = [...selSk];
       const [rows] = await conn.query(
         `SELECT os.occupation_code, o.occupation_title, os.skill_code AS code, 'skill' AS type
            FROM occup_skill_data os
            JOIN occupation_data o ON o.occupation_code = os.occupation_code
-          WHERE os.skill_code IN (${skCodes.map(() => '?').join(',')})`,
-        skCodes
+          WHERE os.skill_code IN (${codes.map(()=>'?').join(',')})`,
+        codes
       );
       results.push(...rows);
     }
-
-    if (teCodes.length) {
+    if (selTe.size) {
+      const codes = [...selTe];
       const [rows] = await conn.query(
         `SELECT ot.occupation_code, o.occupation_title, ot.tech_skill_code AS code, 'tech' AS type
            FROM occup_tech_data ot
            JOIN occupation_data o ON o.occupation_code = ot.occupation_code
-          WHERE ot.tech_skill_code IN (${teCodes.map(() => '?').join(',')})`,
-        teCodes
+          WHERE ot.tech_skill_code IN (${codes.map(()=>'?').join(',')})`,
+        codes
       );
       results.push(...rows);
     }
 
-    // 聚合到职业：count = 命中 code 的数量（同一职业同一 code 只计 1）
+    // 统计每个职业命中的集合
     const byOcc = new Map();
     for (const r of results) {
       const key = r.occupation_code;
       const entry = byOcc.get(key) || {
         occupation_code: r.occupation_code,
         occupation_title: strip(r.occupation_title),
-        count: 0,
         matched: { knowledge_codes: new Set(), skill_codes: new Set(), tech_codes: new Set() }
       };
       if (r.type === 'knowledge') entry.matched.knowledge_codes.add(r.code);
@@ -406,24 +438,40 @@ app.post('/occupations/rank-by-codes', async (req, res) => {
       byOcc.set(key, entry);
     }
 
-    // 计算最终 count（就是三个集合大小之和）
+    // 生成响应：unmatched 数组包含 {code, title}
     const items = [...byOcc.values()].map(e => {
       const kc = e.matched.knowledge_codes.size;
       const sc = e.matched.skill_codes.size;
       const tc = e.matched.tech_codes.size;
+
+      const unmatched_kn = [...selKn]
+        .filter(code => !e.matched.knowledge_codes.has(code))
+        .map(code => ({ code, title: knTitleMap.get(code) ?? null }));
+
+      const unmatched_sk = [...selSk]
+        .filter(code => !e.matched.skill_codes.has(code))
+        .map(code => ({ code, title: skTitleMap.get(code) ?? null }));
+
+      const unmatched_te = [...selTe]
+        .filter(code => !e.matched.tech_codes.has(code))
+        .map(code => ({ code, title: teTitleMap.get(code) ?? null }));
+
       return {
         occupation_code: e.occupation_code,
         occupation_title: e.occupation_title,
-        count: kc + sc + tc,
-        matched: {
-          knowledge_codes: [...e.matched.knowledge_codes],
-          skill_codes:     [...e.matched.skill_codes],
-          tech_codes:      [...e.matched.tech_codes],
+        count: kc + sc + tc,  // 仍用命中数量排序
+        unmatched: {
+          knowledge: unmatched_kn,
+          skill:     unmatched_sk,
+          tech:      unmatched_te
         }
       };
     }).sort((a, b) => b.count - a.count || a.occupation_title.localeCompare(b.occupation_title));
 
-    res.json({ total_selected: selections.length, items });
+    res.json({
+      total_selected: selections.length,
+      items
+    });
   } catch (e) {
     console.error('rank-by-codes error:', e);
     res.status(500).json({ error: 'server error' });
@@ -431,6 +479,7 @@ app.post('/occupations/rank-by-codes', async (req, res) => {
     conn.release();
   }
 });
+
 
 // -----------------------------
 // (可选) 快速验证 occupation_data
