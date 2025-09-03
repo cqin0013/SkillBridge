@@ -62,74 +62,111 @@ app.get('/health', async (_req, res) => {
   }
 });
 
+
 // -----------------------------
-// 1) 搜索职位 + 返回三类 title（用于前端展示勾选）
+// 1) 搜索职位（只返回最相似的职业，不带三类标题）
+//    GET /occupations/search-and-titles?s=keyword&limit=10&includeScore=0
+
+    // 说明：
+    // - WHERE 先做“任意包含”范围过滤（职业标题/别名/报岗名 三处任一匹配即可）
+    // - ORDER BY 做“相关性打分排序”，优先级从高到低：
+    //   1) 职业标题完全相等
+    //   2) 职业标题前缀匹配
+    //   3) 职业标题单词边界匹配（中间有空格）
+    //   4) 职业标题任意位置包含
+    //   5) 备用标题/报告标题的 等于/前缀/包含（依次降低）
+    //   同分时按 occupation_title 升序
 // -----------------------------
+// 1) 搜索职位（只返回职业基本信息；支持 includeAliases 开关）
 app.get('/occupations/search-and-titles', async (req, res) => {
   const s = (req.query.s || '').trim();
+  const limit = Math.min(Math.max(parseInt(req.query.limit ?? '10', 10) || 10, 1), 20); // 1..20
+  const includeScore = String(req.query.includeScore || '0') === '1';
+  const includeAliases = String(req.query.includeAliases || '1') === '1'; // 新增：是否纳入别名/报岗名
+
   if (s.length < 2) return res.status(400).json({ error: 'query too short (>=2)' });
 
   const conn = await pool.getConnection();
   try {
-    const [occs] = await conn.query(
-      `
-      SELECT o.occupation_code, o.occupation_title, o.occupation_description
-        FROM occupation_data o
-       WHERE LOWER(o.occupation_title) LIKE LOWER(CONCAT('%', ?, '%'))
-          OR EXISTS (SELECT 1 FROM alternative_titles_data a
-                      WHERE a.occupation_code = o.occupation_code
-                        AND LOWER(a.alternate_title) LIKE LOWER(CONCAT('%', ?, '%')))
-          OR EXISTS (SELECT 1 FROM reported_title_data r
-                      WHERE r.occupation_code = o.occupation_code
-                        AND LOWER(r.report_job_title) LIKE LOWER(CONCAT('%', ?, '%')))
-       LIMIT 10
-      `,
-      [s, s, s]
-    );
+    // 相关性打分（主标题权重最高）
+    let scoreExpr = `
+      (LOWER(o.occupation_title) = LOWER(?)) * 100 +
+      (LOWER(o.occupation_title) LIKE LOWER(CONCAT(?, '%'))) * 90 +
+      (LOWER(o.occupation_title) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
+      (LOWER(o.occupation_title) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
+    `;
+    const scoreParams = [s, s, s, s];
 
-    const out = [];
-    for (const occ of occs) {
-      const code = occ.occupation_code;
+    // WHERE 过滤条件（至少主标题模糊匹配）
+    let where = `LOWER(o.occupation_title) LIKE LOWER(CONCAT('%', ?, '%'))`;
+    const whereParams = [s];
 
-      const [kn] = await conn.query(
-        `SELECT k.knowledge_code AS code, k.knowledge_title AS title
-           FROM occup_know_data ok
-           JOIN knowledge_data k ON k.knowledge_code = ok.knowledge_code
-          WHERE ok.occupation_code = ?`,
-        [code]
-      );
-      const [sk] = await conn.query(
-        `SELECT s.skill_code AS code, s.skill_title AS title
-           FROM occup_skill_data os
-           JOIN skill_data s ON s.skill_code = os.skill_code
-          WHERE os.occupation_code = ?`,
-        [code]
-      );
-      const [tech] = await conn.query(
-        `SELECT t.tech_skill_code AS code, t.tech_title AS title
-           FROM occup_tech_data ot
-           JOIN technology_skill_data t ON t.tech_skill_code = ot.tech_skill_code
-          WHERE ot.occupation_code = ?`,
-        [code]
-      );
+    // 如果包含别名/报岗名，则把两张表加入过滤与打分
+    if (includeAliases) {
+      scoreExpr += `
+        + EXISTS(SELECT 1 FROM alternative_titles_data a
+                  WHERE a.occupation_code = o.occupation_code
+                    AND LOWER(a.alternate_title) = LOWER(?)) * 60
+        + EXISTS(SELECT 1 FROM alternative_titles_data a
+                  WHERE a.occupation_code = o.occupation_code
+                    AND LOWER(a.alternate_title) LIKE LOWER(CONCAT(?, '%'))) * 55
+        + EXISTS(SELECT 1 FROM alternative_titles_data a
+                  WHERE a.occupation_code = o.occupation_code
+                    AND LOWER(a.alternate_title) LIKE LOWER(CONCAT('%', ?, '%'))) * 50
+        + EXISTS(SELECT 1 FROM reported_title_data r
+                  WHERE r.occupation_code = o.occupation_code
+                    AND LOWER(r.report_job_title) = LOWER(?)) * 40
+        + EXISTS(SELECT 1 FROM reported_title_data r
+                  WHERE r.occupation_code = o.occupation_code
+                    AND LOWER(r.report_job_title) LIKE LOWER(CONCAT(?, '%'))) * 35
+        + EXISTS(SELECT 1 FROM reported_title_data r
+                  WHERE r.occupation_code = o.occupation_code
+                    AND LOWER(r.report_job_title) LIKE LOWER(CONCAT('%', ?, '%'))) * 30
+      `;
+      scoreParams.push(s, s, s, s, s, s);
 
-      out.push({
-        occupation_code: code,
-        occupation_title: occ.occupation_title,
-        knowledge_titles: kn.map((x) => ({ code: x.code, title: strip(x.title) })),
-        skill_titles:     sk.map((x) => ({ code: x.code, title: strip(x.title) })),
-        tech_titles:     tech.map((x) => ({ code: x.code, title: strip(x.title) })),
-      });
+      where += `
+        OR EXISTS (SELECT 1 FROM alternative_titles_data a
+                    WHERE a.occupation_code = o.occupation_code
+                      AND LOWER(a.alternate_title) LIKE LOWER(CONCAT('%', ?, '%')))
+        OR EXISTS (SELECT 1 FROM reported_title_data r
+                    WHERE r.occupation_code = o.occupation_code
+                      AND LOWER(r.report_job_title) LIKE LOWER(CONCAT('%', ?, '%')))
+      `;
+      whereParams.push(s, s);
     }
 
-    res.json({ items: out });
+    const sql = `
+      SELECT
+        o.occupation_code,
+        o.occupation_title,
+        o.occupation_description,
+        (${scoreExpr}) AS score
+      FROM occupation_data o
+      WHERE ${where}
+      ORDER BY score DESC, o.occupation_title ASC
+      LIMIT ?
+    `;
+
+    const params = [...scoreParams, ...whereParams, limit];
+    const [rows] = await conn.query(sql, params);
+
+    const items = rows.map(r => ({
+      occupation_code: r.occupation_code,
+      occupation_title: (r.occupation_title || '').replace(/[\r\n]/g, ''),
+      occupation_description: (r.occupation_description || '').replace(/[\r\n]/g, ''),
+      ...(includeScore ? { score: r.score } : {})
+    }));
+
+    res.json({ items });
   } catch (e) {
-    console.error('search-and-titles error:', e);
+    console.error('search route error:', e);
     res.status(500).json({ error: 'server error' });
   } finally {
     conn.release();
   }
 });
+
 
 // -----------------------------
 // 2) 按 occupation_code 返回三类 title（直接按 code 查）
