@@ -18,7 +18,7 @@
   justify-content: space-between;
   background: var(--st-bg);
   height: var(--st-header-h);
-    padding: 0 16px;
+  padding: 0 16px;
     border-bottom: 1px solid #e5e7eb;
 }
 
@@ -46,7 +46,7 @@
   font-weight: 600;
   text-decoration: none;
   border-bottom: 2px solid transparent;
-  transition: color .2s, border-color .2s;
+  transition: color 0.2s, border-color 0.2s;
 }
 .st-link:hover,
 .st-link:focus {
@@ -64,12 +64,16 @@
   outline-offset: 2px;
 }
 
+/* 默认隐藏 Home 链接（只在 mobile 出现） */
+.st-link-home {
+  display: none;
+}
 /* Mobile menu button */
 .st-menu {
   display: none;
   background: none;
   border: 0;
-    padding: 6px;
+  padding: 6px;
   cursor: pointer;
 }
 .st-bar {
@@ -84,24 +88,24 @@
 /* Mobile layout */
 @media (max-width: 768px) {
   .brand-name {
-      display: none;
+    display: none;
     }
-  
+    
     /* Logo only */
     .st-menu {
       display: block;
     }
-  
+    
     /* show burger */
     .st-nav {
       display: none;
     position: absolute;
-      top: var(--st-header-h);
+    top: var(--st-header-h);
     right: 12px;
-      background: var(--st-bg);
+    background: var(--st-bg);
     flex-direction: column;
     padding: 8px;
-      border: 1px solid #e5e7eb;
+    border: 1px solid #e5e7eb;
     border-radius: 6px;
   }
     .st-nav.is-open {
@@ -114,7 +118,11 @@
     }
   
     .st-link:hover {
-      background: rgba(15, 115, 182, .06);
+    background: rgba(15, 115, 182, 0.06);
       border-radius: 4px;
     }
+/* 移动端显示 Home 链接 */
+.st-link-home {
+  display: block;
+}
 }

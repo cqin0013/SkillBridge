@@ -25,13 +25,17 @@ const Header = () => {
 
       {/* 右：导航 */}
       <nav className={`st-nav ${open ? "is-open" : ""}`} aria-label="Primary">
+        {/* 移动端专属 Home 链接 */}
+        <NavLink to="/" className={`${linkClass} st-link-home`}>
+          Home
+        </NavLink>
+
         <NavLink to="/Analyzer" className={linkClass}>
           Analyzer
         </NavLink>
         <NavLink to="/profile" className={linkClass}>
           Profile
         </NavLink>
-
       </nav>
 
       {/* 移动端菜单按钮 */}

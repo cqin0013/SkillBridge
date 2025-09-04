@@ -103,28 +103,9 @@
   }
 }
 
-/* Mobile tweaks */
-@media (max-width:520px) {
-  .help-btn {
-    width: 40px;
-    height: 40px
-  }
-
-  /* 更易点 */
-  .help-hint {
-    max-width: 84vw
-  }
-
-  /* 防止超屏 */
-}
-
-/* 低运动偏好 */
-@media (prefers-reduced-motion:reduce) {
-  .help-btn {
-    transition: none
-  }
-
-  .help-hint {
-    animation: none
+/* Hide help toggle on small screens */
+@media (max-width: 520px) {
+  .help-toggle {
+    display: none !important;
   }
 }
