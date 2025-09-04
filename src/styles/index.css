@@ -4,3 +4,51 @@
 @import "./buttons.css";
 
 /* 你也可以在这里追加全局覆盖 */
+/* 默认（桌面端）三列 */
+.ability-groups-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+/* 分组卡（可选，提升观感） */
+.ability-group-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.ability-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-weight: 600;
+}
+
+.ability-group-header .group-toggle {
+    appearance: none;
+    background: #eef2ff;
+    color: #1e3a8a;
+    border: 0;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.ability-group-body {
+    padding: 8px 12px;
+}
+
+/* 移动端（≤768px）单列 */
+@media (max-width: 768px) {
+    .ability-groups-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}

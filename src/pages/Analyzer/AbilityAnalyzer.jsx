@@ -12,8 +12,8 @@ import { skillCategories } from "../../assets/data/skill.static";
 import { knowledgeCategories } from "../../assets/data/knowledge.static";
 import { techSkillCategories } from "../../assets/data/techskill.static";
 
-// （按你的要求，保持不引入本地 CSS）
-// import "./AbilityAnalyzer.css";
+// （按你的要求，可不引入本地 CSS；但为实现响应式，需在全局样式放入下面提供的 CSS 片段）
+// import "./AbilityAnalyzer.responsive.css";
 
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
@@ -193,8 +193,8 @@ export default function AbilityAnalyzer({
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // 折叠开关（默认全部展开）
-  const [openKeys, setOpenKeys] = useState(["knowledge", "tech", "skill"]);
+  // 折叠开关 —— 默认折叠（空数组）
+  const [openKeys, setOpenKeys] = useState([]); // [] 表示全部折叠
   const toggleKey = (key) =>
     setOpenKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 
@@ -205,7 +205,7 @@ export default function AbilityAnalyzer({
     ? "Please add at least one ability."
     : null;
 
-  // —— 关键修复：仅预选“当前选择器类型”的项目 —— //
+  // 仅预选“当前选择器类型”的项目（用于 SkillPicker initiallySelected）
   const selectedForCurrentType = useMemo(
     () =>
       localAbilities
@@ -214,7 +214,7 @@ export default function AbilityAnalyzer({
     [localAbilities, pickerType]
   );
 
-  // —— 可选保护：仅接受当前选择器分类中真实存在的名称 —— //
+  // 仅接受当前选择器分类中真实存在的名称（防止串类误加）
   const currentNames = useMemo(
     () => new Set((pickerCats || []).flatMap((c) => c?.skills || [])),
     [pickerCats]
@@ -246,11 +246,11 @@ export default function AbilityAnalyzer({
           )}
         </StageBox>
 
-        {/* Card 2: white background + help + groups + add buttons */}
+        {/* Card 2: groups + add buttons */}
         <StageBox>
           <div className="ability-second-card">
-            <div className="question-row">
-              <h3 className="question-title">Add abilities you already have</h3>
+            <div className="question-row" style={{ marginBottom: 10 }}>
+              <h3 className="question-title" style={{ margin: 0 }}>Add abilities you already have</h3>
               <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen(v => !v)}>
                 <b>What counts as an “ability”?</b><br />
                 • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”, “Anatomy”).<br />
@@ -260,10 +260,8 @@ export default function AbilityAnalyzer({
               </HelpToggle>
             </div>
 
-            <div
-              className="ability-groups-row"
-              style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}
-            >
+            {/* ✅ 去掉内联 gridTemplateColumns，改用类名以便媒体查询控制 */}
+            <div className="ability-groups-row">
               {/* Knowledge */}
               <div className="ability-group-card">
                 <div className="ability-group-header">
@@ -335,7 +333,6 @@ export default function AbilityAnalyzer({
           open={pickerOpen}
           onClose={() => setPickerOpen(false)}
           onConfirm={(picked) => {
-            // 只接受当前选择器分类中真实存在的名称，避免串类误加
             const filtered = (picked || []).filter((n) => currentNames.has(n));
             addMany(filtered, pickerType);
             setPickerOpen(false);
