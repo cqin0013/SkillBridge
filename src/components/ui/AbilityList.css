@@ -16,12 +16,15 @@ gap: 6px;
   background: #fafafa;
   transition: background 0.2s ease;
 }
+/* Hover 效果只在支持鼠标悬停的设备启用 */
+@media (hover: hover) {
 .abl-row:hover {
     background: #f5faff;
+
 }
 
 .abl-name {
-  font-size: 14px;
+font-size: clamp(13px, 2.6vw, 14px);
   font-weight: 500;
   color: #1f1f1f;
   flex: 1;
@@ -36,33 +39,55 @@ white-space: nowrap;
 }
 .abl-controls .ant-btn {
 color: #ff4d4f;
+padding: 4px 8px;
+    /* 提高触控区 */
+    border-radius: 4px;
 }
 .abl-controls .ant-btn:hover {
   background: transparent;
 color: #d9363e;
 }
-
+}
 /* === Mobile tweaks === */
 @media (max-width: 520px) {
-    .abl-row {
+.abl-row {
         flex-direction: column;
         /* 名称与按钮上下堆叠 */
         align-items: flex-start;
-        gap: 4px;
-        padding: 8px;
+    gap: 6px;
+        padding: 10px;
     }
 
-    .abl-name {
-        white-space: normal;
+  .abl-name {
+      white-space: normal;
         /* 小屏允许换行，不截断 */
         overflow: visible;
         text-overflow: unset;
-        font-size: 13px;
+    font-size: clamp(12px, 3vw, 13px);
     }
-
+    
     .abl-controls {
         margin-left: 0;
         align-self: flex-end;
         /* 删除按钮靠右 */
     }
+        .abl-controls .ant-btn {
+            font-size: 13px;
+            padding: 6px 12px;
+            /* 更大的触控区 */
+        }
+        }
+    
+        /* 极窄屏：单列对齐，保持可用性 */
+        @media (max-width: 360px) {
+            .abl-row {
+                padding: 8px;
+                gap: 4px;
+            }
+    
+            .abl-controls {
+                align-self: stretch;
+                /* 删除按钮占满行，避免太挤 */
+                text-align: right;
+            }
 }

@@ -4,13 +4,11 @@ import HelpToggle from "../../components/ui/HelpToggle";
 import PageActions from "../../components/ui/PageActions";
 import GapTable from "../../components/ui/GapTable";
 import { Button, message, Modal } from "antd";
-import { exportNodeToPdf } from "../../utils/exportPDF";
 import { saveRoadmap } from "../../utils/roadmapStore";
 import "./Analyzer.css";
 
 export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
   const [showHelp, setShowHelp] = useState(false);
-  const [downloading, setDownloading] = useState(false);
   const [localUnmatched, setLocalUnmatched] = useState(unmatched || null);
   const printRef = useRef(null);
 
@@ -49,13 +47,6 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
     () => rows.map((r) => ({ title: r.name, desc: r.type })),
     [rows]
   );
-
-  const handleExportPdf = async () => {
-    setDownloading(true);
-    await exportNodeToPdf(printRef.current, `SkillGap_${targetJob || "Unknown"}.pdf`);
-    message.success("PDF exported.");
-    setDownloading(false);
-  };
 
   const handleFinish = () => {
     if (!rows.length) {
@@ -109,11 +100,6 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
 
             {rows.length ? (
               <>
-                <div className="sg-toolbar" style={{ display: "flex", gap: 8 }}>
-                  <Button onClick={handleExportPdf} loading={downloading} size="middle">
-                    Export PDF
-                  </Button>
-                </div>
                 <div ref={printRef} className="sg-print-area">
                   <GapTable rows={rows} hideMet />
                 </div>

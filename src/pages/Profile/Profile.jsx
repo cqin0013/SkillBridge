@@ -54,9 +54,6 @@ export default function Profile() {
             {steps?.length > 0 && (
               <>
                 <Button onClick={onEdit} type="primary">Edit Roadmap</Button>
-                <Button onClick={onExportPdf} loading={exporting}>
-                  Export PDF
-                </Button>
                 <Popconfirm title="Clear roadmap?" onConfirm={onClear}>
                   <Button danger>Clear</Button>
                 </Popconfirm>
@@ -66,10 +63,26 @@ export default function Profile() {
         }
       >
         {steps?.length ? (
-          // 这块是实际导出的节点（整段会被转成 PDF）
-          <div ref={roadmapRef}>
-            <Roadmap steps={steps} />
-          </div>
+          <>
+            {/* 放在卡片内容里的导出工具栏 */}
+            <div
+              className="profile-card-toolbar"
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: 12,
+              }}
+            >
+              <Button onClick={onExportPdf} loading={exporting}>
+                Export PDF
+              </Button>
+            </div>
+
+            {/* 实际导出的节点（整段会被转成 PDF） */}
+            <div ref={roadmapRef}>
+              <Roadmap steps={steps} />
+            </div>
+          </>
         ) : (
           <div style={{ textAlign: "center" }}>
             <Empty description="You already match your target job well. No roadmap needed." />
