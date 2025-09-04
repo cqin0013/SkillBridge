@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import "./Header.css";
-import StrangerThinkLogo from "../../assets/images/StrangerThink.JPG"; // 引入本地图片
+import StrangerThinkLogo from "../../assets/images/StrangerThink.jpg"; // 引入本地图片
 
 const linkClass = ({ isActive }) =>
   `st-link${isActive ? " is-active" : ""}`;
