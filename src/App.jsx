@@ -1,9 +1,9 @@
 // src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ConfigProvider, theme as antdTheme } from "antd";
-import "antd/dist/reset.css";           // AntD v5 重置样式（可选，建议保留）
-import "./App.css";                     // 全局设计变量 + 基础样式
+import "antd/dist/reset.css";
+import "./App.css";
 
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home/Home.jsx";
@@ -18,7 +18,6 @@ export default function App() {
       theme={{
         algorithm: antdTheme.defaultAlgorithm,
         token: {
-          // 统一主题色 & 基础设计
           colorPrimary: "var(--color-primary)",
           colorSuccess: "var(--color-success)",
           colorWarning: "var(--color-warning)",
@@ -38,14 +37,17 @@ export default function App() {
         },
       }}
     >
-      <Router>
+      <Router /* 如果部署在子路径，可加 basename，例如 basename="/app" */>
         <Routes>
           <Route element={<MainLayout />}>
             <Route index element={<Home />} />
-            <Route path="Analyzer" element={<Analyzer />} />
-            <Route path="Insight" element={<Insight />} />
-            <Route path="Profile" element={<Profile />} />
-            <Route path="About" element={<About />} />
+            {/* 路由统一用小写，更稳妥 */}
+            <Route path="analyzer" element={<Analyzer />} />
+            <Route path="insight" element={<Insight />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="about" element={<About />} />
+            {/* 兜底：未知路径跳回首页或你的 404 组件 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </Router>
