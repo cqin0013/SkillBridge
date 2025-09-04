@@ -19,8 +19,10 @@ import mysql from 'mysql2/promise';
 import helmet from 'helmet';                     // HTTP 安全头 & CSP
 import session from 'express-session';           // 会话 & 安全 Cookie
 //import RedisStore from 'connect-redis';          // Session 持久化（Redis）
+// import { RedisStore } from 'connect-redis';
+// import Redis from 'ioredis';
 import { RedisStore } from 'connect-redis';
-import Redis from 'ioredis';
+import { createClient } from 'redis';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -77,7 +79,40 @@ app.use(helmet.contentSecurityPolicy({
 //   SESSION_NAME=sbridg.sid (可选)
 //   COOKIE_DOMAIN=.your-frontend.com (可选；多子域共享时设置)
 //   REDIS_URL=redis://user:pass@host:6379
-const redis = new Redis(process.env.REDIS_URL);
+//   SESSION_SAMESITE=none|lax|strict (推荐跨站时用 none)
+const sameSiteFromEnv = String(process.env.SESSION_SAMESITE || 'lax').toLowerCase();
+const sameSite = ['lax', 'strict', 'none'].includes(sameSiteFromEnv) ? sameSiteFromEnv : 'lax';
+
+// Upstash/Redis Cloud 建议使用 rediss:// (TLS)
+// const redis = new Redis(process.env.REDIS_URL, {
+//   tls: process.env.REDIS_URL?.startsWith('rediss://') ? {} : undefined,
+//   maxRetriesPerRequest: 3,
+//   enableReadyCheck: true,
+//   keepAlive: 10_000,
+//   connectTimeout: 15_000,
+// });
+
+
+const redis = createClient({
+   url: process.env.REDIS_URL,
+   socket: {
+     tls: process.env.REDIS_URL?.startsWith('rediss://') ? true : false,
+     keepAlive: 10_000,
+     reconnectStrategy: (retries) => Math.min(1000 * retries, 10_000),
+   }
+ });
+ redis.on('connect', () => console.log('[redis] connecting...'));
+ redis.on('ready',   () => console.log('[redis] ready'));
+ redis.on('error',   (e) => console.error('[redis] error:', e?.message || e));
+ redis.on('end',     () => console.log('[redis] connection closed'));
+ await redis.connect();
+
+// 便于排错的日志
+redis.on('connect', () => console.log('[redis] connecting...'));
+redis.on('ready',   () => console.log('[redis] ready'));
+redis.on('error',   (e) => console.error('[redis] error:', e?.message || e));
+redis.on('end',     () => console.log('[redis] connection closed'));
+
 const redisStore = new RedisStore({ client: redis, prefix: 'sbridg:' });
 
 app.use(cookieParser(process.env.SESSION_SECRET));
@@ -92,7 +127,7 @@ app.use(session({
   cookie: {
     httpOnly: true,                               // 阻止 JS 读取，缓解 XSS 窃取
     secure: process.env.NODE_ENV === 'production',// 生产强制 HTTPS
-    sameSite: 'lax',                              // CSRF 风险低且兼容度好；跨站必须携带可改 'none'
+    sameSite,                                     // CSRF 风险低且兼容度好；跨站用 none
     domain: process.env.COOKIE_DOMAIN || undefined,
     maxAge: 1000 * 60 * 60 * 8,                   // 8 小时
   },
@@ -545,20 +580,6 @@ app.get('/test-occupations', async (_req, res) => {
 
 
 
-// 设置 session（模拟登录）
-app.get('/debug/login', (req, res, next) => {
-  // 可选：每次登录重新生成 session id，提升安全
-  req.session.regenerate(err => {
-    if (err) return next(err);
-    req.session.userId = 'u-123';
-    // 显式保存，确保写入 store 成功再返回
-    req.session.save(err2 => {
-      if (err2) return next(err2);
-      return res.json({ ok: true, set: { userId: req.session.userId } });
-    });
-  });
-});
-
 // 读取 session
 app.get('/debug/me', (req, res) => {
   res.json({
@@ -568,12 +589,53 @@ app.get('/debug/me', (req, res) => {
   });
 });
 
+
+
+// 1) 检查 Redis 是否可用
+app.get('/debug/redis', async (_req, res) => {
+  try {
+    const pong = await redis.ping();
+    return res.json({ ok: true, pong });
+  } catch (e) {
+    console.error('[debug/redis] error:', e);
+    return res.status(500).json({ ok: false, error: String(e?.message || e) });
+  }
+});
+
+// 2) 直接测试 Redis 写入（排除权限/ACL 问题）
+app.get('/debug/redis-write', async (_req, res) => {
+  try {
+    const key = 'sbridg:debug:write';
+    await redis.set(key, '1', 'EX', 60);
+    const val = await redis.get(key);
+    return res.json({ ok: true, wrote: Boolean(val) });
+  } catch (e) {
+    console.error('[debug/redis-write] error:', e);
+    return res.status(500).json({ ok: false, error: String(e?.message || e) });
+  }
+});
+
+// 3) 更健壮的登录：把 session.save 的错误返回为 JSON（而不是 HTML 500）
+app.get('/debug/login', (req, res) => {
+  req.session.userId = 'u-123';
+  req.session.save((err) => {
+    if (err) {
+      console.error('[debug/login] session save error:', err);
+      return res.status(500).json({ ok: false, where: 'session.save', error: String(err?.message || err) });
+    }
+    return res.json({ ok: true, sid: req.sessionID, set: { userId: req.session.userId } });
+  });
+});
+
+
 // -----------------------------
 // Start server
 // -----------------------------
 
 // —— 放在所有路由的最后 ——
 // 专门把 CORS 拦截改成 403 JSON，避免 500 + HTML
+// —— 放在所有路由的最后，app.listen 之前 ——
+// 先处理 CORS
 app.use((err, req, res, next) => {
   if (err && err.message === 'Not allowed by CORS') {
     return res.status(403).json({ error: 'CORS blocked' });
@@ -581,6 +643,14 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
+// 再兜底处理其它错误，返回 JSON，方便你看到具体原因
+app.use((err, req, res, _next) => {
+  console.error('[unhandled error]', err);
+  res.status(500).json({ error: err?.message || String(err) });
+});
+
+
+//const { PORT = 8080 } = process.env;
 
 app.listen(PORT, () => {
   console.log(`SkillBridge API listening on http://localhost:${PORT}`);
