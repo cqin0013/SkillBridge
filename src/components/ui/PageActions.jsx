@@ -5,30 +5,30 @@ import "./PageActions.css";
 
 /**
  * PageActions
- * - Auto-reveals only when the user scrolls near the bottom of the page.
- * - Works everywhere without changing callers.
  *
- * Props (backward compatible):
+ * Props（向后兼容）：
  * - onPrev, onNext
  * - prevDisabled?: boolean
- * - prevDisabledReason?: string | null
  * - nextDisabled?: boolean
+ * - prevDisabledReason?: string | null
  * - nextDisabledReason?: string | null
- * - defaultDisabledReason?: string     // 默认浮窗原因（英文）
+ * - disabledReason?: string | { prev?: string, next?: string } // 统一入口（可选）
+ * - defaultDisabledReason?: string
  * - prevText?: string
  * - nextText?: string
  * - sticky?: boolean
  * - className?: string
- * - revealAtBottom?: boolean           // default: true
- * - bottomOffset?: number              // default: 48
+ * - revealAtBottom?: boolean   // default: true
+ * - bottomOffset?: number      // default: 48
  */
 export default function PageActions({
   onPrev,
   onNext,
   prevDisabled = false,
-  prevDisabledReason = null,
   nextDisabled = false,
+  prevDisabledReason = null,
   nextDisabledReason = null,
+  disabledReason, // string | {prev?, next?}
   defaultDisabledReason = "This action is unavailable right now.",
   prevText = "Back",
   nextText = "Next",
@@ -70,7 +70,21 @@ export default function PageActions({
     className
   );
 
-  // Buttons
+  // 统一/兼容禁用原因
+  const normUnified =
+    typeof disabledReason === "string"
+      ? { prev: disabledReason, next: disabledReason }
+      : (disabledReason || {});
+
+  const resolvedPrevReason = prevDisabled
+    ? (prevDisabledReason ?? normUnified.prev ?? defaultDisabledReason)
+    : undefined; // 不禁用 => 不渲染 Tooltip
+
+  const resolvedNextReason = nextDisabled
+    ? (nextDisabledReason ?? normUnified.next ?? defaultDisabledReason)
+    : undefined; // 不禁用 => 不渲染 Tooltip
+
+  // 按钮本体
   const PrevBtn = (
     <Button
       onClick={onPrev}
@@ -93,28 +107,45 @@ export default function PageActions({
     </Button>
   );
 
-  const prevTip = prevDisabled ? (prevDisabledReason || defaultDisabledReason) : null;
-  const nextTip = nextDisabled ? (nextDisabledReason || defaultDisabledReason) : null;
-
   return (
     <div className={wrapperCls}>
       <div className="page-actions__spacer" />
       <div className="page-actions__buttons">
-        {prevTip ? (
-          <Tooltip placement="top" title={prevTip}>
-            <span className="page-actions__tooltip-wrap">{PrevBtn}</span>
-          </Tooltip>
-        ) : (
-          PrevBtn
-        )}
+        {/* Prev */}
+        <Tooltip
+          title={resolvedPrevReason}
+          placement="top"
+          trigger={["hover", "focus"]}           // 仅当有 title 时才会渲染并触发
+          overlayClassName="pa-tooltip"           // 强制深色底+白字
+          destroyTooltipOnHide
+          mouseEnterDelay={0.05}
+        >
+          <span
+            className="page-actions__tooltip-wrap"
+            tabIndex={prevDisabled ? 0 : -1}
+            aria-disabled={prevDisabled ? "true" : "false"}
+          >
+            {PrevBtn}
+          </span>
+        </Tooltip>
 
-        {nextTip ? (
-          <Tooltip placement="top" title={nextTip}>
-            <span className="page-actions__tooltip-wrap">{NextBtn}</span>
-          </Tooltip>
-        ) : (
-          NextBtn
-        )}
+        {/* Next */}
+        <Tooltip
+          title={resolvedNextReason}
+          placement="top"
+          trigger={["hover", "focus"]}
+          overlayClassName="pa-tooltip"
+          destroyTooltipOnHide
+          mouseEnterDelay={0.05}
+        >
+          <span
+            className="page-actions__tooltip-wrap"
+            tabIndex={nextDisabled ? 0 : -1}
+            aria-disabled={nextDisabled ? "true" : "false"}
+          >
+            {NextBtn}
+          </span>
+        </Tooltip>
       </div>
     </div>
   );
