@@ -15,10 +15,91 @@ import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
 
+// === 新增：三项安全增强依赖 ===
+import helmet from 'helmet';                     // HTTP 安全头 & CSP
+import session from 'express-session';           // 会话 & 安全 Cookie
+//import RedisStore from 'connect-redis';          // Session 持久化（Redis）
+import { RedisStore } from 'connect-redis';
+import Redis from 'ioredis';
+import cookieParser from 'cookie-parser';
+
 const app = express();
-app.use(cors());
+
+// 先做 body 解析（按需保留原限制）
 app.use(express.json({ limit: '1mb' }));
 
+// ===================== 三项安全增强开始 =====================
+// 1) 严格 CORS（基于白名单），同时开启凭证以便携带 Cookie/Session
+// 需要配置环境变量：CORS_ALLOWLIST=https://a.example.com,https://b.example.com
+app.set('trust proxy', 1); // 在 Render/反向代理后面运行时，确保 secure Cookie 正常生效
+
+const allowlist = String(process.env.CORS_ALLOWLIST || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, cb) {
+    // 非浏览器(无 Origin)或在白名单中的源允许通过；如需更严，去掉 !origin 分支
+    if (!origin || allowlist.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true, // 允许携带 Cookie（与 session 配套）
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-CSRF-Token'],
+  maxAge: 600,
+}));
+
+// 2) HTTP 头（Helmet & CSP）
+// - Helmet 提供常用安全头；CSP 仅示例，如果纯 API 也可保留为最小配置
+app.disable('x-powered-by');
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // 若提供下载/跨域资源可用
+}));
+
+// Content-Security-Policy 示例：如你的服务仅为 API，可保留最小规则
+app.use(helmet.contentSecurityPolicy({
+  useDefaults: true,
+  directives: {
+    "default-src": ["'self'"],
+    // 允许与白名单前端通信（如浏览器使用 fetch 调用 API）
+    "connect-src": ["'self'"].concat(allowlist),
+    "img-src": ["'self'", "data:"],
+    "script-src": ["'self'"],             // 不允许第三方脚本；如必须再按需放开
+    "style-src": ["'self'", "'unsafe-inline'"], // 仅在确有需要时保留 'unsafe-inline'
+    "frame-ancestors": ["'none'"],        // 禁止被 iframe 嵌套，防点击劫持
+  },
+}));
+
+// 3) 会话 & 安全 Cookie（Redis 持久化）
+// 需要环境变量：
+//   SESSION_SECRET=强随机字符串
+//   SESSION_NAME=sbridg.sid (可选)
+//   COOKIE_DOMAIN=.your-frontend.com (可选；多子域共享时设置)
+//   REDIS_URL=redis://user:pass@host:6379
+const redis = new Redis(process.env.REDIS_URL);
+const redisStore = new RedisStore({ client: redis, prefix: 'sbridg:' });
+
+app.use(cookieParser(process.env.SESSION_SECRET));
+
+app.use(session({
+  name: process.env.SESSION_NAME || 'sbridg.sid',
+  secret: process.env.SESSION_SECRET,
+  store: redisStore,
+  resave: false,
+  saveUninitialized: false,
+  rolling: true, // 每次请求刷新过期时间（可按需关闭）
+  cookie: {
+    httpOnly: true,                               // 阻止 JS 读取，缓解 XSS 窃取
+    secure: process.env.NODE_ENV === 'production',// 生产强制 HTTPS
+    sameSite: 'lax',                              // CSRF 风险低且兼容度好；跨站必须携带可改 'none'
+    domain: process.env.COOKIE_DOMAIN || undefined,
+    maxAge: 1000 * 60 * 60 * 8,                   // 8 小时
+  },
+}));
+// ===================== 三项安全增强结束 =====================
+
+// ===================== 数据库连接 =====================
 const {
   PORT = 8080,
   DB_HOST = 'localhost',
@@ -62,20 +143,19 @@ app.get('/health', async (_req, res) => {
   }
 });
 
-
 // -----------------------------
 // 1) 搜索职位（只返回最相似的职业，不带三类标题）
 //    GET /occupations/search-and-titles?s=keyword&limit=10&includeScore=0
-
-    // 说明：
-    // - WHERE 先做“任意包含”范围过滤（职业标题/别名/报岗名 三处任一匹配即可）
-    // - ORDER BY 做“相关性打分排序”，优先级从高到低：
-    //   1) 职业标题完全相等
-    //   2) 职业标题前缀匹配
-    //   3) 职业标题单词边界匹配（中间有空格）
-    //   4) 职业标题任意位置包含
-    //   5) 备用标题/报告标题的 等于/前缀/包含（依次降低）
-    //   同分时按 occupation_title 升序
+//
+// 说明：
+// - WHERE 先做“任意包含”范围过滤（职业标题/别名/报岗名 三处任一匹配即可）
+// - ORDER BY 做“相关性打分排序”，优先级从高到低：
+//   1) 职业标题完全相等
+//   2) 职业标题前缀匹配
+//   3) 职业标题单词边界匹配（中间有空格）
+//   4) 职业标题任意位置包含
+//   5) 备用标题/报告标题的 等于/前缀/包含（依次降低）
+//   同分时按 occupation_title 升序
 // -----------------------------
 // 1) 搜索职位（只返回职业基本信息；支持 includeAliases 开关；不返回分数）
 app.get('/occupations/search-and-titles', async (req, res) => {
@@ -164,8 +244,6 @@ app.get('/occupations/search-and-titles', async (req, res) => {
   }
 });
 
-
-
 // -----------------------------
 // 2) 按 occupation_code 返回三类 title（直接按 code 查）
 // -----------------------------
@@ -220,7 +298,6 @@ app.get('/occupations/:code/titles', async (req, res) => {
     conn.release();
   }
 });
-
 
 // -----------------------------
 // 3) 基于“标题”匹配（你之前已经在用）
@@ -288,39 +365,8 @@ app.post('/occupations/match-top', async (req, res) => {
 });
 
 // -----------------------------
-// 4) 新增：基于skillcode反向聚合到职业，按命中次数排序
-// -----------------------------
-/*
-POST /occupations/rank-by-codes
-支持两种入参形态（二选一或都给）：
-A) { selections: [ { "type":"knowledge"|"skill"|"tech", "code":"..." }, ... ] }
-B) {
-     knowledge_codes: ["2.C.1.a", ...],
-     skill_codes:     ["2.A.1.b", ...],
-     tech_codes:      ["43231507", ...]
-   }
-总勾选数 <= 10（超出会被截断）
-
-响应：
-{
-  "total_selected": 6,
-  "items": [
-    {
-      "occupation_code": "11-1011.00",
-      "occupation_title": "Chief Executives",
-      "count": 4,
-      "matched": {
-        "knowledge_codes": ["2.C.1.a", ...],
-        "skill_codes":     ["2.A.1.b", ...],
-        "tech_codes":      ["43231507", ...]
-      }
-    },
-    ...
-  ]
-}
-*/
-// 4) 基于 code 反向聚合到职业，返回【未命中的 codes+titles】
 // 4) 基于 code 反向聚合到职业，返回【未命中的 codes+titles】（无数量上限）
+// -----------------------------
 app.post('/occupations/rank-by-codes', async (req, res) => {
   // 解析两种入参
   let selections = ensureArray(req.body?.selections)
@@ -480,7 +526,6 @@ app.post('/occupations/rank-by-codes', async (req, res) => {
   }
 });
 
-
 // -----------------------------
 // (可选) 快速验证 occupation_data
 // -----------------------------
@@ -498,9 +543,45 @@ app.get('/test-occupations', async (_req, res) => {
   }
 });
 
+
+
+// 设置 session（模拟登录）
+app.get('/debug/login', (req, res, next) => {
+  // 可选：每次登录重新生成 session id，提升安全
+  req.session.regenerate(err => {
+    if (err) return next(err);
+    req.session.userId = 'u-123';
+    // 显式保存，确保写入 store 成功再返回
+    req.session.save(err2 => {
+      if (err2) return next(err2);
+      return res.json({ ok: true, set: { userId: req.session.userId } });
+    });
+  });
+});
+
+// 读取 session
+app.get('/debug/me', (req, res) => {
+  res.json({
+    hasSession: !!req.session,
+    sessionID: req.sessionID,
+    userId: req.session?.userId ?? null
+  });
+});
+
 // -----------------------------
 // Start server
 // -----------------------------
+
+// —— 放在所有路由的最后 ——
+// 专门把 CORS 拦截改成 403 JSON，避免 500 + HTML
+app.use((err, req, res, next) => {
+  if (err && err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'CORS blocked' });
+  }
+  return next(err);
+});
+
+
 app.listen(PORT, () => {
   console.log(`SkillBridge API listening on http://localhost:${PORT}`);
 });
