@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import StageBox from "../../../components/ui/StageBox";
-import HelpToggle from "../../../components/ui/HelpToggle";
-import Chips from "../../../components/ui/Chips";
-import PageActions from "../../../components/ui/PageActions";
+import StageBox from "../../components/ui/StageBox";
+import HelpToggle from "../../components/ui/HelpToggle";
+import Chips from "../../components/ui/Chips";
+import PageActions from "../../components/ui/PageActions";
 import { Input, Select, Alert, Modal, List, Checkbox, Typography, Button } from "antd";
-import "../Analyzer.css";
+import "./Analyzer.css";
 
 const { Paragraph, Text } = Typography;
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
@@ -37,6 +37,10 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
   const [analysisDone, setAnalysisDone] = useState(false);
   const [analysisMsg, setAnalysisMsg] = useState("");
   const [preparedAbilities, setPreparedAbilities] = useState([]); // [{title, code, type}]
+
+  // 新增：两个 HelpToggle 的受控开关
+  const [help1Open, setHelp1Open] = useState(false);
+  const [help2Open, setHelp2Open] = useState(false);
 
   const atLimit = chosen.length >= MAX_SELECT;
 
@@ -102,9 +106,9 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
     setCheckedCodes([]);
   };
 
-  const removeChosen = (display) => {
-    const code = display.slice(display.lastIndexOf("(") + 1, display.lastIndexOf(")"));
-    setChosen((prev) => prev.filter((x) => x.occupation_code !== code));
+  // 删除：按 title 删除（若担心同名不同 code，可以换成传 index 的方式）
+  const removeChosen = (displayTitle) => {
+    setChosen((prev) => prev.filter((x) => x.occupation_title !== displayTitle));
     setAnalysisDone(false);
     setAnalysisMsg("");
   };
@@ -172,7 +176,8 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
     ? "Please click Analyze first."
     : null;
 
-  const chipItems = chosen.map((c) => `${c.occupation_title} (${c.occupation_code})`);
+  // Chips 只显示名称
+  const chipItems = chosen.map((c) => c.occupation_title);
 
   // 点击 Next：把 abilities + roles（titles）一起返回
   const handleNext = () => {
@@ -185,27 +190,40 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
   return (
     <section className="anlz-page">
       <div className="container">
-        {/* Card 1 */}
+        {/* 顶部引导卡片（由 StageBox 的 tipTitle/tipContent 显示步骤） */}
         <StageBox
           pill="Step 1"
           title="Background & Work Location"
           tipTitle="What to do in this step"
           tipContent={
-            <ul style={{ margin: 0, paddingLeft: "1.1rem" }}>
-              <li>Type a keyword and press <b>Enter</b> to search occupations.</li>
-              <li>Select up to <b>five</b> occupations that best match your past roles.</li>
-              <li>Click <b>Analyze</b> to build your abilities from those occupations.</li>
-              <li>When analysis completes, click <b>Next</b> to review the results.</li>
-            </ul>
+            <div className="tip-white">
+              <ul className="tip-list">
+                <li>
+                  Type a keyword and press <b>Enter</b> to search occupations.
+                </li>
+                <li>
+                  Select up to <b>five</b> occupations that best match your past roles.
+                </li>
+                <li>
+                  Click <b>Analyze</b> to build your abilities from those occupations.
+                </li>
+                <li>
+                  When analysis completes, click <b>Next</b> to review the results.
+                </li>
+              </ul>
+            </div>
           }
         />
 
-        {/* Card 2 */}
+        {/* 题目 1 */}
         <StageBox>
           <div className="anlz-second-card">
             <div className="question-row">
               <h3 className="question-title">What job titles have you held in the past?</h3>
-              <HelpToggle>
+              <HelpToggle
+                show={help1Open}
+                onToggle={() => setHelp1Open((v) => !v)}
+              >
                 <div style={{ maxWidth: 380 }}>
                   <b>What does this question mean?</b>
                   <div style={{ marginTop: 6 }}>
@@ -234,21 +252,13 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
             {chosen.length > 0 && (
               <div style={{ marginTop: ".6rem" }}>
                 <Chips items={chipItems} onRemove={removeChosen} />
-                <div style={{ marginTop: 6, fontSize: 12, color: "var(--color-muted)" }}>
+                <div className="muted-small">
                   {chosen.length}/{MAX_SELECT} selected
                 </div>
               </div>
             )}
 
-            <div
-              style={{
-                marginTop: "0.9rem",
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
+            <div className="actions-row">
               <Button type="primary" onClick={runAnalyze} loading={analyzing} disabled={!chosen.length}>
                 Analyze
               </Button>
@@ -257,9 +267,26 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               )}
             </div>
 
-            <div className="subheader">
-              <h4 className="subtitle">Where would you like to work?</h4>
+            {/* 题目 2 */}
+            <div className="question-row" style={{ marginTop: 16 }}>
+              <h3 className="question-title">Where would you like to work?</h3>
+              <HelpToggle
+                show={help2Open}
+                onToggle={() => setHelp2Open((v) => !v)}
+              >
+                <div style={{ maxWidth: 380 }}>
+                  <b>How to answer:</b>
+                  <div style={{ marginTop: 6 }}>
+                    Choose the Australian state/territory where you’d prefer to work. This helps tailor job demand and training
+                    info by region.
+                  </div>
+                  <div style={{ marginTop: 6 }}>
+                    If you’re flexible, select <i>All states</i>.
+                  </div>
+                </div>
+              </HelpToggle>
             </div>
+
             <Select value={stateCode} onChange={setStateCode} style={{ width: "100%" }} options={AU_STATES} />
           </div>
         </StageBox>
@@ -289,8 +316,14 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
             style={{ marginBottom: 12 }}
             message="Tip: After selecting, scroll to the bottom and click OK to save your choices."
           />
+
           {searchLoading ? (
-            <div style={{ padding: "12px 0" }}>Searching…</div>
+            <Alert
+              type="info"
+              showIcon
+              message="Searching…"
+              description="First-time use may take a moment to initialize."
+            />
           ) : searchResults.length === 0 ? (
             <Alert type="info" message="No occupations found for this keyword." />
           ) : (
@@ -310,9 +343,6 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
                       <Checkbox value={item.occupation_code} disabled={disabled} style={{ marginRight: 8 }} />
                       <div>
                         <div style={{ fontWeight: 600 }}>{item.occupation_title}</div>
-                        <div style={{ fontSize: 12, color: "rgba(0,0,0,.6)" }}>
-                          Code: {item.occupation_code}
-                        </div>
                         {item.occupation_description && (
                           <Paragraph style={{ marginTop: 4, marginBottom: 0 }} ellipsis={{ rows: 3 }}>
                             {item.occupation_description}

@@ -1,0 +1,46 @@
+/* AbilityList.css */
+
+.abl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* 每行之间留一点空隙 */
+}
+
+.abl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  background: #fafafa;
+  transition: background 0.2s ease;
+}
+
+.abl-row:hover {
+  background: #f5faff; /* hover 时淡蓝色高亮 */
+}
+
+.abl-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f1f1f;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* 长名字省略号 */
+}
+
+.abl-controls {
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.abl-controls .ant-btn {
+  color: #ff4d4f; /* 删除按钮用红色文字 */
+}
+
+.abl-controls .ant-btn:hover {
+  background: transparent;
+  color: #d9363e; /* hover 时更深的红色 */
+}

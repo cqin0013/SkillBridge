@@ -1,7 +1,56 @@
+// src/components/ui/GapTable.jsx
 import React from "react";
 import "./GapTable.css";
 
-export default function GapTable({ rows }) {
+const STATUS_LABEL = {
+  ok: "Met",
+  miss: "Not Met",
+  partial: "Partially Met",
+};
+
+export default function GapTable({ rows = [], hideMet = false }) {
+  // 兼容两种入参：{name, status} 与 {name, covered}
+  const normalizeStatus = (r) => {
+    if (r && typeof r === "object") {
+      if (r.status) {
+        const s = String(r.status).toLowerCase();
+        return s === "ok" ? "ok" : s === "partial" ? "partial" : "miss";
+      }
+      return r.covered ? "ok" : "miss";
+    }
+    return "miss";
+  };
+
+  // 过滤 Met（如果需要）
+  const normalized = Array.isArray(rows)
+    ? rows
+        .map((r) => {
+          const status = normalizeStatus(r);
+          return { ...r, status };
+        })
+        .filter((r) => (hideMet ? r.status !== "ok" : true))
+    : [];
+
+  if (normalized.length === 0) {
+    return (
+      <table className="gap-table">
+        <thead>
+          <tr>
+            <th>Target Ability</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="miss">
+            <td colSpan={2} style={{ color: "var(--sb-ink-sub)" }}>
+              No data to show.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    );
+  }
+
   return (
     <table className="gap-table">
       <thead>
@@ -11,17 +60,22 @@ export default function GapTable({ rows }) {
         </tr>
       </thead>
       <tbody>
-        {rows.map(({ name, covered }) => (
-          <tr key={name} className={covered ? "ok" : "miss"}>
-            <td>
-              <div className="sg-cell">
-                <span className="sg-name">{name}</span>
-
-              </div>
-            </td>
-            <td>{covered ? "Covered" : "Missing"}</td>
-          </tr>
-        ))}
+        {normalized.map((row, i) => {
+          const status = row.status;
+          const name = row?.name ?? "-";
+          const type = row?.type; // "Knowledge" | "Skill" | "Tech"
+          return (
+            <tr key={`${name}-${i}`} className={status}>
+              <td>
+                <div className="sg-cell">
+                  <span className="sg-name">{name}</span>
+                  {type ? <span className="sg-badge">{type}</span> : null}
+                </div>
+              </td>
+              <td>{STATUS_LABEL[status]}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

@@ -1,21 +1,20 @@
 // src/pages/Analyzer/AbilityAnalyzer/AbilityAnalyzer.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import StageBox from "../../../components/ui/StageBox";
-import HelpToggle from "../../../components/ui/HelpToggle";
-import PageActions from "../../../components/ui/PageActions";
-import SkillPicker from "../../../components/ui/SkillPicker";
-import Tip from "../../../components/ui/Tip";
+import StageBox from "../../components/ui/StageBox";
+import HelpToggle from "../../components/ui/HelpToggle";
+import PageActions from "../../components/ui/PageActions";
+import SkillPicker from "../../components/ui/SkillPicker";
 import { Button, Alert, Spin, Tag } from "antd";
 
-import AbilityList from "./AbilityList";
+import AbilityList from "../../components/ui/AbilityList";
 
-import { skillCategories } from "../../../assets/data/skill.static";
-import { knowledgeCategories } from "../../../assets/data/knowledge.static";
-import { techSkillCategories } from "../../../assets/data/techskill.static";
+import { skillCategories } from "../../assets/data/skill.static";
+import { knowledgeCategories } from "../../assets/data/knowledge.static";
+import { techSkillCategories } from "../../assets/data/techskill.static";
 
-import "./AbilityAnalyzer.css";
+// （按你的要求，已删除：import "./AbilityAnalyzer.css";）
 
-const API_BASE = "hhttps://skillbridge-hnxm.onrender.com";
+const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
 /** Build picker categories for Skills */
 const buildSkillCats = () => [
@@ -207,14 +206,19 @@ export default function AbilityAnalyzer({
   return (
     <section className="ability-page">
       <div className="container">
-        {/* ============ Card 1: step header + general tip + status (no question here) ============ */}
-        <StageBox pill="Step 2" title="Your Abilities">
-          <Tip title="What to do in this step" defaultOpen={false}>
-            1) Use the buttons below to add items from <b>Knowledge</b>, <b>Tech Skills</b>, or <b>Skills</b>.<br />
-            2) Remove anything that doesn’t represent you.<br />
-            3) When you’re ready, click <b>Next</b> to continue.
-          </Tip>
-
+        {/* Card 1: step header + instructions（由 StageBox 的 tip props 渲染） */}
+        <StageBox
+          pill="Step 2"
+          title="Your Abilities"
+          tipTitle="What to do in this step"
+          tipContent={
+            <>
+              1) Use the buttons below to add items from <b>Knowledge</b>, <b>Tech Skills</b>, or <b>Skills</b>.<br />
+              2) Remove anything that doesn’t represent you.<br />
+              3) When you’re ready, click <b>Next</b> to continue.
+            </>
+          }
+        >
           {loading && (
             <div style={{ marginTop: ".5rem" }}>
               <Spin /> <span style={{ marginLeft: 8 }}>Loading abilities…</span>
@@ -225,10 +229,9 @@ export default function AbilityAnalyzer({
           )}
         </StageBox>
 
-        {/* ============ Card 2: white background + question + help + groups + add buttons ============ */}
+        {/* Card 2: white background + help + groups + add buttons */}
         <StageBox>
           <div className="ability-second-card">
-            {/* Question row with HelpToggle on the right */}
             <div className="question-row">
               <h3 className="question-title">Add abilities you already have</h3>
               <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen(v => !v)}>
@@ -240,23 +243,14 @@ export default function AbilityAnalyzer({
               </HelpToggle>
             </div>
 
-            {/* Three group cards in a row (responsive grid) */}
             <div
               className="ability-groups-row"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 12,
-              }}
+              style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}
             >
               {/* Knowledge */}
               <div className="ability-group-card">
                 <div className="ability-group-header">
-                  <button
-                    type="button"
-                    className="group-toggle"
-                    onClick={() => toggleKey("knowledge")}
-                  >
+                  <button type="button" className="group-toggle" onClick={() => toggleKey("knowledge")}>
                     {openKeys.includes("knowledge") ? "▾" : "▸"}
                   </button>
                   <span>Knowledge</span> <Tag>{groups.knowledge.length}</Tag>
@@ -271,11 +265,7 @@ export default function AbilityAnalyzer({
               {/* Tech Skills */}
               <div className="ability-group-card">
                 <div className="ability-group-header">
-                  <button
-                    type="button"
-                    className="group-toggle"
-                    onClick={() => toggleKey("tech")}
-                  >
+                  <button type="button" className="group-toggle" onClick={() => toggleKey("tech")}>
                     {openKeys.includes("tech") ? "▾" : "▸"}
                   </button>
                   <span>Tech Skills</span> <Tag>{groups.tech.length}</Tag>
@@ -290,11 +280,7 @@ export default function AbilityAnalyzer({
               {/* Skills */}
               <div className="ability-group-card">
                 <div className="ability-group-header">
-                  <button
-                    type="button"
-                    className="group-toggle"
-                    onClick={() => toggleKey("skill")}
-                  >
+                  <button type="button" className="group-toggle" onClick={() => toggleKey("skill")}>
                     {openKeys.includes("skill") ? "▾" : "▸"}
                   </button>
                   <span>Skills</span> <Tag>{groups.skill.length}</Tag>
@@ -308,15 +294,7 @@ export default function AbilityAnalyzer({
             </div>
 
             {/* Add buttons */}
-            <div
-              style={{
-                marginTop: "0.75rem",
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
+            <div style={{ marginTop: "0.75rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <Button onClick={openKnowledgePicker} disabled={loading}>Add knowledge</Button>
               <Button onClick={openTechSkillPicker} disabled={loading}>Add tech skills</Button>
               <Button onClick={openSkillPicker} disabled={loading}>Add skills</Button>

@@ -1,12 +1,11 @@
-// src/pages/Analyzer/AnalyzerWizard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import AnalyzerIntro from "./AnalyzerIntro/AnalyzerIntro";
-import GetInfo from "./GetInfo/GetInfo";
-import AbilityAnalyzer from "./AbilityAnalyzer/AbilityAnalyzer";
-import JobSuggestion from "./JobSuggestion/JobSuggestion";
-import SkillGap from "./SkillGap/SkillGap";
+import GetInfo from "./GetInfo";
+import AbilityAnalyzer from "./AbilityAnalyzer";
+import JobSuggestion from "./JobSuggestion";
+import SkillGap from "./SkillGap";
 
 import PrevSummary from "../../components/ui/PrevSummary";
 import ProgressBar from "../../components/ui/ProgressBar";
@@ -27,9 +26,9 @@ export default function AnalyzerWizard() {
 
   const [roles, setRoles] = useState([]);
   const [stateCode, setStateCode] = useState("All");
-  const [abilities, setAbilities] = useState([]);
+  const [abilities, setAbilities] = useState([]); // [{name,aType,code?}]
   const [targetJob, setTargetJob] = useState("");
-  const [unmatched, setUnmatched] = useState(null);
+  const [unmatched, setUnmatched] = useState(null); // { unmatchedFlat:[{type,title,code}], matchedCount, percent }
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -50,7 +49,23 @@ export default function AnalyzerWizard() {
     setSearchParams(next, { replace: true });
   };
 
-  const hasEdits = roles.length || abilities.length || (stateCode && stateCode !== "All") || targetJob;
+  // 进入 Step4 时兜底恢复
+  useEffect(() => {
+    if (step === 4) {
+      if (!unmatched) {
+        const cached = sessionStorage.getItem("sb_unmatched");
+        if (cached) setUnmatched(JSON.parse(cached));
+      }
+      if (!targetJob) {
+        const tj = sessionStorage.getItem("sb_targetJob");
+        if (tj) setTargetJob(tj);
+      }
+    }
+  }, [step, unmatched, targetJob]);
+
+  const hasEdits =
+    roles.length || abilities.length || (stateCode && stateCode !== "All") || targetJob;
+
   useEffect(() => {
     const onBeforeUnload = (e) => {
       if (hasEdits) {
@@ -79,11 +94,10 @@ export default function AnalyzerWizard() {
 
   const handleFinish = () => {
     message.success("Finished. Your selections have not been saved.");
-    setRoles([]);
-    setStateCode("All");
-    setAbilities([]);
-    setTargetJob("");
-    setUnmatched(null);
+    setRoles([]); setStateCode("All"); setAbilities([]);
+    setTargetJob(""); setUnmatched(null);
+    sessionStorage.removeItem("sb_unmatched");
+    sessionStorage.removeItem("sb_targetJob");
     goTo(0);
   };
 
@@ -100,10 +114,8 @@ export default function AnalyzerWizard() {
           setStateCode={setStateCode}
           onPrev={() => goTo(0)}
           onNext={(payload) => {
-            // 兼容：可传数组或 {abilities, roles}
-            if (Array.isArray(payload)) {
-              setAbilities(payload);
-            } else if (payload && typeof payload === "object") {
+            if (Array.isArray(payload)) setAbilities(payload);
+            else if (payload && typeof payload === "object") {
               setAbilities(payload.abilities || []);
               setRoles(Array.isArray(payload.roles) ? payload.roles : []);
             }
@@ -128,7 +140,7 @@ export default function AnalyzerWizard() {
           abilities={abilities}
           targetJob={targetJob}
           setTargetJob={setTargetJob}
-          onUnmatchedChange={setUnmatched} // ⬅️ 直接存
+          onUnmatchedChange={setUnmatched}
           onPrev={() => goTo(2)}
           onNext={() => goTo(4)}
         />
@@ -137,7 +149,8 @@ export default function AnalyzerWizard() {
       {step === 4 && (
         <SkillGap
           targetJob={targetJob}
-          unmatched={unmatched} // ⬅️ 传给 SkillGap
+          unmatched={unmatched}
+          abilities={abilities}        // ⬅️ 传 abilities 以计算 “Met”
           onPrev={() => goTo(3)}
           onFinish={handleFinish}
         />

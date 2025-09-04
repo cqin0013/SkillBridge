@@ -91,3 +91,8 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* HelpToggle.css 追加 */
+.help-hint.is-hidden {
+  display: none;
+}

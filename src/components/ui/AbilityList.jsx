@@ -1,7 +1,6 @@
 import React from "react";
 import { Button } from "antd";
-import "./AbilityAnalyzer.css";
-
+import "./AbilityList.css"
 /**
  * AbilityList
  * Props:

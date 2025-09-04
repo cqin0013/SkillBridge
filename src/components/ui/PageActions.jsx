@@ -10,22 +10,26 @@ import "./PageActions.css";
  *
  * Props (backward compatible):
  * - onPrev, onNext
+ * - prevDisabled?: boolean
+ * - prevDisabledReason?: string | null
  * - nextDisabled?: boolean
  * - nextDisabledReason?: string | null
+ * - defaultDisabledReason?: string     // 默认浮窗原因（英文）
  * - prevText?: string
  * - nextText?: string
- * - sticky?: boolean                 // still supported, but not required
+ * - sticky?: boolean
  * - className?: string
- *
- * Advanced (optional):
- * - revealAtBottom?: boolean         // default: true (auto-hide until bottom)
- * - bottomOffset?: number            // px threshold from document bottom (default: 48)
+ * - revealAtBottom?: boolean           // default: true
+ * - bottomOffset?: number              // default: 48
  */
 export default function PageActions({
   onPrev,
   onNext,
+  prevDisabled = false,
+  prevDisabledReason = null,
   nextDisabled = false,
   nextDisabledReason = null,
+  defaultDisabledReason = "This action is unavailable right now.",
   prevText = "Back",
   nextText = "Next",
   sticky = false,
@@ -40,7 +44,6 @@ export default function PageActions({
       setIsRevealed(true);
       return;
     }
-
     const compute = () => {
       const scrollEl = document.scrollingElement || document.documentElement;
       const docHeight = scrollEl.scrollHeight || 0;
@@ -48,16 +51,11 @@ export default function PageActions({
       const show = viewportBottom >= (docHeight - bottomOffset);
       setIsRevealed(show);
     };
-
-    // run once then on scroll/resize
     compute();
     window.addEventListener("scroll", compute, { passive: true });
     window.addEventListener("resize", compute);
-
-    // also observe DOM changes that may change height (optional, lightweight)
     const mo = new MutationObserver(() => compute());
     mo.observe(document.body, { childList: true, subtree: true, attributes: true });
-
     return () => {
       window.removeEventListener("scroll", compute);
       window.removeEventListener("resize", compute);
@@ -67,9 +65,21 @@ export default function PageActions({
 
   const wrapperCls = classNames(
     "page-actions",
-    { "is-sticky": sticky },               // keep old behavior if you were using it
+    { "is-sticky": sticky },
     { "is-revealed": isRevealed, "is-hidden": !isRevealed },
     className
+  );
+
+  // Buttons
+  const PrevBtn = (
+    <Button
+      onClick={onPrev}
+      type="default"
+      disabled={prevDisabled}
+      aria-disabled={prevDisabled ? "true" : "false"}
+    >
+      {prevText}
+    </Button>
   );
 
   const NextBtn = (
@@ -83,16 +93,23 @@ export default function PageActions({
     </Button>
   );
 
+  const prevTip = prevDisabled ? (prevDisabledReason || defaultDisabledReason) : null;
+  const nextTip = nextDisabled ? (nextDisabledReason || defaultDisabledReason) : null;
+
   return (
     <div className={wrapperCls}>
       <div className="page-actions__spacer" />
       <div className="page-actions__buttons">
-        <Button onClick={onPrev} type="default">
-          {prevText}
-        </Button>
+        {prevTip ? (
+          <Tooltip placement="top" title={prevTip}>
+            <span className="page-actions__tooltip-wrap">{PrevBtn}</span>
+          </Tooltip>
+        ) : (
+          PrevBtn
+        )}
 
-        {nextDisabled && nextDisabledReason ? (
-          <Tooltip placement="top" title={nextDisabledReason}>
+        {nextTip ? (
+          <Tooltip placement="top" title={nextTip}>
             <span className="page-actions__tooltip-wrap">{NextBtn}</span>
           </Tooltip>
         ) : (
