@@ -1,21 +1,23 @@
 :root{
-  --ps-bg:#ffffff;
+--ps-bg: #fff;
   --ps-border:#e5e7eb;
   --ps-pill:#eef2ff;
   --ps-pill-ink:#3730a3;
   --ps-ink:#0f172a;
   --ps-ink-sub:#475569;
   --ps-radius:14px;
-  --ps-shadow:0 10px 28px rgba(2,6,23,.06);
+--ps-shadow: 0 8px 20px rgba(2, 6, 23, .06);
 }
 
+/* 卡片 */
 .prev-summary{
   position:relative;
   background:var(--ps-bg);
   border:1px solid var(--ps-border);
   border-radius:var(--ps-radius);
   box-shadow:var(--ps-shadow);
-  padding:16px 18px 14px 18px;
+padding: 16px 18px 14px;
+    color: var(--ps-ink);
 }
 
 /* 左上胶囊 */
@@ -28,33 +30,75 @@
   padding:4px 10px;
   border-radius:999px;
   font-weight:800;
-  font-size:.75rem;
+font-size: clamp(.7rem, 2.2vw, .75rem);
   letter-spacing:.2px;
+white-space: nowrap;
+    /* 不换行，避免挤压内容 */
 }
 
+/* 列表 */
 .prev-list{
-  margin:0; padding-left:0; list-style:none;
+margin: 0;
+    padding: 0;
+    list-style: none;
   display:flex; flex-direction:column; gap:6px;
 }
-
 .prev-list li{
   position:relative;
   padding-left:22px;
   color:var(--ps-ink-sub);
-  font-size:.92rem;
+font-size: clamp(.85rem, 2.6vw, .92rem);
+    line-height: 1.5;
 }
 
-/* 对勾前缀 */
+/* 对勾标记 */
 .prev-list li::before{
   content:"";
   position:absolute; left:0; top:.45em;
   width:14px; height:14px; border-radius:50%;
-  background:#10b981; /* 绿 */
+background: #10b981;
   box-shadow:0 0 0 2px #e7f9f1 inset;
 }
 .prev-list li::after{
   content:"";
   position:absolute; left:4px; top:.6em;
-  width:6px; height:3px; border:2px solid #fff; border-top:none; border-right:none;
-  transform: rotate(-45deg);
+width: 6px;
+    height: 3px;
+    border: 2px solid #fff;
+    border-top: none;
+    border-right: none;
+    transform: rotate(-45deg);
+}
+
+/* ===== Mobile tweaks ===== */
+@media (max-width:560px) {
+    .prev-summary {
+        padding: 12px 14px 12px
+    }
+
+    .prev-pill {
+        top: -10px;
+        left: 12px;
+        padding: 3px 8px
+    }
+
+    .prev-list {
+        gap: 5px
+    }
+
+    .prev-list li {
+        padding-left: 20px
+    }
+
+    .prev-list li::before {
+        width: 12px;
+        height: 12px
+    }
+
+    .prev-list li::after {
+        left: 3px;
+        top: .58em;
+        width: 5px;
+        height: 3px
+    }
 }

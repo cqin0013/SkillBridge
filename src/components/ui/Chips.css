@@ -1,54 +1,68 @@
 :root {
   --chip-bg: #eef2ff;
-  /* 淡紫/蓝 */
-  --chip-ink: #3730a3;
-  /* 深蓝紫字 */
+    /* 淡紫蓝 */
+    --chip-ink: #3730a3;
+    /* 深蓝紫字 */
   --chip-border: #c7d2fe;
   --chip-x: #6b7280;
-  /* x 号默认 */
-  --chip-x-hover: #ef4444;
-  /* hover 变红 */
+    /* x 默认 */
+    --chip-x-hover: #ef4444;
+    /* hover 变红 */
 }
+
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-    margin-top: 10px;
+  margin-top: 10px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   background: var(--chip-bg);
-    border: 1px solid var(--chip-border);
+  border: 1px solid var(--chip-border);
     color: var(--chip-ink);
   border-radius: 9999px;
   padding: 6px 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: .85rem;
+    font-weight: 600;
     letter-spacing: .2px;
-    transition: box-shadow .2s ease, transform .15s ease, border-color .2s ease;
+  transition: box-shadow .2s ease, transform .15s ease;
   }
-  
-  .chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(59, 130, 246, .15);
+.chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, .15);
 }
 
+/* 删除按钮 */
 .chip-x {
   margin-left: 6px;
   background: transparent;
   border: none;
   color: var(--chip-x);
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
-  padding: 0 2px;
-    border-radius: 6px;
+  padding: 0 4px;
+    border-radius: 4px;
     transition: color .15s ease, transform .15s ease, background .15s ease;
 }
 .chip-x:hover {
   color: #fff;
-    background: var(--chip-x-hover);
+  background: var(--chip-x-hover);
     transform: rotate(12deg);
+}
+
+/* === Mobile tweaks === */
+@media (max-width:520px) {
+  .chip {
+    font-size: .8rem;
+    padding: 5px 8px;
+  }
+
+  .chip-x {
+    padding: 2px 6px;
+    /* 提高触控命中面积 */
+  }
 }

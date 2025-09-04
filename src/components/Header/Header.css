@@ -1,20 +1,14 @@
 :root {
-  /* 颜色变量（高对比 + 色盲友好） */
-  --st-bg: #ffffff;
+  --st-bg: #fff;
   --st-ink: #0a1a2f;
   --st-ink-sub: #173047;
-
   --st-active: #0f73b6;
   --st-underline: #f2be25;
   --st-focus: #ffd54d;
-
-  --st-radius: 10px;
-
-  /* ✅ 统一的紧凑高度（抽屉定位也用它） */
   --st-header-h: 52px;
 }
 
-/* 顶部 Header：白底、粘性、更扁 */
+/* Header */
 .st-header {
   position: sticky;
   top: 0;
@@ -23,150 +17,104 @@
   align-items: center;
   justify-content: space-between;
   background: var(--st-bg);
-    min-height: var(--st-header-h);
-    padding: 8px 16px;
-    /* ↓ 比原来更薄 */
-    box-shadow: none;
-    /* 去掉阴影更“扁” */
+  height: var(--st-header-h);
+    padding: 0 16px;
     border-bottom: 1px solid #e5e7eb;
-    /* 用 1px 线条替代阴影 */
 }
 
-/* 左：品牌（不可点击版本） */
+/* Brand */
 .st-brand {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-    /* ↓ 缩小间距 */
-    color: var(--st-ink);
-    user-select: none;
-    text-decoration: none;
-    cursor: default;
-}
-
-.brand-name {
+  color: var(--st-ink);
   font-weight: 800;
   font-size: 1rem;
-    /* ↓ 16px 更紧凑 */
-    letter-spacing: .2px;
-    line-height: 1;
-    color: var(--st-ink);
+  text-decoration: none;
+}
+.brand-logo {
+  height: 36px;
 }
 
-/* 右：导航 */
+/* Nav */
 .st-nav {
   display: flex;
   gap: 14px;
-    /* ↓ 缩小间距 */
 }
-
-/* NavLink */
 .st-link {
   color: var(--st-ink-sub);
-  text-decoration: none;
   font-weight: 600;
-    padding: 2px 0;
-    /* ↓ 更薄的点击区（仍可点） */
-    border-bottom: 2px solid transparent;
-    transition: color .2s ease, border-color .2s ease;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
 }
 .st-link:hover,
 .st-link:focus {
   color: var(--st-active);
   border-bottom-color: var(--st-underline);
-  outline: none;
 }
-
-/* 当前页高亮 */
 .st-link.is-active,
 .st-link[aria-current="page"] {
   color: var(--st-active);
   border-bottom-color: var(--st-underline);
-  font-weight: 800;
+  font-weight: 700;
 }
-
-/* 键盘焦点（WCAG） */
 .st-link:focus-visible {
-  outline: 3px solid var(--st-focus);
+  outline: 2px solid var(--st-focus);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
-/* 移动端菜单按钮（默认桌面隐藏） */
+/* Mobile menu button */
 .st-menu {
   display: none;
   background: none;
-    border: none;
-    padding: 4px;
-    /* ↓ 更小 */
-    margin-left: 6px;
+  border: 0;
+    padding: 6px;
   cursor: pointer;
 }
 .st-bar {
   display: block;
   width: 20px;
-  /* ↓ 更细更短 */
   height: 2px;
   background: var(--st-ink-sub);
-  border-radius: 2px;
   margin: 3px 0;
+  border-radius: 2px;
 }
 
-/* 小屏：抽屉式导航 + 显示菜单按钮 */
+/* Mobile layout */
 @media (max-width: 768px) {
   .brand-name {
-    display: none;
-  }
-
-  /* 保留图形 Logo，隐藏文字以变薄 */
-
+      display: none;
+    }
+  
+    /* Logo only */
     .st-menu {
       display: block;
     }
-
+  
+    /* show burger */
     .st-nav {
       display: none;
-      /* 点击后 .is-open 显示 */
-      position: absolute;
+    position: absolute;
       top: var(--st-header-h);
-      /* ✅ 跟随紧凑高度 */
-      right: 10px;
-    background: #fff;
+    right: 12px;
+      background: var(--st-bg);
     flex-direction: column;
-    width: 200px;
-      /* ↓ 略窄 */
-      padding: 10px;
-      /* ↓ 内边距更小 */
-      box-shadow: 0 8px 20px rgba(0, 0, 0, .10);
+    padding: 8px;
       border: 1px solid #e5e7eb;
-      border-radius: var(--st-radius);
+    border-radius: 6px;
   }
     .st-nav.is-open {
       display: flex;
     }
-
+  
     .st-link {
-      padding: 8px 6px;
-      /* ↓ 抽屉内也更薄 */
-      border-bottom-width: 0;
-  }
-    .st-link:hover,
-    .st-link.is-active,
-    .st-link[aria-current="page"] {
-      color: var(--st-active);
+      padding: 8px;
+      border-bottom: 0;
+    }
+  
+    .st-link:hover {
       background: rgba(15, 115, 182, .06);
-      border-radius: 8px;
-  }
-}
-/* 减少动画（尊重系统设置） */
-@media (prefers-reduced-motion: reduce) {
-  .st-link {
-    transition: none;
-  }
-}
-
-.brand-logo {
-  height: 40px;
-  width: auto;
-  margin-right: 8px;
+      border-radius: 4px;
+    }
 }

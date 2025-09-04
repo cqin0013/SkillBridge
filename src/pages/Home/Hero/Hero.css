@@ -1,91 +1,79 @@
 :root {
-  /* 如果页面有粘性 Header，把它的真实高度填这里（例如 64px） */
+  /* 若有 sticky Header，请填真实高度 */
   --header-h: 108px;
 
   --sb-primary: #0f73b6;
     --sb-primary-hover: #0a5e95;
     --sb-accent: #f2be25;
     --sb-focus: #ffd54d;
+    --sb-radius: 10px;
   }
 
-/* 让浏览器默认外边距不影响一屏布局 */
+/* 重置边距避免影响一屏布局 */
 html,
 body {
   height: 100%;
-  margin: 0;
+  margin: 0
 }
 
-/* ✅ 一屏 Hero：两层背景（遮罩 + 图），高度精确等于视口高减去 Header 高 */
+/* ===== Hero (full viewport minus header) ===== */
 .sb-hero {
   width: 100%;
-
-  /* 先用 vh 作兜底，再用 svh，最后用 dvh（最准确） */
+  /* 先 vh → svh → dvh 兜底到精确 */
   height: calc(100vh - var(--header-h));
-}
-
-@supports (height: 100svh) {
-  .sb-hero {
-    height: calc(100svh - var(--header-h));
-  }
-}
-
-@supports (height: 100dvh) {
-  .sb-hero {
-    height: calc(100dvh - var(--header-h));
-  }
-}
-
-.sb-hero {
-  /* 关键：让 padding 计入高度，避免超出一屏产生滚动条 */
   box-sizing: border-box;
-
-  /* 背景：渐变遮罩 + 背景图（外部用 style 设置 --hero-bg） */
+  color: #fff;
+  display: grid;
+  align-items: center;
+  padding: clamp(56px, 8vw, 120px) 24px;
   background-image:
-    linear-gradient(180deg, rgba(6, 16, 36, 0.65) 0%, rgba(6, 16, 36, 0.35) 40%, rgba(6, 16, 36, 0.78) 100%),
+    linear-gradient(180deg, rgba(6, 16, 36, .65) 0%, rgba(6, 16, 36, .35) 40%, rgba(6, 16, 36, .78) 100%),
     var(--hero-bg);
   background-size: cover;
-  background-position: center;
-  /* 可按需要改成：center right 18% */
-  background-repeat: no-repeat;
-  color: #fff;
-  
-    display: grid;
-      align-items: center;
-      padding: clamp(56px, 8vw, 120px) 24px;
-      /* 比原来略收一点，避免小屏撑高 */
-      /* 可选阴影：不会影响高度，但如需极简可移除 */
-      /* box-shadow: 0 2px 6px rgba(0, 0, 0, .08); */
+    background-position: center;
+    background-repeat: no-repeat;
+}
+@supports(height:100svh) {
+  .sb-hero {
+    height: calc(100svh - var(--header-h))
+  }
+}
+@supports(height:100dvh) {
+  .sb-hero {
+    height: calc(100dvh - var(--header-h))
+  }
 }
 
-/* 版心：左文案、右留空，保证背景展示空间 */
+/* 内部布局：桌面双列，小屏单列 */
 .sb-hero__inner {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
   gap: clamp(24px, 4vw, 56px);
   align-items: center;
 }
 
 .sb-hero__left {
-  max-width: 720px;
+  max-width: 720px
+}
+
+.sb-hero__right {
+  min-height: 240px
 }
 
 .sb-hero__kicker {
-  font: 700 14px/1.4 system-ui;
+  font: 700 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   margin: 0 0 12px;
   color: #e8eef7;
 }
-
 .sb-hero__title {
   font-weight: 900;
   letter-spacing: .2px;
   margin: 0 0 18px;
   font-size: clamp(32px, 5.6vw, 68px);
-  /* 略降最大字号，窄高屏更稳 */
 }
-
 .sb-hero__sub {
   font-size: clamp(15px, 2vw, 19px);
   line-height: 1.6;
@@ -93,100 +81,93 @@ display: grid;
   margin: 0 0 24px;
   max-width: 640px;
 }
-
+/* CTA */
 .sb-hero__cta {
   display: flex;
   gap: 14px;
-  flex-wrap: wrap;
+  flex-wrap: wrap
 }
 
 .sb-btn {
   appearance: none;
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--sb-radius);
   padding: 12px 18px;
   font-weight: 800;
   text-decoration: none;
-    color: #fff;
-    transition: transform .15s, background-color .15s, border-color .15s, color .15s;
-  }
-  
-  .sb-btn:focus-visible {
-    outline: 3px solid var(--sb-focus);
-    outline-offset: 2px;
-  }
-  
-  .sb-btn--primary {
-    background: var(--sb-primary);
-    border-color: var(--sb-primary);
-  }
-  
-  .sb-btn--primary:hover {
-    background: var(--sb-primary-hover);
-    border-color: var(--sb-primary-hover);
-    transform: translateY(-1px);
-  }
-  
-  .sb-btn--ghost {
-    background: transparent;
-    border-color: rgba(255, 255, 255, .9);
-  }
-  
-  .sb-btn--ghost:hover {
-    border-color: var(--sb-accent);
-    box-shadow: inset 0 -2px 0 var(--sb-accent);
-    transform: translateY(-1px);
-  }
-  
-  .sb-hero__right {
-    min-height: 240px;
-  }
-  
-  /* 小屏：单列，背景仍 cover 全屏 */
-  @media (max-width: 860px) {
-    .sb-hero__inner {
-      grid-template-columns: 1fr;
-    }
-  
-    .sb-hero__right {
-      display: none;
-    }
-  }
-  
-  /* 低视口高度设备（防滚动）：收紧内边距与字号 */
-  @media (max-height: 700px) {
-    .sb-hero {
-      padding: clamp(36px, 6vh, 64px) 20px;
-    }
-  
-    .sb-hero__title {
-      font-size: clamp(28px, 5.2vw, 52px);
-      margin-bottom: 14px;
-    }
-  
-    .sb-hero__sub {
-      margin-bottom: 20px;
-    }
+  color: #fff;
+  transition: transform .15s, background-color .15s, border-color .15s, color .15s;
 }
-@media (max-height: 560px) {
-  .sb-hero {
-    padding: clamp(24px, 5vh, 48px) 16px;
+.sb-btn:focus-visible {
+  outline: 3px solid var(--sb-focus);
+  outline-offset: 2px
+}
+
+.sb-btn--primary {
+  background: var(--sb-primary);
+  border-color: var(--sb-primary)
+}
+
+.sb-btn--primary:hover {
+  background: var(--sb-primary-hover);
+  border-color: var(--sb-primary-hover);
+  transform: translateY(-1px)
+}
+
+.sb-btn--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, .9)
+}
+
+.sb-btn--ghost:hover {
+  border-color: var(--sb-accent);
+  box-shadow: inset 0 -2px 0 var(--sb-accent);
+  transform: translateY(-1px)
+}
+
+/* 小屏：单列并隐藏右侧插图位 */
+@media (max-width:860px) {
+  .sb-hero__inner {
+    grid-template-columns: 1fr
   }
 
-                                .sb-hero__kicker {
-                                  display: none;
-                                }
+  .sb-hero__right {
+    display: none
+  }
+}
+/* 低视口高度：收紧内边距与字号，防止溢出滚动 */
+@media (max-height:700px) {
+  .sb-hero {
+    padding: clamp(36px, 6vh, 64px) 20px
+  }
 
-                                /* 极窄高屏下省略副引导 */
-                                .sb-hero__title {
-                                  font-size: clamp(24px, 5vw, 44px);
-                                  margin-bottom: 10px;
-                                }
-                                }
+  .sb-hero__title {
+    font-size: clamp(28px, 5.2vw, 52px);
+    margin-bottom: 14px
+  }
 
-/* 减少动画尊重系统设置 */
-@media (prefers-reduced-motion: reduce) {
+  .sb-hero__sub {
+    margin-bottom: 20px
+  }
+}
+@media (max-height:560px) {
+  .sb-hero {
+    padding: clamp(24px, 5vh, 48px) 16px
+  }
+
+  .sb-hero__kicker {
+    display: none
+  }
+
+  .sb-hero__title {
+    font-size: clamp(24px, 5vw, 44px);
+    margin-bottom: 10px
+  }
+}
+
+/* 尊重系统减少动画 */
+@media (prefers-reduced-motion:reduce) {
   .sb-btn {
-    transition: none;
+    transition: none
   }
 }

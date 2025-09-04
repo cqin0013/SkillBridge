@@ -4,15 +4,37 @@
     padding: 1rem 0 2rem;
 }
 
+/* 标题区 */
 .profile-header h1 {
     margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    /* 在手机到桌面自适应 */
+    font-weight: 800;
+    line-height: 1.2;
 }
 
 .profile-header .muted {
-    color: var(--color-muted);
     margin-top: .25rem;
+    color: var(--color-muted);
+    font-size: clamp(.9rem, 2.5vw, 1rem);
 }
 
+/* 全局 muted 辅助文本 */
 .muted {
-    color: var(--color-muted);
+    color: var(--color-muted)
+}
+
+/* 小屏优化 */
+@media (max-width:520px) {
+    .profile-page {
+        padding: .75rem 0 1.5rem
+    }
+
+    .profile-header h1 {
+        font-size: 1.4rem
+    }
+
+    .profile-header .muted {
+        font-size: .85rem
+    }
 }

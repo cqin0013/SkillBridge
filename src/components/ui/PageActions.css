@@ -1,6 +1,10 @@
 /* ===============================
-   PageActions.css — Full file
+     PageActions.css — Mobile friendly
    =============================== */
+
+:root {
+  --pa-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
 /* Container */
 .page-actions {
@@ -9,27 +13,26 @@
   justify-content: flex-end;
   align-items: center;
   gap: .75rem;
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
   margin-bottom: 8px;
-/* smooth reveal */
+
   opacity: 1;
   transform: translateY(0);
   transition: opacity .16s ease, transform .16s ease;
 }
 
-/* Sticky style (optional via prop) */
+/* Sticky (optional via prop/class) */
 .page-actions.is-sticky {
   position: sticky;
   bottom: 0;
   z-index: 40;
-    /* sit above content */
-    background: linear-gradient(180deg, rgba(255, 255, 255, .65), #fff 60%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .72), #fff 60%);
   backdrop-filter: blur(6px);
-  padding: .75rem 0;
+  padding: .6rem 0 calc(.6rem + var(--pa-safe-bottom));
   border-top: 1px solid var(--color-border, #e5e7eb);
 }
 
-/* Reveal/hide states (controlled by component) */
+/* Reveal/hide */
 .page-actions.is-hidden {
   opacity: 0;
   pointer-events: none;
@@ -43,8 +46,9 @@
 
 /* Layout helpers */
 .page-actions__spacer {
-  flex: 1 1 auto;
+  flex: 1 1 auto
 }
+
 .page-actions__buttons {
   display: flex;
   align-items: center;
@@ -54,50 +58,56 @@
 /* Tooltip trigger wrapper around disabled buttons */
 .page-actions__tooltip-wrap {
   display: inline-block;
-  /* required so Tooltip can anchor */
+  /* 让 Tooltip 正确定位 */
 }
-
-/* Cursor hint when disabled */
 .page-actions__tooltip-wrap[aria-disabled="true"] {
-  cursor: not-allowed;
+  cursor: not-allowed
 }
 
-/* Critical: let hover land on the wrapper so Tooltip fires */
+/* 允许 hover 落在 wrapper 上，触发 Tooltip */
 .page-actions__tooltip-wrap .ant-btn[disabled] {
-  pointer-events: none;
+  pointer-events: none
 }
 
-/* Optional: make buttons feel consistent inside sticky bar */
+/* Sticky 内按钮去阴影，保持扁平 */
 .page-actions.is-sticky .ant-btn {
-  box-shadow: none;
+  box-shadow: none
 }
 
-/* Small screens: keep spacing comfortable */
-@media (max-width: 520px) {
+/* Small screens */
+@media (max-width:520px) {
   .page-actions {
     gap: .5rem;
-    margin-top: 1rem;
+    margin-top: 1rem
   }
 
   .page-actions__buttons {
     gap: .5rem;
+    flex-wrap: wrap
   }
 }
 
-        /* Ant Design tooltip override for PageActions */
-        .pa-tooltip .ant-tooltip-inner {
-          background: #111 !important;
-          color: #fff !important;
-          font-size: 12.5px;
-          line-height: 1.25;
-          padding: 8px 10px;
-          min-width: max-content;
-          box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+/* Reduce motion */
+@media (prefers-reduced-motion:reduce) {
+  .page-actions {
+    transition: none
+  }
+}
+
+/* Ant Design Tooltip override for PageActions */
+.pa-tooltip .ant-tooltip-inner {
+  background: #111 !important;
+  color: #fff !important;
+  font-size: 12.5px;
+  line-height: 1.25;
+  padding: 8px 10px;
+  min-width: max-content;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
 }
 .pa-tooltip .ant-tooltip-arrow:before {
-  background: #111 !important;
+  background: #111 !important
 }
 
 .pa-tooltip .ant-tooltip-inner * {
-  color: inherit !important;
+  color: inherit !important
 }

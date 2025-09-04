@@ -1,25 +1,64 @@
 :root{
-  --wiz-track:#e5e7eb;              /* 轨道 */
-  --wiz-fill-start:#60a5fa;         /* 渐变起 */
-  --wiz-fill-end:#8b5cf6;           /* 渐变终 */
+--wiz-track: #e5e7eb;
+    /* 轨道 */
+    --wiz-fill-start: #60a5fa;
+    /* 渐变起 */
+    --wiz-fill-end: #8b5cf6;
+    /* 渐变终 */
 }
 
+/* 包裹容器：让进度条在小屏有呼吸空间 */
 .wiz-progress{
   width:100%;
-  padding: 6px 0;
+padding: 6px 0;
 }
 
-/* antd 进度条定制 */
+/* Ant Design Progress 基础定制 */
 .wiz-progress .ant-progress{
   width:100%;
 }
 .wiz-progress .ant-progress-inner{
-  background: var(--wiz-track);
-  border-radius: 999px !important;
-  height: 10px !important;
+background: var(--wiz-track);
+    border-radius: 999px !important;
+    height: 10px !important;
+    /* 默认高度 */
 }
-.wiz-progress .ant-progress-bg{
-  background: linear-gradient(90deg, var(--wiz-fill-start), var(--wiz-fill-end)) !important;
-  border-radius: 999px !important;
-  height: 10px !important;
+
+.wiz-progress .ant-progress-bg {
+    background: linear-gradient(90deg, var(--wiz-fill-start), var(--wiz-fill-end)) !important;
+    border-radius: 999px !important;
+    height: 10px !important;
+}
+
+/* 无动画/减少运动偏好 */
+@media (prefers-reduced-motion:reduce) {
+    .wiz-progress .ant-progress-bg {
+        transition: none !important;
+    }
+}
+
+/* 小屏优化：降低条高，避免占据过多竖向空间 */
+@media (max-width:520px) {
+    .wiz-progress {
+        padding: 4px 0;
+    }
+
+    .wiz-progress .ant-progress-inner,
+    .wiz-progress .ant-progress-bg {
+        height: 8px !important;
+    }
+}
+/* 极窄屏进一步收紧 */
+@media (max-width:360px) {
+    .wiz-progress .ant-progress-inner,
+.wiz-progress .ant-progress-bg {
+    height: 7px !important;
+    }
+    }
+    
+    /* 深色模式（可选） */
+    @media (prefers-color-scheme:dark) {
+        :root {
+            --wiz-track: #1f2937;
+        }
 }

@@ -1,15 +1,27 @@
-.sp-body { margin-top: .5rem; }
-.sp-search { margin-bottom: .75rem; }
+.sp-body {
+  margin-top: .5rem
+}
 
+.sp-search {
+  margin-bottom: .75rem
+}
+
+/* 可滚网格（小屏更小列宽），移动端弹性滚动 */
 .sp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  /* 原220→180，手机更易排布 */
   gap: .5rem;
   max-height: 420px;
   overflow: auto;
   padding-right: .25rem;
+  -webkit-overflow-scrolling: touch;
+  /* iOS smoother */
+  overscroll-behavior: contain;
+  /* 阻止父级滚动链 */
 }
 
+/* 选项卡片 */
 .sp-item {
   display: inline-flex;
   align-items: center;
@@ -17,24 +29,74 @@
   border: 1px solid var(--color-border);
   background: #fff;
   border-radius: 8px;
-  padding: .5rem .6rem;
+  padding: .6rem .7rem;
+  /* 稍加大触控区 */
   cursor: pointer;
-  transition: border-color .15s ease, background .15s ease;
+  transition: border-color .15s ease, background .15s ease, transform .12s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.sp-item:hover { border-color: var(--color-primary); background: var(--color-primary-100); }
-.sp-item.is-picked { border-color: var(--color-primary); background: #eef5ff; }
-.sp-name { user-select: none; }
+/* 悬停反馈仅在可悬停设备启用，避免手机“抖动” */
+@media (hover:hover) {
+  .sp-item:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-100)
+  }
+}
 
-.sp-empty { color: var(--color-muted); padding: .75rem; }
+/* 键盘可达性 */
+.sp-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
 
-/* 已有样式保持不变，仅追加 */
+/* 选中/禁用态 */
+.sp-item.is-picked {
+  border-color: var(--color-primary);
+  background: #eef5ff
+}
+
 .sp-item.is-disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity: .55;
+  cursor: not-allowed
+}
+
+.sp-name {
+  user-select: none
+}
+
+.sp-empty {
+  color: var(--color-muted);
+  padding: .75rem
 }
 
 .sp-count {
   font-size: .9rem;
-  color: var(--color-muted);
+  color: var(--color-muted)
+}
+
+/* 小屏优化：进一步减小列宽并收紧高度 */
+@media (max-width:520px) {
+  .sp-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    max-height: 360px
+  }
+
+  .sp-item {
+    padding: .55rem .65rem
+  }
+}
+
+/* 极窄屏：单列兜底，避免拥挤 */
+@media (max-width:360px) {
+  .sp-grid {
+    grid-template-columns: 1fr
+  }
+}
+
+/* 尊重系统减少动画 */
+@media (prefers-reduced-motion:reduce) {
+  .sp-item {
+    transition: none
+  }
 }

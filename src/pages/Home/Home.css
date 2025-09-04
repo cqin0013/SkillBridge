@@ -1,16 +1,22 @@
 .home {
   position: relative;
-  min-height: 100dvh;
-  overflow: hidden; /* 禁止滚动 */
+min-height: 100vh;
+    /* 默认兜底 */
+    min-height: 100dvh;
+    /* 新浏览器更准确 */
+    min-height: 100svh;
+    /* Safari */
+    overflow-x: hidden;
+    /* 只禁止横向溢出，纵向允许滚动 */
 }
 
-/* 背景层固定铺满全屏 */
+/* 背景层固定铺满 */
 .home-bg {
   position: absolute;
-  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+inset: 0;
   background-image: var(--home-bg, none);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: -1; /* 在内容和 header 下层 */
+z-index: -1;
 }

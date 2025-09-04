@@ -12,7 +12,8 @@ import { skillCategories } from "../../assets/data/skill.static";
 import { knowledgeCategories } from "../../assets/data/knowledge.static";
 import { techSkillCategories } from "../../assets/data/techskill.static";
 
-// （按你的要求，已删除：import "./AbilityAnalyzer.css";）
+// （按你的要求，保持不引入本地 CSS）
+// import "./AbilityAnalyzer.css";
 
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
@@ -137,12 +138,13 @@ export default function AbilityAnalyzer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(occupationCodes)]);
 
-  // Shared SkillPicker
+  // Shared SkillPicker (modal) 状态
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCats, setPickerCats] = useState([]);
   const [pickerTitle, setPickerTitle] = useState("Pick items");
   const [pickerType, setPickerType] = useState("skill"); // 'skill' | 'knowledge' | 'tech'
 
+  // 仅按“类型+名称”去重，保证不同类型的同名不会互相影响
   const addMany = (names, aType = "skill") => {
     setLocalAbilities((prev) => {
       const seen = new Set(prev.map((x) => `${x.aType || "skill"}|${x.name}`));
@@ -191,7 +193,7 @@ export default function AbilityAnalyzer({
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // Collapsible open state (default all open)
+  // 折叠开关（默认全部展开）
   const [openKeys, setOpenKeys] = useState(["knowledge", "tech", "skill"]);
   const toggleKey = (key) =>
     setOpenKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
@@ -202,6 +204,21 @@ export default function AbilityAnalyzer({
     : !localAbilities.length
     ? "Please add at least one ability."
     : null;
+
+  // —— 关键修复：仅预选“当前选择器类型”的项目 —— //
+  const selectedForCurrentType = useMemo(
+    () =>
+      localAbilities
+        .filter((x) => (x.aType || "skill") === pickerType)
+        .map((x) => x.name),
+    [localAbilities, pickerType]
+  );
+
+  // —— 可选保护：仅接受当前选择器分类中真实存在的名称 —— //
+  const currentNames = useMemo(
+    () => new Set((pickerCats || []).flatMap((c) => c?.skills || [])),
+    [pickerCats]
+  );
 
   return (
     <section className="ability-page">
@@ -317,8 +334,13 @@ export default function AbilityAnalyzer({
         <SkillPicker
           open={pickerOpen}
           onClose={() => setPickerOpen(false)}
-          onConfirm={(picked) => { addMany(picked, pickerType); setPickerOpen(false); }}
-          initiallySelected={localAbilities.map((x) => x.name)}
+          onConfirm={(picked) => {
+            // 只接受当前选择器分类中真实存在的名称，避免串类误加
+            const filtered = (picked || []).filter((n) => currentNames.has(n));
+            addMany(filtered, pickerType);
+            setPickerOpen(false);
+          }}
+          initiallySelected={selectedForCurrentType}
           categories={pickerCats}
           title={pickerTitle}
         />

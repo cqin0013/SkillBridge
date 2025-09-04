@@ -1,9 +1,9 @@
-/* AbilityList.css */
+/* ===== AbilityList (clean + mobile friendly) ===== */
 
 .abl-list {
   display: flex;
   flex-direction: column;
-  gap: 6px; /* 每行之间留一点空隙 */
+gap: 6px;
 }
 
 .abl-row {
@@ -16,9 +16,8 @@
   background: #fafafa;
   transition: background 0.2s ease;
 }
-
 .abl-row:hover {
-  background: #f5faff; /* hover 时淡蓝色高亮 */
+    background: #f5faff;
 }
 
 .abl-name {
@@ -28,19 +27,42 @@
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap; /* 长名字省略号 */
+white-space: nowrap;
 }
 
 .abl-controls {
   margin-left: 8px;
   flex-shrink: 0;
 }
-
 .abl-controls .ant-btn {
-  color: #ff4d4f; /* 删除按钮用红色文字 */
+color: #ff4d4f;
 }
-
 .abl-controls .ant-btn:hover {
   background: transparent;
-  color: #d9363e; /* hover 时更深的红色 */
+color: #d9363e;
+}
+
+/* === Mobile tweaks === */
+@media (max-width: 520px) {
+    .abl-row {
+        flex-direction: column;
+        /* 名称与按钮上下堆叠 */
+        align-items: flex-start;
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .abl-name {
+        white-space: normal;
+        /* 小屏允许换行，不截断 */
+        overflow: visible;
+        text-overflow: unset;
+        font-size: 13px;
+    }
+
+    .abl-controls {
+        margin-left: 0;
+        align-self: flex-end;
+        /* 删除按钮靠右 */
+    }
 }
