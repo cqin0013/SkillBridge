@@ -38,7 +38,10 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
   const [analysisMsg, setAnalysisMsg] = useState("");
   const [preparedAbilities, setPreparedAbilities] = useState([]); // [{title, code, type}]
 
-  // 新增：两个 HelpToggle 的受控开关
+  // NEW: show "Please press Enter" hint when user has typed something
+  const [showEnterHint, setShowEnterHint] = useState(false);
+
+  // 两个 HelpToggle 的受控开关
   const [help1Open, setHelp1Open] = useState(false);
   const [help2Open, setHelp2Open] = useState(false);
 
@@ -47,6 +50,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
   const handleEnter = async (e) => {
     e.preventDefault();
     const q = kw.trim();
+    setShowEnterHint(false); // hide hint after Enter
     setErrorMsg("");
     setAnalysisDone(false);
     setAnalysisMsg("");
@@ -190,7 +194,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
   return (
     <section className="anlz-page">
       <div className="container">
-        {/* 顶部引导卡片（由 StageBox 的 tipTitle/tipContent 显示步骤） */}
+        {/* 顶部引导卡片 */}
         <StageBox
           pill="Step 1"
           title="Background & Work Location"
@@ -220,10 +224,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
           <div className="anlz-second-card">
             <div className="question-row">
               <h3 className="question-title">What job titles have you held in the past?</h3>
-              <HelpToggle
-                show={help1Open}
-                onToggle={() => setHelp1Open((v) => !v)}
-              >
+              <HelpToggle show={help1Open} onToggle={() => setHelp1Open((v) => !v)}>
                 <div style={{ maxWidth: 380 }}>
                   <b>What does this question mean?</b>
                   <div style={{ marginTop: 6 }}>
@@ -236,14 +237,29 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               </HelpToggle>
             </div>
 
+            {/* Occupation search input */}
             <Input
               value={kw}
-              onChange={(e) => setKw(e.target.value)}
+              onChange={(e) => {
+                setKw(e.target.value);
+                setShowEnterHint(!!e.target.value); // show hint once user types
+                if (errorMsg) setErrorMsg(""); // clear any previous error as they type
+              }}
               onPressEnter={handleEnter}
               placeholder="Type a keyword and press Enter to search…"
               allowClear
               disabled={searchLoading || atLimit}
             />
+
+            {/* "Please press Enter" hint */}
+            {showEnterHint && (
+              <div
+                aria-live="polite"
+                style={{ marginTop: 6, fontSize: ".875rem", color: "var(--color-muted, #6b7280)" }}
+            >
+                Please press Enter ↵
+              </div>
+            )}
 
             {errorMsg && (
               <Alert type="warning" showIcon style={{ marginTop: ".6rem" }} message={errorMsg} />
@@ -270,10 +286,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
             {/* 题目 2 */}
             <div className="question-row" style={{ marginTop: 16 }}>
               <h3 className="question-title">Where would you like to work?</h3>
-              <HelpToggle
-                show={help2Open}
-                onToggle={() => setHelp2Open((v) => !v)}
-              >
+              <HelpToggle show={help2Open} onToggle={() => setHelp2Open((v) => !v)}>
                 <div style={{ maxWidth: 380 }}>
                   <b>How to answer:</b>
                   <div style={{ marginTop: 6 }}>
@@ -318,12 +331,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
           />
 
           {searchLoading ? (
-            <Alert
-              type="info"
-              showIcon
-              message="Searching…"
-              description="First-time use may take a moment to initialize."
-            />
+            <Alert type="info" showIcon message="Searching…" description="First-time use may take a moment to initialize." />
           ) : searchResults.length === 0 ? (
             <Alert type="info" message="No occupations found for this keyword." />
           ) : (

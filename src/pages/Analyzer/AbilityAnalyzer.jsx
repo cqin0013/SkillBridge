@@ -18,93 +18,39 @@ const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
 /** Build picker categories for Skills */
 const buildSkillCats = () => [
-  { id: "content", label: "Content", skills: (skillCategories.content || []).map((s) => s.name) },
-  { id: "process", label: "Process", skills: (skillCategories.process || []).map((s) => s.name) },
-  {
-    id: "resourceManagement",
-    label: "Resource Management",
-    skills: (skillCategories.crossFunctional?.resourceManagement || []).map((s) => s.name),
-  },
-  { id: "technical", label: "Technical", skills: (skillCategories.crossFunctional?.technical || []).map((s) => s.name) },
+  { id: "content", label: "Content", skills: (skillCategories.content || []).map(s => s.name) },
+  { id: "process", label: "Process", skills: (skillCategories.process || []).map(s => s.name) },
+  { id: "resourceManagement", label: "Resource Management", skills: (skillCategories.crossFunctional?.resourceManagement || []).map(s => s.name) },
+  { id: "technical", label: "Technical", skills: (skillCategories.crossFunctional?.technical || []).map(s => s.name) },
 ];
 
 /** Build picker categories for Knowledge */
 const buildKnowledgeCats = () => [
-  { id: "management", label: "Management", skills: (knowledgeCategories.management || []).map((s) => s.name) },
-  { id: "production", label: "Production", skills: (knowledgeCategories.production || []).map((s) => s.name) },
-  { id: "technical", label: "Technical", skills: (knowledgeCategories.technical || []).map((s) => s.name) },
-  { id: "science", label: "Science", skills: (knowledgeCategories.science || []).map((s) => s.name) },
-  { id: "health", label: "Health", skills: (knowledgeCategories.health || []).map((s) => s.name) },
-  { id: "education", label: "Education", skills: (knowledgeCategories.education || []).map((s) => s.name) },
-  { id: "culture", label: "Culture", skills: (knowledgeCategories.culture || []).map((s) => s.name) },
-  { id: "public", label: "Public", skills: (knowledgeCategories.public || []).map((s) => s.name) },
-  { id: "communication", label: "Communication", skills: (knowledgeCategories.communication || []).map((s) => s.name) },
+  { id: "management", label: "Management", skills: (knowledgeCategories.management || []).map(s => s.name) },
+  { id: "production", label: "Production", skills: (knowledgeCategories.production || []).map(s => s.name) },
+  { id: "technical", label: "Technical", skills: (knowledgeCategories.technical || []).map(s => s.name) },
+  { id: "science", label: "Science", skills: (knowledgeCategories.science || []).map(s => s.name) },
+  { id: "health", label: "Health", skills: (knowledgeCategories.health || []).map(s => s.name) },
+  { id: "education", label: "Education", skills: (knowledgeCategories.education || []).map(s => s.name) },
+  { id: "culture", label: "Culture", skills: (knowledgeCategories.culture || []).map(s => s.name) },
+  { id: "public", label: "Public", skills: (knowledgeCategories.public || []).map(s => s.name) },
+  { id: "communication", label: "Communication", skills: (knowledgeCategories.communication || []).map(s => s.name) },
 ];
 
 /** Build picker categories for Tech Skills */
 const buildTechSkillCats = () => [
-  { id: "business", label: "Business", skills: (techSkillCategories.business || []).map((s) => s.name) },
-  { id: "productivity", label: "Productivity", skills: (techSkillCategories.productivity || []).map((s) => s.name) },
-  { id: "development", label: "Development", skills: (techSkillCategories.development || []).map((s) => s.name) },
-  { id: "database", label: "Database", skills: (techSkillCategories.database || []).map((s) => s.name) },
-  { id: "education", label: "Education", skills: (techSkillCategories.education || []).map((s) => s.name) },
-  { id: "industry", label: "Industry", skills: (techSkillCategories.industry || []).map((s) => s.name) },
-  { id: "network", label: "Network", skills: (techSkillCategories.network || []).map((s) => s.name) },
-  { id: "system", label: "System", skills: (techSkillCategories.system || []).map((s) => s.name) },
-  { id: "security", label: "Security", skills: (techSkillCategories.security || []).map((s) => s.name) },
-  { id: "communication", label: "Communication", skills: (techSkillCategories.communication || []).map((s) => s.name) },
-  { id: "management", label: "Management", skills: (techSkillCategories.management || []).map((s) => s.name) },
+  { id: "business", label: "Business", skills: (techSkillCategories.business || []).map(s => s.name) },
+  { id: "productivity", label: "Productivity", skills: (techSkillCategories.productivity || []).map(s => s.name) },
+  { id: "development", label: "Development", skills: (techSkillCategories.development || []).map(s => s.name) },
+  { id: "database", label: "Database", skills: (techSkillCategories.database || []).map(s => s.name) },
+  { id: "education", label: "Education", skills: (techSkillCategories.education || []).map(s => s.name) },
+  { id: "industry", label: "Industry", skills: (techSkillCategories.industry || []).map(s => s.name) },
+  { id: "network", label: "Network", skills: (techSkillCategories.network || []).map(s => s.name) },
+  { id: "system", label: "System", skills: (techSkillCategories.system || []).map(s => s.name) },
+  { id: "security", label: "Security", skills: (techSkillCategories.security || []).map(s => s.name) },
+  { id: "communication", label: "Communication", skills: (techSkillCategories.communication || []).map(s => s.name) },
+  { id: "management", label: "Management", skills: (techSkillCategories.management || []).map(s => s.name) },
 ];
-
-/** Inline component: input with "Please press Enter" hint */
-function EnterHintInput({
-  id = "occupation-input",
-  label = "Target occupation (optional)",
-  placeholder = "Enter your target occupation",
-  value,
-  onChange,
-  onEnter,
-}) {
-  const [showHint, setShowHint] = useState(Boolean(value));
-
-  return (
-    <div style={{ marginTop: ".75rem" }}>
-      <label htmlFor={id} style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-        {label}
-      </label>
-      <input
-        id={id}
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => {
-          onChange?.(e);
-          setShowHint(!!e.target.value);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            setShowHint(false);
-            onEnter?.(e.currentTarget.value);
-          }
-        }}
-        style={{
-          width: "100%",
-          padding: ".55rem .7rem",
-          border: "1px solid var(--color-border, #e5e7eb)",
-          borderRadius: "6px",
-        }}
-      />
-      {showHint && (
-        <p
-          aria-live="polite"
-          style={{ marginTop: 6, fontSize: ".875rem", color: "var(--color-muted, #6b7280)" }}
-        >
-          Please press Enter ↵
-        </p>
-      )}
-    </div>
-  );
-}
 
 /**
  * Props:
@@ -112,14 +58,14 @@ function EnterHintInput({
  * - abilities?: Array<string | {title?:string, name?:string, code?:string, type?:'knowledge'|'skill'|'tech', aType?:same}>
  * - onPrev: () => void
  * - onNext: (abilities: {name:string, code?:string, aType?:string}[]) => void
- * - onOccupationSubmit?: (occupationText: string) => void
+ * - onOccupationSubmit?: (occupationText: string) => void   // NEW (可选)
  */
 export default function AbilityAnalyzer({
   occupationCodes,
   abilities = [],
   onPrev,
   onNext,
-  onOccupationSubmit,
+  onOccupationSubmit, // NEW
 }) {
   // Normalize incoming (keep code/type if provided)
   const normalizeOne = (a) => {
@@ -135,8 +81,9 @@ export default function AbilityAnalyzer({
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
 
-  // occupation input
-  const [occupationInput, setOccupationInput] = useState("");
+  // NEW: occupation input + hint control
+  const [occupationInput, setOccupationInput] = useState("");     // NEW
+  const [showOccHint, setShowOccHint] = useState(false);          // NEW
 
   // Help toggle for the "Add abilities..." question (in Card 2)
   const [qHelpOpen, setQHelpOpen] = useState(false);
@@ -265,7 +212,10 @@ export default function AbilityAnalyzer({
 
   // Selected names for current picker type
   const selectedForCurrentType = useMemo(
-    () => localAbilities.filter((x) => (x.aType || "skill") === pickerType).map((x) => x.name),
+    () =>
+      localAbilities
+        .filter((x) => (x.aType || "skill") === pickerType)
+        .map((x) => x.name),
     [localAbilities, pickerType]
   );
 
@@ -296,17 +246,48 @@ export default function AbilityAnalyzer({
               <Spin /> <span style={{ marginLeft: 8 }}>Loading abilities…</span>
             </div>
           )}
-          {loadErr && <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />}
+          {loadErr && (
+            <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />
+          )}
 
-          {/* Occupation input with "Please press Enter" hint */}
-          <EnterHintInput
-            value={occupationInput}
-            onChange={(e) => setOccupationInput(e.target.value)}
-            onEnter={(text) => {
-              // optional: bubble up or trigger your own fetch
-              if (onOccupationSubmit) onOccupationSubmit(text);
-            }}
-          />
+          {/* NEW: Occupation input with "Please press Enter" hint */}
+          <div style={{ marginTop: ".75rem" }}>
+            <label htmlFor="occupation-input" style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
+              Target occupation (optional)
+            </label>
+            <input
+              id="occupation-input"
+              type="text"
+              placeholder="Enter your target occupation"
+              value={occupationInput}
+              onChange={(e) => {
+                setOccupationInput(e.target.value);
+                setShowOccHint(!!e.target.value);         // 输入后显示提示
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setShowOccHint(false);                  // 按下回车隐藏提示
+                  if (onOccupationSubmit) {
+                    onOccupationSubmit(occupationInput);  // 可选：把输入传给父组件
+                  }
+                  // 你也可以在这里触发本页逻辑，比如：
+                  // - setLoading(true) 后调用你的搜索接口，再 merge 到 localAbilities
+                }
+              }}
+              style={{
+                width: "100%",
+                padding: ".55rem .7rem",
+                border: "1px solid var(--color-border, #e5e7eb)",
+                borderRadius: "6px",
+              }}
+            />
+            {showOccHint && (
+              <p style={{ marginTop: 6, fontSize: ".875rem", color: "var(--color-muted, #6b7280)" }}>
+                Please press Enter ↵
+              </p>
+            )}
+          </div>
+          {/* END NEW */}
         </StageBox>
 
         {/* Card 2: groups + add buttons */}
@@ -314,15 +295,11 @@ export default function AbilityAnalyzer({
           <div className="ability-second-card">
             <div className="question-row" style={{ marginBottom: 10 }}>
               <h3 className="question-title" style={{ margin: 0 }}>Add abilities you already have</h3>
-              <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen((v) => !v)}>
-                <b>What counts as an “ability”?</b>
-                <br />
-                • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”, “Anatomy”).
-                <br />
-                • <i>Tech Skills</i>: tools/technologies you can use (e.g., “Excel”, “React”).
-                <br />
-                • <i>Skills</i>: behaviors and methods (e.g., “Stakeholder communication”, “Root-cause analysis”).
-                <br />
+              <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen(v => !v)}>
+                <b>What counts as an “ability”?</b><br />
+                • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”, “Anatomy”).<br />
+                • <i>Tech Skills</i>: tools/technologies you can use (e.g., “Excel”, “React”).<br />
+                • <i>Skills</i>: behaviors and methods (e.g., “Stakeholder communication”, “Root-cause analysis”).<br />
                 Tip: Start broad, then remove items that don’t fit you.
               </HelpToggle>
             </div>
@@ -375,25 +352,13 @@ export default function AbilityAnalyzer({
             </div>
 
             {/* Add buttons */}
-            <div
-              style={{
-                marginTop: "0.75rem",
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              <Button onClick={openKnowledgePicker} disabled={loading}>
-                Add knowledge
-              </Button>
-              <Button onClick={openTechSkillPicker} disabled={loading}>
-                Add tech skills
-              </Button>
-              <Button onClick={openSkillPicker} disabled={loading}>
-                Add skills
-              </Button>
-              <span style={{ marginLeft: 6, color: "var(--color-muted)" }}>Total: {localAbilities.length}</span>
+            <div style={{ marginTop: "0.75rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <Button onClick={openKnowledgePicker} disabled={loading}>Add knowledge</Button>
+              <Button onClick={openTechSkillPicker} disabled={loading}>Add tech skills</Button>
+              <Button onClick={openSkillPicker} disabled={loading}>Add skills</Button>
+              <span style={{ marginLeft: 6, color: "var(--color-muted)" }}>
+                Total: {localAbilities.length}
+              </span>
             </div>
           </div>
         </StageBox>
