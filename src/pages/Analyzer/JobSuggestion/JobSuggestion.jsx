@@ -8,7 +8,7 @@ import { Alert, Spin } from "antd";
 import "../Analyzer.css";
 
 // 本地开发建议使用 Vite 代理：/api -> 后端服务
-const API_BASE = "/api";
+const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
 export default function JobSuggestion({
   abilities = [],
