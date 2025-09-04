@@ -46,18 +46,6 @@
     --ring: 0 0 0 3px rgba(13, 110, 253, .25);
 }
 
-/* 暗色模式（可按需调整） */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0b0f14;
-    --color-fg: #e5e7eb;
-    --color-muted: #9ca3af;
-    --color-border: #1f2937;
-    --color-surface: #0f1620;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
-    --shadow-md: 0 6px 16px rgba(0, 0, 0, .4);
-  }
-}
 
 /* Reset (保留可访问性) */
 *,
