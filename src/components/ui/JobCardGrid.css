@@ -1,52 +1,97 @@
+:root {
+  --card-radius: 14px;
+  --card-border: #e5e7eb;
+  --card-hover: #2563eb;
+  --card-bg: #fff;
+  --ink: #0f172a;
+  --ink-sub: #475569;
+  --shadow: 0 8px 24px rgba(2, 6, 23, .06);
+}
 .jobs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
   margin-top: 1rem;
 }
 
 .job-card {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
+  position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    padding: 14px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+    box-shadow: var(--shadow);
+  }
+  
+  .job-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 0;
+    border-radius: var(--card-radius);
+    pointer-events: none;
 }
 
 .job-card:hover {
-  border-color: #007bff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-color: var(--card-hover);
+    box-shadow: 0 14px 28px rgba(37, 99, 235, .18);
+    transform: translateY(-2px);
 }
 
 .job-card.is-selected {
-  border-color: #007bff;
-  background: #f0f8ff;
+  border-color: var(--card-hover);
+    background: linear-gradient(90deg, rgba(37, 99, 235, .06), #fff 45%);
+  }
+  
+  .job-card.is-selected::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--card-hover);
+    border-top-left-radius: var(--card-radius);
+    border-bottom-left-radius: var(--card-radius);
 }
 
 .job-title {
-  font-weight: bold;
-  margin-bottom: 0.25rem;
+  font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--ink);
+    letter-spacing: .2px;
 }
 
 .job-score {
   font-size: 0.85rem;
-  color: #555;
-  margin-bottom: 0.5rem;
+  color: var(--ink-sub);
+    margin-bottom: 8px;
 }
 
 .job-req {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 6px;
 }
 
+/* 要求 chip */
 .req-chip {
   display: inline-flex;
   align-items: center;
-  background: #f8f8f8;
-  border-radius: 9999px;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.75rem;
+  gap: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 0.78rem;
+    color: #0f172a;
+}
+.req-name {
+  font-weight: 700;
+}
+
+.req-val {
+  opacity: .7;
 }

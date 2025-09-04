@@ -27,3 +27,14 @@
 .sp-name { user-select: none; }
 
 .sp-empty { color: var(--color-muted); padding: .75rem; }
+
+/* 已有样式保持不变，仅追加 */
+.sp-item.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sp-count {
+  font-size: .9rem;
+  color: var(--color-muted);
+}

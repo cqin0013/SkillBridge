@@ -1,5 +1,6 @@
 import React from "react";
 import { Rate, Tooltip } from "antd";
+import "./Proficiency.css";
 
 const LABELS = ["Novice", "Beginner", "Intermediate", "Advanced", "Expert"];
 

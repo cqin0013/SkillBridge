@@ -1,122 +1,13 @@
-/* 顶部阶段提示（含 ? 帮助） */
-.sg-stage{
-  display: grid;
-  gap: 6px;
-  margin-bottom: 12px;
-  padding: 14px 16px;
-  color: #0a1a2f;
-  background: #F6FAFF;
-  border: 1px solid #D7E7FF;
-  border-top: 3px solid var(--brand, #0B5FFF);
-  border-radius: 12px;
-  box-shadow: 0 1px 0 rgba(0,0,0,.02);
-}
-.sg-stage-row{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.sg-stage-pill{
-  display: inline-block;
-  width: max-content;
-  padding: 4px 10px;
-  font-size: .9rem;
-  font-weight: 800;
-  letter-spacing: .2px;
-  color: #fff;
-  background: var(--brand, #0B5FFF);
-  border-radius: 999px;
-}
-.sg-stage-title{
-  margin: 0;
-  font-weight: 900;
-  letter-spacing: .1px;
-  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
-  line-height: 1.15;
-  color: var(--brand, #0B5FFF);
-}
+/* SkillGap.css — 精简版，仅保留当前用到的样式 */
 
-/* ? 帮助按钮与提示 */
-.sg-help{
-  margin-left: auto;
-  width: 24px; height: 24px;
-  display: grid; place-items: center;
-  border: 1px solid var(--border, #DCE0E6);
-  border-radius: 999px;
-  background: #fff;
-  color: #64748B;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background-color .15s ease, border-color .15s ease, transform .12s ease;
-}
-.sg-help:hover{ background:#fafbfc; border-color:#cfd5dc; }
-.sg-help:focus-visible{ outline: 3px solid #ffd54d; outline-offset: 2px; }
-
-.sg-hint{
-  margin: 0;
-  color:#4b5563;
-  background:#F6FAFF;
-  border:1px solid #D7E7FF;
-  padding:8px 10px;
-  border-radius: 10px;
-}
-.sg-hint.is-hidden{ display:none; }
-.sg-hint.is-visible{ display:block; }
-
-/* 标题区 */
-.skillgap-page .page-title{ margin:0 0 6px; font-size:1.4rem; font-weight:900; }
-
-/* 目标行 */
-.target-row{
-  display: grid;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.target-row .lbl{ font-weight: 700; }
-.target-row select{
-  min-height: 46px;
-  border:1px solid var(--border, #DCE0E6);
-  border-radius: 12px;
-  padding: .7rem .9rem;
-  font-size: 1rem;
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
-.target-row select:hover{ border-color: #cfd5dc; }
-.target-row select:focus-visible{
-  outline: 3px solid #ffd54d;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px rgba(255,213,77,.20);
-}
-
-/* 表格 */
-.gap-table-wrap{ margin-top: 8px; }
-.gap-table{
-  width: 100%;
-  border-collapse: collapse;
-}
-.gap-table th, .gap-table td{
-  border: 1px solid var(--border, #DCE0E6);
-  padding: 10px 8px;
-  text-align: left;
-  font-size: .95rem;
-}
-.gap-table th{
-  background: #E7F0FF; /* brand-50 */
-  font-weight: 700;
-}
-.gap-table tr.ok td{ background: #F1FAF5; }   /* 轻绿：已覆盖 */
-.gap-table tr.miss td{ background: #FFF8E6; } /* 轻橙：缺失，色盲友好 */
-
-/* 底部按钮（可复用全局 .page-actions） */
-.page-actions{ margin-top:16px; display:flex; gap:10px; justify-content:flex-end; }
-/* 工具条：右对齐，紧挨标题下方 */
+/* 右上工具条 */
 .sg-toolbar {
   display: flex;
   justify-content: flex-end;
   margin: .25rem 0 .75rem;
 }
 
-/* 导出区域白底更清晰 */
+/* 导出区域白底更清晰（外面已有 container & StageBox，不再重复卡片样式） */
 .sg-print-area {
   background: #fff;
   padding: 12px;
@@ -124,16 +15,3 @@
   border-radius: var(--radius-sm);
 }
 
-/* 打印/截图时隐藏操作按钮（可选） */
-@media print {
-
-  .sg-toolbar,
-  .help-btn {
-    display: none !important;
-  }
-
-  .sg-print-area {
-    border: none;
-    padding: 0;
-  }
-}

@@ -1,0 +1,60 @@
+:root{
+  --ps-bg:#ffffff;
+  --ps-border:#e5e7eb;
+  --ps-pill:#eef2ff;
+  --ps-pill-ink:#3730a3;
+  --ps-ink:#0f172a;
+  --ps-ink-sub:#475569;
+  --ps-radius:14px;
+  --ps-shadow:0 10px 28px rgba(2,6,23,.06);
+}
+
+.prev-summary{
+  position:relative;
+  background:var(--ps-bg);
+  border:1px solid var(--ps-border);
+  border-radius:var(--ps-radius);
+  box-shadow:var(--ps-shadow);
+  padding:16px 18px 14px 18px;
+}
+
+/* 左上胶囊 */
+.prev-pill{
+  position:absolute;
+  top:-12px; left:14px;
+  background:var(--ps-pill);
+  color:var(--ps-pill-ink);
+  border:1px solid #c7d2fe;
+  padding:4px 10px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:.75rem;
+  letter-spacing:.2px;
+}
+
+.prev-list{
+  margin:0; padding-left:0; list-style:none;
+  display:flex; flex-direction:column; gap:6px;
+}
+
+.prev-list li{
+  position:relative;
+  padding-left:22px;
+  color:var(--ps-ink-sub);
+  font-size:.92rem;
+}
+
+/* 对勾前缀 */
+.prev-list li::before{
+  content:"";
+  position:absolute; left:0; top:.45em;
+  width:14px; height:14px; border-radius:50%;
+  background:#10b981; /* 绿 */
+  box-shadow:0 0 0 2px #e7f9f1 inset;
+}
+.prev-list li::after{
+  content:"";
+  position:absolute; left:4px; top:.6em;
+  width:6px; height:3px; border:2px solid #fff; border-top:none; border-right:none;
+  transform: rotate(-45deg);
+}

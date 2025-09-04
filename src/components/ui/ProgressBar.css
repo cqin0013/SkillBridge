@@ -1,0 +1,25 @@
+:root{
+  --wiz-track:#e5e7eb;              /* 轨道 */
+  --wiz-fill-start:#60a5fa;         /* 渐变起 */
+  --wiz-fill-end:#8b5cf6;           /* 渐变终 */
+}
+
+.wiz-progress{
+  width:100%;
+  padding: 6px 0;
+}
+
+/* antd 进度条定制 */
+.wiz-progress .ant-progress{
+  width:100%;
+}
+.wiz-progress .ant-progress-inner{
+  background: var(--wiz-track);
+  border-radius: 999px !important;
+  height: 10px !important;
+}
+.wiz-progress .ant-progress-bg{
+  background: linear-gradient(90deg, var(--wiz-fill-start), var(--wiz-fill-end)) !important;
+  border-radius: 999px !important;
+  height: 10px !important;
+}

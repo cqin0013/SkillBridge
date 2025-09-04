@@ -1,0 +1,29 @@
+.tip {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  margin: 0 0 12px;
+}
+
+.tip-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tip-title { font-size: 14px; }
+.tip-caret { opacity: .65; }
+
+.tip-body {
+  padding: 10px 12px 12px;
+  color: var(--color-muted);
+  line-height: 1.5;
+  font-size: 14px;
+}

@@ -1,80 +1,48 @@
-.getinfo-page {}
-
-/* 搜索建议区 */
-.gi-suggest {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: .5rem;
-  margin: .75rem 0 1rem;
+.getinfo-page .container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
-.gi-suggest > button {
-  border: 1px solid var(--color-border);
+/* 问题卡片 */
+.qa-card {
   background: #fff;
-  border-radius: var(--radius-sm);
-  padding: .45rem .6rem;
-  text-align: left;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1.1rem 1.25rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
 }
 
-.gi-suggest > button:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-100);
-}
-
-/* 角色 Chips 与下方选择器的间距 */
-.getinfo-page .chips {
-  margin-bottom: 1rem;
-}
-
-/* 标题与问号在同一行 */
-.heading-title {
-  display: inline-flex;
+.qa-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 0.4rem;
-  /* 标题文字和问号之间的间距 */
-  margin: 1rem 0 0.5rem;
-  font-size: 1.125rem;
-  line-height: 1.35;
+  gap: 8px;
+    margin-bottom: 0.6rem;
 }
 
-/* 问号按钮样式 */
-.help-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+.qa-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
-.help-icon {
-  font-size: 1.1rem;
-  color: var(--color-muted);
-  transition: color 0.2s ease;
+.qa-subheader {
+  margin-top: 1.1rem;
+  margin-bottom: 0.4rem;
 }
 
-.help-btn:hover .help-icon {
-  color: var(--color-primary);
+.qa-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-/* 提示文本 */
-.help-hint {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--color-muted);
-  display: none;
-}
-
-.help-hint.is-visible {
-  display: block;
-}
-
-/* 窄屏时：标题和问号自动换行 */
-@media (max-width: 560px) {
-  .heading-title {
-    flex-wrap: wrap;
-    gap: 0.25rem;
+/* 小屏优化 */
+@media (max-width: 520px) {
+  .qa-header {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }

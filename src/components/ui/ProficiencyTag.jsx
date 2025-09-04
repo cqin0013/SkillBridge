@@ -1,5 +1,5 @@
 import React from "react";
-
+import "./Proficiency.css";
 const LABELS = ["Novice", "Beginner", "Intermediate", "Advanced", "Expert"];
 
 export default function ProficiencyTag({ level = 3 }) {

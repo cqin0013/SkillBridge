@@ -1,28 +1,82 @@
 .stage-box {
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  border-radius: 8px;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
+  background: #d3d4ca;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
 }
 
 .stage-pill {
   display: inline-block;
+  background: #2563eb;
+    /* 蓝色 */
+    color: #a9cc67;
+    border-radius: 999px;
+    font-size: 0.75rem;
   padding: 0.2rem 0.6rem;
-  margin-bottom: 0.5rem;
-  border-radius: 9999px;
-  background: #007bff;
-  color: #fff;
-  font-size: 0.75rem;
+    margin-bottom: 0.6rem;
 }
 
 .stage-title {
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin: 0.2rem 0 0.5rem;
+  font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
 }
 
 .stage-sub {
-  color: #555;
-  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+    color: #6b7280;
+    margin: 0 0 0.8rem;
+  }
+  
+  .stage-main {
+    margin-top: 0.5rem;
+  }
+  
+  /* Tip */
+  .stage-tip {
+    background: #f0f6ff;
+    /* <<< 柔和的浅蓝色底，避免突兀 */
+    border: 1px solid #dbeafe;
+    /* 对应浅蓝边框 */
+    border-radius: 10px;
+    margin: 0.5rem 0 0.9rem;
+    overflow: hidden;
+  }
+  
+  .stage-tip-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    padding: 0.55rem 0.7rem;
+    font-weight: 600;
+  }
+  
+  .stage-tip-icon {
+    color: #2563eb;
+    font-size: 1rem;
+  }
+  
+  .stage-tip-title {
+    flex: 1;
+    font-size: 0.95rem;
+  }
+  
+  .stage-tip-toggle {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  
+  .stage-tip-content {
+    padding: 0.65rem 0.9rem 0.9rem;
+    border-top: 1px solid #dbeafe;
+    font-size: 0.9rem;
+    color: #374151;
+    line-height: 1.45;
 }

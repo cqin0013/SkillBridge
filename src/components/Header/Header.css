@@ -164,3 +164,9 @@
     transition: none;
   }
 }
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+  margin-right: 8px;
+}

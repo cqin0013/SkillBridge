@@ -1,4 +1,6 @@
 // components/ui/InputWithClear.jsx
+import "./InputWithClear.css";
+
 export default function InputWithClear({
   value, onChange, onClear, inputProps={}, buttonLabel="Clear"
 }) {

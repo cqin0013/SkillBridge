@@ -25,48 +25,14 @@
   margin-top: .5rem;
 }
 
-/* 标题与问号图标同行 */
+/* 标题行（不再内联定义） */
 .ability-page h3 {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  /* 标题文字和问号之间的间距 */
   margin: 1rem 0 0.5rem;
   font-size: 1.125rem;
   line-height: 1.35;
-}
-
-/* 问号按钮 */
-.help-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.help-icon {
-  font-size: 1.1rem;
-  color: var(--color-muted);
-  transition: color 0.2s ease;
-}
-
-.help-btn:hover .help-icon {
-  color: var(--color-primary);
-}
-
-/* 提示文字 */
-.help-hint {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--color-muted);
-  display: none;
-}
-
-.help-hint.is-visible {
-  display: block;
 }
 
 /* 已选技能行 */
@@ -95,4 +61,88 @@
   display: inline-flex;
   align-items: center;
   gap: .5rem;
+}
+
+/* --- Ability groups layout --- */
+.ability-groups-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Stack on small screens */
+@media (max-width: 960px) {
+  .ability-groups-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Group card */
+.ability-group-card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 10px 12px;
+}
+
+/* Group header */
+.ability-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+/* Tiny chevron/toggle button */
+.group-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 14px;
+  padding: 0 4px;
+  color: var(--color-text-sub);
+}
+
+.group-toggle:hover {
+  color: var(--color-text);
+}
+
+/* Group body */
+.ability-group-body {
+  padding-top: 8px;
+}
+
+/* Ensure page actions have room above footer on this page */
+.ability-page .container {
+  padding-bottom: 100px;
+  /* >= actions + footer height */
+}
+
+/* ---------- New: Second card white container & question row ---------- */
+.ability-second-card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 12px;
+}
+
+/* 标题 + HelpToggle 横向排列并右对齐按钮 */
+.question-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.question-title {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
 }

@@ -1,121 +1,130 @@
-.sb-roadmap { }
-.sb-roadmap__header { margin-bottom: .75rem; }
-.sb-roadmap__title { margin: 0; font-size: 1.35rem; }
-.sb-roadmap__sub { color: var(--color-muted); margin: .25rem 0 0; }
-
-.sb-roadmap__grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+.roadmap-container {
+    position: relative;
+    max-width: 880px;
+    margin: 32px auto;
+    padding: 8px 8px 8px 8px;
 }
 
-.sb-roadmap__col {
+/* 左侧主时间线 */
+.roadmap-line {
+    position: absolute;
+    inset: 0 auto 0 26px;
+    /* top:0; bottom:0; left:26px */
+    width: 4px;
+    background: linear-gradient(180deg, #3b82f6 0%, #6d28d9 100%);
+    border-radius: 2px;
+}
+
+/* 列表容器 */
+.roadmap-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* 单个步骤 */
+.roadmap-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 8px 0 24px 0;
+    position: relative;
+}
+
+/* 步骤编号圆点 */
+.roadmap-circle {
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #2563eb;
+    /* 蓝色 */
+    color: #fff;
+    font: 700 18px/1 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+    z-index: 1;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.roadmap-circle:hover {
+    transform: scale(1.06);
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.45);
+}
+
+/* 内容卡片 */
+.roadmap-card {
   background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: .8rem .9rem;
-  box-shadow: var(--shadow-sm);
+border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(2, 6, 23, 0.06);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    max-width: 700px;
 }
 
-.sb-roadmap__phase {
-  margin: 0 0 .6rem;
-  color: var(--color-primary);
-  font-size: 1.05rem;
+.roadmap-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12);
+    border-color: rgba(2, 6, 23, 0.12);
 }
 
-.sb-roadmap__empty { color: var(--color-muted); margin: .25rem 0; }
-
-.sb-roadmap__list { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
-
-.sb-roadmap__item {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: .6rem .7rem;
-  background: #fff;
-}
-
-.sb-roadmap__row {
+/* 标题行：标题 + 可选日期 */
+.roadmap-card__header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
+align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
 }
-.sb-roadmap__row--tight {
-  margin-top: .35rem;
+.roadmap-card__title {
+    margin: 0;
+    font-weight: 800;
+    font-size: 18px;
+    color: #0f172a;
+    /* slate-900 */
+    letter-spacing: .2px;
 }
 
-.sb-roadmap__name { font-weight: 600; }
-.sb-roadmap__meta { display: inline-flex; align-items: center; gap: .5rem; }
-
-.sb-roadmap__levels { display: inline-flex; align-items: center; gap: .35rem; }
-.sb-roadmap__levels .arrow { color: var(--color-muted); }
-
-/* 重要度条 */
-.impbar {
-  position: relative;
-  width: 120px;
-  height: 8px;
+.roadmap-card__date {
+    font-size: 12px;
+    color: #64748b;
+    /* slate-500 */
+    background: #f1f5f9;
+    /* slate-100 */
+    border: 1px solid #e2e8f0;
+    /* slate-200 */
   border-radius: 999px;
-  background: var(--color-primary-100, #eef4ff);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-.impbar__fill {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  background: var(--color-primary, #3b82f6);
-}
-.impbar__text {
-  margin-left: .5rem;
-  font-size: .8rem;
-  color: var(--color-muted);
-  position: absolute;
-  right: -34px; top: 50%;
-  transform: translateY(-50%);
+padding: 3px 8px;
 }
 
-/* 熟练度进展条（当前/目标） */
-.lvlbar {
-  position: relative;
-  width: 140px;
-  height: 8px;
-  border-radius: 999px;
-  background: #f2f4f7;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-.lvlbar__fill {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  background: #22c55e;
-}
-.lvlbar__text {
-  position: absolute;
-  right: -46px; top: 50%;
-  transform: translateY(-50%);
-  font-size: .8rem; color: var(--color-muted);
+.roadmap-card__desc {
+    margin: 8px 0 0 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #475569;
+    /* slate-600 */
 }
 
-/* 差距徽标 */
-.gap-badge {
-  font-size: .75rem;
-  padding: .1rem .4rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: #fff;
-}
-.gap-1 { background: #fff9db; }
-.gap-2 { background: #ffe9cc; }
-.gap-3, .gap-4, .gap-5 { background: #ffe2e2; }
-.gap-badge.done { background: #f1f5f9; color: var(--color-muted); }
+/* 深色背景或卡片容器时可用 */
+@media (prefers-color-scheme: dark) {
+    .roadmap-card {
+        background: #0b111f;
+        border-color: rgba(148, 163, 184, 0.18);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+    }
 
-/* 建议 */
-.sb-roadmap__hint { margin: .4rem 0 0; color: var(--color-muted); font-size: .92rem; }
-.sb-roadmap__actions { margin: .35rem 0 0; padding-left: 1rem; }
-.sb-roadmap__actions li { margin: .1rem 0; }
-.equal-note {
-  margin-top: .25rem;
-  font-size: .85rem;
-  color: var(--color-muted);
-  font-style: italic;
+    .roadmap-card__title {
+        color: #e5e7eb;
+    }
+
+    .roadmap-card__desc {
+        color: #cbd5e1;
+    }
+
+    .roadmap-card__date {
+        color: #94a3b8;
+        background: #0f172a;
+        border-color: #1f2937;
+    }
 }

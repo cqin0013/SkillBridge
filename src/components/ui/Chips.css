@@ -1,29 +1,54 @@
+:root {
+  --chip-bg: #eef2ff;
+  /* 淡紫/蓝 */
+  --chip-ink: #3730a3;
+  /* 深蓝紫字 */
+  --chip-border: #c7d2fe;
+  --chip-x: #6b7280;
+  /* x 号默认 */
+  --chip-x-hover: #ef4444;
+  /* hover 变红 */
+}
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: 8px;
+    margin-top: 10px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  background: #f0f0f0;
+  background: var(--chip-bg);
+    border: 1px solid var(--chip-border);
+    color: var(--chip-ink);
   border-radius: 9999px;
-  padding: 0.25rem 0.6rem;
+  padding: 6px 10px;
   font-size: 0.85rem;
+  font-weight: 700;
+    letter-spacing: .2px;
+    transition: box-shadow .2s ease, transform .15s ease, border-color .2s ease;
+  }
+  
+  .chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, .15);
 }
 
 .chip-x {
-  margin-left: 0.4rem;
+  margin-left: 6px;
   background: transparent;
   border: none;
-  color: #666;
+  color: var(--chip-x);
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 900;
   line-height: 1;
+  padding: 0 2px;
+    border-radius: 6px;
+    transition: color .15s ease, transform .15s ease, background .15s ease;
 }
-
 .chip-x:hover {
-  color: #000;
+  color: #fff;
+    background: var(--chip-x-hover);
+    transform: rotate(12deg);
 }

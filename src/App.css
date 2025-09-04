@@ -1,194 +1,154 @@
-/* Page (home) — relies on base.css, typography.css, buttons.css */
+/* ===== 设计变量（全站统一） ===== */
+:root {
+  --color-primary: #2563eb;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
 
-/* Base page background only (fonts/resets come from globals) */
-body {
-  background: #f5f6fa;
-}
+  --color-text: #0f172a;
+    --color-text-sub: #475569;
+    --color-border: #e5e7eb;
+    --color-gray-bg: #f7f8fb;
 
-/* Container */
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* Navbar */
-.navbar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
-  z-index: 9999;
-  padding: 15px 0;
-  display: flex;
-  justify-content: center;
-}
-
-.nav-links {
-  display: flex;
-  gap: 50px;
-}
-
-.nav-item {
-  position: relative;
-  padding-bottom: 5px;
-  font-size: 18px;
-    font-weight: 700;
-    color: #000;
-    text-decoration: none;
-    transition: color .3s ease;
-}
-.nav-item:hover {
-  color: #007bff;
-}
-.nav-item::after {
-  content: "";
-  position: absolute;
-  left: 0;
-    bottom: 0;
-  width: 0%;
-  height: 3px;
-  background: #007bff;
-    transition: width .3s ease;
-}
-.nav-item:hover::after,
-.nav-item.active::after {
-  width: 100%;
+  --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 14px;
+  
+    --shadow-sm: 0 6px 18px rgba(2, 6, 23, 0.06);
+    --shadow-md: 0 10px 28px rgba(2, 6, 23, 0.08);
+  
+    --space-xs: 6px;
+    --space-sm: 10px;
+    --space-md: 14px;
+    --space-lg: 18px;
+    --space-xl: 24px;
+    --space-xxl: 32px;
+  
+    --container-max: 1120px;
+  
+    /* >>> 统一管理 Footer 高度（根据你的 Footer 实际高度调整） <<< */
+    --footer-h: 64px;
 }
 
-.nav-item.active {
-  color: #007bff;
-}
-
-@media (max-width: 768px) {
-  .nav-links {
-    gap: 20px;
-  }
-
-  .nav-item {
-    font-size: 16px;
-  }
-}
-
-/* Content wrapper (top padding offsets fixed navbar) */
-.content {
-  max-width: 1200px;
-  margin: 0 auto;
-    padding: 80px 20px 0;
+/* ===== Reset / Base ===== */
+* {
   box-sizing: border-box;
 }
 
-/* Hero */
-.home .hero {
-  padding: 88px 16px 64px;
-  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
-  color: #fff;
+html,
+body,
+#root {
+  height: 100%;
 }
-.hero-inner {
-  max-width: 860px;
+
+body {
+  margin: 0;
+  color: var(--color-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  letter-spacing: .2px;
+  background: #fff;
+}
+
+/* >>> 全局骨架：让 Footer 固定时也不遮内容 <<< */
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  /* 核心：为固定 Footer 预留安全区 */
+  padding-bottom: var(--footer-h);
+}
+
+/* 如果你的 Footer 组件使用的类名不同，把下面选择器改成你的类名：
+   例如 .st-footer / .app-footer / footer 都包含一下更保险 */
+.st-footer,
+.app-footer,
+footer.st-footer,
+footer.app-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--footer-h);
+  z-index: 50;
+  background: #fff;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 版心：页面左右留白与最大宽度 */
+.container {
+  max-width: var(--container-max);
   margin: 0 auto;
-  text-align: center;
+  padding-inline: 24px;
 }
-.hero-title {
-  margin: 0 0 12px;
-  font-size: clamp(28px, 4.2vw, 48px);
-  line-height: 1.15;
+
+/* 常用辅助类 */
+.page-section {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 18px 20px;
+  margin: 16px 0 24px;
+}
+
+/* AntD 常用组件的统一风格（不改 JSX） */
+.ant-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   font-weight: 800;
+  letter-spacing: .2px;
+    transition: transform .15s, box-shadow .2s;
 }
-.hero-sub {
-  margin: 0 auto 24px;
-  max-width: 680px;
-  font-size: clamp(14px, 2.2vw, 18px);
-    opacity: .9;
+.ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
-.hero-cta {
+
+/* 输入/选择的统一圆角与焦点 */
+.ant-input,
+.ant-select-selector,
+.ant-input-affix-wrapper {
+  border-radius: 10px !important;
+  padding-block: 10px !important;
+  border-color: var(--color-border) !important;
+}
+.ant-input:focus,
+.ant-select-focused .ant-select-selector,
+.ant-input-affix-wrapper-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .15) !important;
+}
+
+/* 页尾动作区（可在容器上加 .is-sticky 吸底） */
+.page-actions {
   display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+    gap: .75rem;
+    margin-top: 1.5rem;
+  
+    /* >>> 有了 app-main 的 padding-bottom，一般不会被 Footer 挡。
+           这里再留一点视觉上的安全距离，锦上添花 <<< */
+    margin-bottom: 8px;
+}
+.page-actions.is-sticky {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .65), #fff 60%);
+  backdrop-filter: blur(6px);
+  padding: .75rem 0;
+  border-top: 1px solid var(--color-border);
 }
 
-/* Features */
-.features {
-  display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(4, 1fr);
-  padding: 48px 0;
-}
-@media (max-width: 900px) {
-  .features {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-@media (max-width: 520px) {
-  .features {
-      grid-template-columns: 1fr;
-    }
-  }
-.feature {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 20px;
-  text-align: left;
-}
-.feat-icon {
-  font-size: 24px;
-  margin-bottom: 6px;
-}
-
-/* Social proof */
-.social {
-  padding: 10px 0 42px;
-  text-align: center;
-}
-.social .quote {
-  display: inline-block;
-    padding: 16px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  font-size: 18px;
-    color: #111827;
-}
-.social .quote span {
-  color: #6b7280;
-}
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: center;
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-}
-.stats li {
-  padding: 10px 14px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-}
-.stats strong {
-  margin-right: 6px;
-  font-size: 18px;
-}
-
-/* Final CTA */
-.final-cta {
-  padding: 48px 0 64px;
-  background: #f8fafc;
-  border-top: 1px solid #e5e7eb;
-}
-.final-inner {
-  text-align: center;
-}
-.final-inner h2 {
-  margin: 0 0 6px;
-  font-size: 28px;
-}
-.final-inner p {
-  margin: 0 0 16px;
-  color: #4b5563;
+/* Ability 页面：原有补偿可以保留，或删掉交由 app-main 统一处理 */
+.ability-page .container {
+  /* padding-bottom: 100px;  ← 建议去掉，避免双重内边距 */
+  padding-bottom: 0;
 }

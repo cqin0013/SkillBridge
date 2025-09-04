@@ -1,10 +1,17 @@
 .page-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem; /* 只留一些和内容的间距 */
+  gap: .75rem;
+    margin-top: 1.5rem;
+    margin-bottom: 8px;
+    /* 与 Footer 保持一点视觉间距 */
 }
 
-.page-actions .ant-btn {
-  min-width: 90px; /* 按钮统一宽度 */
+.page-actions.is-sticky {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .65), #fff 60%);
+  backdrop-filter: blur(6px);
+  padding: .75rem 0;
+  border-top: 1px solid var(--color-border);
 }

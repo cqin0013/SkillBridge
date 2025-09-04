@@ -10,6 +10,7 @@ import "./SkillPicker.css";
  * - onConfirm(selected: string[]): void
  * - initiallySelected: string[]
  */
+// 新增的 props: maxSelectable?: number
 export default function SkillPicker({
   categories = [],
   open,
@@ -17,10 +18,13 @@ export default function SkillPicker({
   onConfirm,
   initiallySelected = [],
   title = "Pick your skills",
+  maxSelectable, // <= 新增
 }) {
   const [activeKey, setActiveKey] = useState(categories[0]?.id || "");
   const [kw, setKw] = useState("");
   const [picked, setPicked] = useState(new Set(initiallySelected));
+
+  const limitReached = typeof maxSelectable === "number" && picked.size >= maxSelectable;
 
   const currentSkills = useMemo(() => {
     const cat = categories.find((c) => c.id === activeKey) || categories[0];
@@ -33,7 +37,13 @@ export default function SkillPicker({
   const toggle = (name) => {
     setPicked((prev) => {
       const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
+      if (next.has(name)) {
+        next.delete(name);
+        return next;
+      }
+      // 若到达上限，则不再新增
+      if (limitReached) return next;
+      next.add(name);
       return next;
     });
   };
@@ -58,18 +68,25 @@ export default function SkillPicker({
           className="sp-search"
         />
         <div className="sp-grid">
-          {currentSkills.map((name) => (
-            <label key={name} className={`sp-item ${picked.has(name) ? "is-picked" : ""}`}>
-              <Checkbox
-                checked={picked.has(name)}
-                onChange={() => toggle(name)}
-              />
-              <span className="sp-name">{name}</span>
-            </label>
-          ))}
-          {currentSkills.length === 0 && (
-            <div className="sp-empty">No results</div>
-          )}
+          {currentSkills.map((name) => {
+            const checked = picked.has(name);
+            const disabled = !checked && limitReached; // 超限时，未选中的禁用
+            return (
+              <label
+                key={name}
+                className={`sp-item ${checked ? "is-picked" : ""} ${disabled ? "is-disabled" : ""}`}
+                title={disabled ? `Up to ${maxSelectable} items` : ""}
+              >
+                <Checkbox
+                  checked={checked}
+                  onChange={() => toggle(name)}
+                  disabled={disabled}
+                />
+                <span className="sp-name">{name}</span>
+              </label>
+            );
+          })}
+          {currentSkills.length === 0 && <div className="sp-empty">No results</div>}
         </div>
       </div>
     ),
@@ -82,13 +99,22 @@ export default function SkillPicker({
       title={title}
       width={720}
       footer={[
-        <Button key="cancel" onClick={onClose}>
-          Cancel
-        </Button>,
+        <div key="count" style={{ flex: 1, textAlign: "left" }}>
+          <span className="sp-count">
+            Selected: {picked.size}{typeof maxSelectable === "number" ? ` / ${maxSelectable}` : ""}
+          </span>
+          {limitReached && (
+            <span style={{ marginLeft: 8, color: "var(--color-muted)" }}>
+              （已达上限）
+            </span>
+          )}
+        </div>,
+        <Button key="cancel" onClick={onClose}>Cancel</Button>,
         <Button
           key="ok"
           type="primary"
           onClick={() => onConfirm(Array.from(picked))}
+          disabled={picked.size === 0}
         >
           Add {picked.size ? `(${picked.size})` : ""}
         </Button>,

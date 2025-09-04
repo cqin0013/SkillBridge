@@ -1,62 +1,93 @@
+:root {
+  --help-primary: #2563eb;
+  --help-primary-hover: #1d4ed8;
+  --help-ink: #0f172a;
+  --help-muted: #64748b;
+  --help-border: #e2e8f0;
+  --help-shadow: 0 10px 24px rgba(2, 6, 23, .12);
+  --radius: 10px;
+}
+
+/* 修正为 .help-toggle */
 .help-toggle {
   position: relative;
-  /* 为绝对定位的提示提供参照 */
   display: inline-block;
 }
+
 .help-btn {
   display: inline-flex;
-    align-items: center;
+  align-items: center;
     justify-content: center;
+  width: 32px;
+    height: 32px;
+    border-radius: 999px;
   cursor: pointer;
-  background: none;
-    border: none;
-    padding: 0;
+  background: var(--help-primary);
+    border: 1px solid rgba(255, 255, 255, .35);
+    color: #fff;
+    transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+  }
+  
+  .help-btn:hover {
+    background: var(--help-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, .35);
 }
 
 .help-icon {
-  font-size: 1.1rem;
-  color: var(--color-muted);
-  transition: color 0.2s ease;
+  font-size: 1rem;
+    line-height: 1;
 }
 
-.help-btn:hover .help-icon {
-  color: var(--color-primary);
-}
-
-/* 悬浮提示样式 */
 .help-hint {
   position: absolute;
-  top: 130%;
-  /* 出现在问号正下方 */
+  top: 120%;
   left: 0;
   background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--help-border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
   font-size: 0.9rem;
-  color: var(--color-muted);
-  white-space: normal;
+  color: var(--help-muted);
   width: max-content;
-  max-width: 280px;
-  box-shadow: var(--shadow-sm);
+  max-width: 320px;
+    box-shadow: var(--help-shadow);
   display: none;
   z-index: 1000;
+  transform-origin: 12px -6px;
 }
 
+/* 小箭头 */
+.help-hint::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 12px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #fff transparent;
+}
+.help-hint::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 12px;
+  border-width: 7px;
+  border-style: solid;
+  border-color: transparent transparent var(--help-border) transparent;
+}
 .help-hint.is-visible {
   display: block;
-  animation: fadeIn 0.2s ease;
+  animation: helpFade .18s ease;
+}
+@keyframes helpFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(.98);
   }
-  
-  /* 小动画更自然 */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-  
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
