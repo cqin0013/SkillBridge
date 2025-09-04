@@ -320,6 +320,7 @@ B) {
 }
 */
 // 4) 基于 code 反向聚合到职业，返回【未命中的 codes+titles】
+// 4) 基于 code 反向聚合到职业，返回【未命中的 codes+titles】（无数量上限）
 app.post('/occupations/rank-by-codes', async (req, res) => {
   // 解析两种入参
   let selections = ensureArray(req.body?.selections)
@@ -331,7 +332,7 @@ app.post('/occupations/rank-by-codes', async (req, res) => {
   const te2 = ensureArray(req.body?.tech_codes).map(String).map(x => x.trim()).filter(Boolean).map(code => ({ type: 'tech', code }));
   selections = selections.concat(kn2, sk2, te2);
 
-  // 去重 + 限制最多 10 个
+  // 去重（删除了“最多 10 个”的限制）
   const seen = new Set();
   const uniq = [];
   for (const s of selections) {
@@ -339,7 +340,6 @@ app.post('/occupations/rank-by-codes', async (req, res) => {
     if (seen.has(k)) continue;
     seen.add(k);
     uniq.push(s);
-    if (uniq.length >= 10) break;
   }
   selections = uniq;
 
