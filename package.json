@@ -14,6 +14,7 @@
     "@react-google-maps/api": "^2.20.7",
     "antd": "^5.11.3-alpha.0",
     "chart.js": "^4.5.0",
+    "dayjs": "^1.11.18",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.2",
     "react": "^18.3.1",

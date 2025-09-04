@@ -3,8 +3,9 @@ import StageBox from "../../components/ui/StageBox";
 import HelpToggle from "../../components/ui/HelpToggle";
 import PageActions from "../../components/ui/PageActions";
 import GapTable from "../../components/ui/GapTable";
-import { Button, message } from "antd";
+import { Button, message, Modal } from "antd";
 import { exportNodeToPdf } from "../../utils/exportPDF";
+import { saveRoadmap } from "../../utils/roadmapStore";
 import "./Analyzer.css";
 
 export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
@@ -30,7 +31,7 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
       flat = [];
       const add = (arr, typeLabel) =>
         (Array.isArray(arr) ? arr : []).forEach((x) =>
-          flat.push({ type: typeLabel, title: x.title, code: x.code })
+          flat.push({ type: typeLabel, title: x?.title, code: x?.code })
         );
       const un = localUnmatched || {};
       add(un.knowledge, "Knowledge");
@@ -44,6 +45,11 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
     }));
   }, [localUnmatched]);
 
+  const defaultRoadmapSteps = useMemo(
+    () => rows.map((r) => ({ title: r.name, desc: r.type })),
+    [rows]
+  );
+
   const handleExportPdf = async () => {
     setDownloading(true);
     await exportNodeToPdf(printRef.current, `SkillGap_${targetJob || "Unknown"}.pdf`);
@@ -51,10 +57,34 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
     setDownloading(false);
   };
 
+  const handleFinish = () => {
+    if (!rows.length) {
+      Modal.info({
+        title: "Great match!",
+        content: "You already match this job well. No learning roadmap is available.",
+        okText: "OK",
+        onOk: () => onFinish?.(),
+      });
+      return;
+    }
+    Modal.confirm({
+      title: "Generate roadmap?",
+      content:
+        "Generate a learning roadmap from your unmatched abilities and add it to your Profile?",
+      okText: "Yes, generate",
+      cancelText: "No, thanks",
+      onOk: () => {
+        saveRoadmap(defaultRoadmapSteps);
+        message.success("Roadmap generated and added to Profile.");
+        onFinish?.();
+      },
+      onCancel: () => onFinish?.(),
+    });
+  };
+
   return (
     <section className="anlz-page">
       <div className="container">
-        {/* 上卡片：标题 + 步骤（由 StageBox 渲染） */}
         <StageBox
           pill="Step 4"
           title={`Skill Gaps for ${targetJob || "-"}`}
@@ -68,7 +98,6 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
           }
         />
 
-        {/* 下卡片：白底内容 + HelpToggle + 表格（仅 Not Met） */}
         <StageBox>
           <div className="anlz-second-card">
             <div className="question-row">
@@ -78,19 +107,26 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
               </HelpToggle>
             </div>
 
-            <div className="sg-toolbar">
-              <Button onClick={handleExportPdf} loading={downloading} size="middle">
-                Export PDF
-              </Button>
-            </div>
-
-            <div ref={printRef} className="sg-print-area">
-              <GapTable rows={rows} hideMet />
-            </div>
+            {rows.length ? (
+              <>
+                <div className="sg-toolbar" style={{ display: "flex", gap: 8 }}>
+                  <Button onClick={handleExportPdf} loading={downloading} size="middle">
+                    Export PDF
+                  </Button>
+                </div>
+                <div ref={printRef} className="sg-print-area">
+                  <GapTable rows={rows} hideMet />
+                </div>
+              </>
+            ) : (
+              <p style={{ fontStyle: "italic", color: "var(--color-muted)" }}>
+                You already match this job well. No learning roadmap is available.
+              </p>
+            )}
           </div>
         </StageBox>
 
-        <PageActions onPrev={onPrev} onNext={onFinish} nextText="Finish" />
+        <PageActions onPrev={onPrev} onNext={handleFinish} nextText="Finish" />
       </div>
     </section>
   );

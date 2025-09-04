@@ -1,61 +1,99 @@
-import React, { useMemo } from "react";
-import { useLocation } from "react-router-dom";
-import RoadMap from "../../components/ui/RoadMap.jsx";
-import "./Profile.css";
+// /pages/profile/Profile.jsx
+import React, { useEffect, useState, useRef } from "react";
+import { Card, Empty, Button, Drawer, Space, Popconfirm, message } from "antd";
+import dayjs from "dayjs";
+import { getRoadmap, clearRoadmap } from "../../utils/roadmapStore";
+import { exportNodeToPdf } from "../../utils/exportPDF";
+import Roadmap from "../../components/ui/RoadMap"; // 注意大小写与文件名一致
+import RoadmapEditor from "../../components/ui/RoadmapEditor";
 
-/**
- * 读取来源：
- * 1) location.state.roadmap  （来自 AnalyzerWizard 的 navigate 传参）
- * 2) localStorage.sb_roadmap （回退方案）
- */
 export default function Profile() {
-  const location = useLocation();
-  const stateData = location.state?.RoadMap;
+  const [steps, setSteps] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const roadmapRef = useRef(null);
 
-  const data = useMemo(() => {
-    if (stateData) return stateData;
+  useEffect(() => {
+    const data = getRoadmap();
+    setSteps(data?.steps || []);
+  }, []);
+
+  const onEdit = () => setOpen(true);
+  const onClose = (updated) => {
+    if (updated) setSteps(updated);
+    setOpen(false);
+  };
+
+  const onClear = () => {
+    clearRoadmap();
+    setSteps([]);
+    message.success("Roadmap cleared.");
+  };
+
+  const onExportPdf = async () => {
+    if (!roadmapRef.current) return;
     try {
-      const raw = localStorage.getItem("sb_roadmap");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
+      setExporting(true);
+      const filename = `Roadmap_${dayjs().format("YYYYMMDD_HHmm")}.pdf`;
+      await exportNodeToPdf(roadmapRef.current, filename);
+      message.success("Roadmap PDF exported.");
+    } catch (e) {
+      console.error(e);
+      message.error("Failed to export PDF.");
+    } finally {
+      setExporting(false);
     }
-  }, [stateData]);
-
-  const items = useMemo(() => {
-    // 统一映射：把 abilities + importance 合成 Roadmap 需要的结构
-    // 允许两种来源：
-    //  - data.abilities: [{name, level}] 与某处 importanceMap 合并 
-    //  - data.items:     [{name, importance, level}]
-    if (!data) return [];
-
-    if (Array.isArray(data.items)) return data.items;
-
-    // 若只存了 abilities，给个示例重要度（实际可来自服务器/SkillGap计算）
-    const importanceMap = data.importanceMap || {};
-    return (data.abilities || []).map((a) => ({
-      name: a.name || a,
-      level: a.level || 3,
-      importance: importanceMap[a.name || a] ?? 70,
-    }));
-  }, [data]);
+  };
 
   return (
-    <main className="profile-page">
-      <header className="profile-header">
-        <h1>My Profile</h1>
-        <p className="muted">Generated from your latest analysis.</p>
-      </header>
+    <div className="container" style={{ padding: 16 }}>
+      <Card
+        title="My Learning Roadmap"
+        extra={
+          <Space wrap>
+            {steps?.length > 0 && (
+              <>
+                <Button onClick={onEdit} type="primary">Edit Roadmap</Button>
+                <Button onClick={onExportPdf} loading={exporting}>
+                  Export PDF
+                </Button>
+                <Popconfirm title="Clear roadmap?" onConfirm={onClear}>
+                  <Button danger>Clear</Button>
+                </Popconfirm>
+              </>
+            )}
+          </Space>
+        }
+      >
+        {steps?.length ? (
+          // 这块是实际导出的节点（整段会被转成 PDF）
+          <div ref={roadmapRef}>
+            <Roadmap steps={steps} />
+          </div>
+        ) : (
+          <div style={{ textAlign: "center" }}>
+            <Empty description="You already match your target job well. No roadmap needed." />
+            <div style={{ marginTop: 12 }}>
+              <Space>
+                <Button type="primary" onClick={() => setOpen(true)}>
+                  Create / Edit Roadmap
+                </Button>
+                <Button disabled>Export PDF</Button>
+              </Space>
+            </div>
+          </div>
+        )}
+      </Card>
 
-      {items.length === 0 ? (
-        <p className="muted">No roadmap yet. Go to Analyzer to generate one.</p>
-      ) : (
-        <RoadMap
-          items={items}
-          title="SkillBridge Roadmap"
-          subtitle="Prioritized by importance, with suggestions based on your proficiency."
-        />
-      )}
-    </main>
+      <Drawer
+        title={steps?.length ? "Edit Learning Roadmap" : "Create Learning Roadmap"}
+        width={820}
+        open={open}
+        onClose={() => onClose()}
+        destroyOnClose
+      >
+        <RoadmapEditor initial={steps} onClose={onClose} />
+      </Drawer>
+    </div>
   );
 }

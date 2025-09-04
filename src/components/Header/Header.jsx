@@ -31,9 +31,7 @@ const Header = () => {
         <NavLink to="/profile" className={linkClass}>
           Profile
         </NavLink>
-        <NavLink to="/About" className={linkClass}>
-          About
-        </NavLink>
+
       </nav>
 
       {/* 移动端菜单按钮 */}
