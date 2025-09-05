@@ -37,16 +37,15 @@ export default function App() {
         },
       }}
     >
-      <Router /* 如果部署在子路径，可加 basename，例如 basename="/app" */>
+      <Router >
         <Routes>
           <Route element={<MainLayout />}>
             <Route index element={<Home />} />
-            {/* 路由统一用小写，更稳妥 */}
+         
             <Route path="analyzer" element={<Analyzer />} />
             <Route path="insight" element={<Insight />} />
             <Route path="profile" element={<Profile />} />
             <Route path="about" element={<About />} />
-            {/* 兜底：未知路径跳回首页或你的 404 组件 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

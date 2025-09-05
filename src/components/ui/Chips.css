@@ -1,13 +1,12 @@
 :root {
   --chip-bg: #eef2ff;
-    /* 淡紫蓝 */
+    
     --chip-ink: #3730a3;
-    /* 深蓝紫字 */
+   
   --chip-border: #c7d2fe;
   --chip-x: #6b7280;
-    /* x 默认 */
+  
     --chip-x-hover: #ef4444;
-    /* hover 变红 */
 }
 
 .chips {
@@ -35,7 +34,7 @@
   box-shadow: 0 6px 12px rgba(59, 130, 246, .15);
 }
 
-/* 删除按钮 */
+/* delete button */
 .chip-x {
   margin-left: 6px;
   background: transparent;
@@ -54,7 +53,7 @@
     transform: rotate(12deg);
 }
 
-/* === Mobile tweaks === */
+/* Mobile tweaks */
 @media (max-width:520px) {
   .chip {
     font-size: .8rem;
@@ -63,6 +62,5 @@
 
   .chip-x {
     padding: 2px 6px;
-    /* 提高触控命中面积 */
   }
 }

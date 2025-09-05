@@ -1,4 +1,10 @@
+// GetInfo.jsx
+// Step 1: Let users search & select up to 5 past occupations (titles) and choose
+// a preferred AU state. On "Analyze", the component fetches knowledge/skill/tech
+// title codes from the API to assemble a unique ability list for subsequent steps.
+
 import React, { useMemo, useState } from "react";
+
 import StageBox from "../../components/ui/StageBox";
 import HelpToggle from "../../components/ui/HelpToggle";
 import Chips from "../../components/ui/Chips";
@@ -9,6 +15,7 @@ import "./Analyzer.css";
 const { Paragraph, Text } = Typography;
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
+// AU state/territory options used to tailor later content
 const AU_STATES = [
   { label: "All states", value: "All" },
   { label: "New South Wales (NSW)", value: "NSW" },
@@ -21,36 +28,41 @@ const AU_STATES = [
   { label: "Australian Capital Territory (ACT)", value: "ACT" },
 ];
 
+// Maximum number of past roles selectable at once
 const MAX_SELECT = 5;
 
 export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
+  // Search input / error state
   const [kw, setKw] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Modal picker state
   const [pickerOpen, setPickerOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [checkedCodes, setCheckedCodes] = useState([]);
 
-  const [chosen, setChosen] = useState([]); // [{occupation_code, occupation_title, occupation_description}]
+  // Chosen roles (from confirmed modal) and analysis derivations
+  const [chosen, setChosen] = useState([]);           // [{occupation_code, occupation_title, occupation_description}]
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisDone, setAnalysisDone] = useState(false);
   const [analysisMsg, setAnalysisMsg] = useState("");
   const [preparedAbilities, setPreparedAbilities] = useState([]); // [{title, code, type}]
 
-  // NEW: show "Please press Enter" hint when user has typed something
+  // UI hint to nudge user to press Enter after typing
   const [showEnterHint, setShowEnterHint] = useState(false);
 
-  // 两个 HelpToggle 的受控开关
+  // Controlled help panels
   const [help1Open, setHelp1Open] = useState(false);
   const [help2Open, setHelp2Open] = useState(false);
 
   const atLimit = chosen.length >= MAX_SELECT;
 
+  /** Handle Enter: run occupation search via backend proxy endpoint. */
   const handleEnter = async (e) => {
     e.preventDefault();
     const q = kw.trim();
-    setShowEnterHint(false); // hide hint after Enter
+    setShowEnterHint(false);
     setErrorMsg("");
     setAnalysisDone(false);
     setAnalysisMsg("");
@@ -74,6 +86,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
       if (!res.ok) throw new Error(`Search failed: ${res.status}`);
       const data = await res.json();
 
+      // Normalize result list for the modal
       const items = Array.isArray(data?.items) ? data.items : [];
       const list = items.map((it) => ({
         occupation_code: it.occupation_code,
@@ -90,6 +103,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
     }
   };
 
+  /** Confirm selection in modal: merge into 'chosen' with de-duplication and limit. */
   const confirmPick = () => {
     if (!checkedCodes.length) {
       setPickerOpen(false);
@@ -105,19 +119,20 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
     setCheckedCodes([]);
   };
 
+  /** Cancel picker: close modal and reset transient checks. */
   const cancelPick = () => {
     setPickerOpen(false);
     setCheckedCodes([]);
   };
 
-  // 删除：按 title 删除（若担心同名不同 code，可以换成传 index 的方式）
+  /** Remove a chosen role by its display title. */
   const removeChosen = (displayTitle) => {
     setChosen((prev) => prev.filter((x) => x.occupation_title !== displayTitle));
     setAnalysisDone(false);
     setAnalysisMsg("");
   };
 
-  // Analyze：拉 titles 合成 abilities
+  /** Analyze selected roles: fetch titles for each code and dedupe to build abilities. */
   const runAnalyze = async () => {
     if (!chosen.length) {
       setErrorMsg("Please choose at least one occupation before analyzing.");
@@ -138,6 +153,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
         })
       );
 
+      // Flatten knowledge/skill/tech into a single array with {title, code, type}
       const abilities = [];
       for (const data of results) {
         const knowledge = Array.isArray(data.knowledge_titles) ? data.knowledge_titles : [];
@@ -150,6 +166,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
         );
       }
 
+      // Dedupe by code (fallback to title if no code)
       const seen = new Set();
       const unique = [];
       for (const a of abilities) {
@@ -171,6 +188,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
     }
   };
 
+  // "Next" button gating logic
   const nextDisabled = !analysisDone || analyzing || !chosen.length;
   const nextDisabledReason = !chosen.length
     ? "Please choose at least one occupation."
@@ -180,21 +198,22 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
     ? "Please click Analyze first."
     : null;
 
-  // Chips 只显示名称
+  // Render chip items as plain titles
   const chipItems = chosen.map((c) => c.occupation_title);
 
-  // 点击 Next：把 abilities + roles（titles）一起返回
+  // Proceed to next step with both the derived abilities and role titles
   const handleNext = () => {
     const roles = chosen.map((c) => c.occupation_title);
     onNext({ abilities: preparedAbilities, roles });
   };
 
+  // dummy useMemo retained (no-op) to match original structure
   useMemo(() => {}, [kw]);
 
   return (
     <section className="anlz-page">
       <div className="container">
-        {/* 顶部引导卡片 */}
+        {/* Intro StageBox: instructions to guide users */}
         <StageBox
           pill="Step 1"
           title="Background & Work Location"
@@ -219,7 +238,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
           }
         />
 
-        {/* 题目 1 */}
+        {/* Question 1: Past roles */}
         <StageBox>
           <div className="anlz-second-card">
             <div className="question-row">
@@ -237,13 +256,13 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               </HelpToggle>
             </div>
 
-            {/* Occupation search input */}
+            {/* Occupation search input; press Enter to open selection modal */}
             <Input
               value={kw}
               onChange={(e) => {
                 setKw(e.target.value);
-                setShowEnterHint(!!e.target.value); // show hint once user types
-                if (errorMsg) setErrorMsg(""); // clear any previous error as they type
+                setShowEnterHint(!!e.target.value); // show hint once user types something
+                if (errorMsg) setErrorMsg("");      // clear any previous error as they type
               }}
               onPressEnter={handleEnter}
               placeholder="Type a keyword and press Enter to search…"
@@ -251,20 +270,22 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               disabled={searchLoading || atLimit}
             />
 
-            {/* "Please press Enter" hint */}
+            {/* "Please press Enter" nudge; aria-live for accessible updates */}
             {showEnterHint && (
               <div
                 aria-live="polite"
                 style={{ marginTop: 6, fontSize: ".875rem", color: "var(--color-muted, #6b7280)" }}
-            >
+              >
                 Please press Enter ↵
               </div>
             )}
 
+            {/* Error message from search/analyze */}
             {errorMsg && (
               <Alert type="warning" showIcon style={{ marginTop: ".6rem" }} message={errorMsg} />
             )}
 
+            {/* Selected role chips + small counter */}
             {chosen.length > 0 && (
               <div style={{ marginTop: ".6rem" }}>
                 <Chips items={chipItems} onRemove={removeChosen} />
@@ -274,6 +295,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               </div>
             )}
 
+            {/* Analyze button + result status */}
             <div className="actions-row">
               <Button type="primary" onClick={runAnalyze} loading={analyzing} disabled={!chosen.length}>
                 Analyze
@@ -283,7 +305,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               )}
             </div>
 
-            {/* 题目 2 */}
+            {/* Question 2: Preferred work location */}
             <div className="question-row" style={{ marginTop: 16 }}>
               <h3 className="question-title">Where would you like to work?</h3>
               <HelpToggle show={help2Open} onToggle={() => setHelp2Open((v) => !v)}>
@@ -300,10 +322,12 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               </HelpToggle>
             </div>
 
+            {/* AU state selector */}
             <Select value={stateCode} onChange={setStateCode} style={{ width: "100%" }} options={AU_STATES} />
           </div>
         </StageBox>
 
+        {/* Bottom actions: Back / Next with disabled reason tooltip */}
         <PageActions
           onPrev={onPrev}
           onNext={handleNext}
@@ -311,6 +335,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
           nextDisabledReason={nextDisabledReason}
         />
 
+        {/* Modal picker of search results; supports multi-select up to remaining slots */}
         <Modal
           open={pickerOpen}
           title={
@@ -339,7 +364,7 @@ export default function GetInfo({ stateCode, setStateCode, onPrev, onNext }) {
               value={checkedCodes}
               onChange={(arr) => {
                 const remain = MAX_SELECT - chosen.length;
-                setCheckedCodes(arr.slice(0, remain));
+                setCheckedCodes(arr.slice(0, remain)); // hard-limit to remaining capacity
               }}
             >
               <List

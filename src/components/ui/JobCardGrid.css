@@ -11,7 +11,7 @@
 .jobs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  /* 更好适配手机 */
+
   gap: 14px;
   margin-top: 1rem;
 }
@@ -29,7 +29,7 @@
   transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-/* Hover 仅在可悬停设备上启用，避免移动端误触视觉抖动 */
+/* Hover  */
 @media (hover:hover) {
   .job-card:hover {
     border-color: var(--card-hover);
@@ -38,13 +38,13 @@
   }
 }
 
-/* 键盘可达性 */
+/* keyboard */
 .job-card:focus-visible {
   outline: 3px solid #ffd54d;
   outline-offset: 2px;
 }
 
-/* 选中态 */
+
 .job-card.is-selected {
   border-color: var(--card-hover);
   background: linear-gradient(90deg, rgba(37, 99, 235, .06), #fff 45%);
@@ -61,7 +61,7 @@
   border-top-left-radius: var(--card-radius);
   border-bottom-left-radius: var(--card-radius);
 }
-/* 标题/说明 */
+/* title/instruction */
 .job-title {
   margin: 0 0 6px;
   color: var(--ink);
@@ -76,7 +76,7 @@
   font-size: clamp(12px, 2.4vw, 14px);
 }
 
-/* 要求 chips */
+/* need chips */
 .job-req {
   display: flex;
   flex-wrap: wrap;
@@ -101,7 +101,7 @@
   opacity: .7
 }
 
-/* 小屏优化：列宽更小、内边距收紧 */
+
 @media (max-width:480px) {
   .jobs-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr))
@@ -112,14 +112,14 @@
   }
 }
 
-/* 极窄屏：单列更易读 */
+
 @media (max-width:360px) {
   .jobs-grid {
     grid-template-columns: 1fr
   }
 }
 
-/* 尊重“减少动画”偏好 */
+
 @media (prefers-reduced-motion:reduce) {
   .job-card {
     transition: none

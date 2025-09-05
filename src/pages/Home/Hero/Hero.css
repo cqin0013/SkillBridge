@@ -1,5 +1,4 @@
 :root {
-  /* 若有 sticky Header，请填真实高度 */
   --header-h: 108px;
 
   --sb-primary: #0f73b6;
@@ -9,17 +8,16 @@
     --sb-radius: 10px;
   }
 
-/* 重置边距避免影响一屏布局 */
+
 html,
 body {
   height: 100%;
   margin: 0
 }
 
-/* ===== Hero (full viewport minus header) ===== */
+/*  Hero (full viewport minus header) */
 .sb-hero {
   width: 100%;
-  /* 先 vh → svh → dvh 兜底到精确 */
   height: calc(100vh - var(--header-h));
   box-sizing: border-box;
   color: #fff;
@@ -44,7 +42,7 @@ body {
   }
 }
 
-/* 内部布局：桌面双列，小屏单列 */
+
 .sb-hero__inner {
   max-width: 1200px;
   width: 100%;
@@ -125,7 +123,7 @@ body {
   transform: translateY(-1px)
 }
 
-/* 小屏：单列并隐藏右侧插图位 */
+
 @media (max-width:860px) {
   .sb-hero__inner {
     grid-template-columns: 1fr
@@ -135,7 +133,7 @@ body {
     display: none
   }
 }
-/* 低视口高度：收紧内边距与字号，防止溢出滚动 */
+
 @media (max-height:700px) {
   .sb-hero {
     padding: clamp(36px, 6vh, 64px) 20px

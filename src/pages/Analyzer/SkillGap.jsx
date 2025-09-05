@@ -1,3 +1,8 @@
+// SkillGap.jsx
+// Step 4: Display a flat list of unmatched abilities for the chosen job,
+// allow exporting/printing, and optionally generate a simple learning roadmap.
+// If there are no unmatched items, we surface a "Great match!" message.
+
 import React, { useRef, useMemo, useState, useEffect } from "react";
 import StageBox from "../../components/ui/StageBox";
 import HelpToggle from "../../components/ui/HelpToggle";
@@ -10,8 +15,9 @@ import "./Analyzer.css";
 export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
   const [showHelp, setShowHelp] = useState(false);
   const [localUnmatched, setLocalUnmatched] = useState(unmatched || null);
-  const printRef = useRef(null);
+  const printRef = useRef(null); // wrapper for printable/exportable area
 
+  // Recover from sessionStorage if parent didn't supply unmatched (e.g. hard refresh)
   useEffect(() => {
     if (!localUnmatched) {
       const cached = sessionStorage.getItem("sb_unmatched");
@@ -19,10 +25,12 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
     }
   }, [localUnmatched]);
 
+  // Keep local copy synchronized when parent updates 'unmatched'
   useEffect(() => {
     if (unmatched) setLocalUnmatched(unmatched);
   }, [unmatched]);
 
+  // Normalize 'rows' for GapTable from either 'unmatchedFlat' or split arrays
   const rows = useMemo(() => {
     let flat = localUnmatched?.unmatchedFlat;
     if (!Array.isArray(flat)) {
@@ -39,15 +47,17 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
     return (flat || []).map((x) => ({
       name: x?.title || x?.code || "-",
       type: x?.type || "-",
-      status: "miss",
+      status: "miss", // only show "Not Met" items on this page
     }));
   }, [localUnmatched]);
 
+  // Default roadmap skeleton built from each unmatched row
   const defaultRoadmapSteps = useMemo(
     () => rows.map((r) => ({ title: r.name, desc: r.type })),
     [rows]
   );
 
+  // Handle Finish: either show "Great match!" or ask to generate & save a roadmap
   const handleFinish = () => {
     if (!rows.length) {
       Modal.info({
@@ -100,6 +110,7 @@ export default function SkillGap({ targetJob, unmatched, onPrev, onFinish }) {
 
             {rows.length ? (
               <>
+                {/* Printable region used by GapTable exporter */}
                 <div ref={printRef} className="sg-print-area">
                   <GapTable rows={rows} hideMet />
                 </div>

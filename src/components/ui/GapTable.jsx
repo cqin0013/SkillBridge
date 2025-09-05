@@ -9,7 +9,7 @@ const STATUS_LABEL = {
 };
 
 export default function GapTable({ rows = [], hideMet = false }) {
-  // 兼容两种入参：{name, status} 与 {name, covered}
+  //：accept {name, status} and {name, covered}
   const normalizeStatus = (r) => {
     if (r && typeof r === "object") {
       if (r.status) {
@@ -21,7 +21,7 @@ export default function GapTable({ rows = [], hideMet = false }) {
     return "miss";
   };
 
-  // 过滤 Met（如果需要）
+  // 
   const normalized = Array.isArray(rows)
     ? rows
         .map((r) => {

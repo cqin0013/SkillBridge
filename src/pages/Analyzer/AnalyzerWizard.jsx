@@ -1,3 +1,14 @@
+// AnalyzerWizard.jsx
+// Orchestrates the multi-step Analyzer flow:
+//   Step 0: Intro
+//   Step 1: GetInfo        (select past roles & work location; build abilities from roles)
+//   Step 2: AbilityAnalyzer (review/add/remove abilities manually)
+//   Step 3: JobSuggestion   (rank jobs by ability overlap; choose a target job)
+//   Step 4: SkillGap        (show unmatched abilities and generate a roadmap)
+//
+// It keeps step state synced to URL (?step=n), handles session persistence for
+// selected target job / unmatched list, and shows a top summary/progress bar.
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -15,6 +26,7 @@ import "./AnalyzerWizard.css";
 const TOTAL_STEPS = 5;
 const clamp = (n) => Math.max(0, Math.min(TOTAL_STEPS - 1, Number.isFinite(n) ? n : 0));
 
+/** Read initial step from URL (?step=) so refresh/deep-links are preserved. */
 function initialStepFromURL() {
   const params = new URLSearchParams(window.location.search);
   const s = parseInt(params.get("step"), 10);
@@ -22,14 +34,17 @@ function initialStepFromURL() {
 }
 
 export default function AnalyzerWizard() {
+  // Overall step
   const [step, setStep] = useState(() => initialStepFromURL());
 
-  const [roles, setRoles] = useState([]);
-  const [stateCode, setStateCode] = useState("All");
-  const [abilities, setAbilities] = useState([]); // [{name,aType,code?}]
-  const [targetJob, setTargetJob] = useState("");
-  const [unmatched, setUnmatched] = useState(null); // { unmatchedFlat:[{type,title,code}], matchedCount, percent }
+  // Cross-step data
+  const [roles, setRoles] = useState([]);              // array of selected past role titles
+  const [stateCode, setStateCode] = useState("All");   // AU state preference
+  const [abilities, setAbilities] = useState([]);      // [{name,aType,code?}]
+  const [targetJob, setTargetJob] = useState("");      // occupation_code or title
+  const [unmatched, setUnmatched] = useState(null);    // { unmatchedFlat:[{type,title,code}], matchedCount, percent }
 
+  // URL sync for `?step=`
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -40,6 +55,7 @@ export default function AnalyzerWizard() {
     }
   }, [searchParams]);
 
+  /** Helper to navigate to a specific step and update URL param. */
   const goTo = (n) => {
     const s = clamp(n);
     setStep(s);
@@ -49,7 +65,7 @@ export default function AnalyzerWizard() {
     setSearchParams(next, { replace: true });
   };
 
-  // 进入 Step4 时兜底恢复
+  // When entering Step 4, recover targetJob/unmatched from sessionStorage if needed
   useEffect(() => {
     if (step === 4) {
       if (!unmatched) {
@@ -63,6 +79,7 @@ export default function AnalyzerWizard() {
     }
   }, [step, unmatched, targetJob]);
 
+  // Warn the user if navigating away with edits in progress
   const hasEdits =
     roles.length || abilities.length || (stateCode && stateCode !== "All") || targetJob;
 
@@ -70,13 +87,14 @@ export default function AnalyzerWizard() {
     const onBeforeUnload = (e) => {
       if (hasEdits) {
         e.preventDefault();
-        e.returnValue = "";
+        e.returnValue = ""; // triggers the browser's native dialog
       }
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [hasEdits]);
 
+  // Build a condensed "previous summary" for the sticky header component
   const prevItems = useMemo(() => {
     switch (step) {
       case 1:
@@ -92,6 +110,7 @@ export default function AnalyzerWizard() {
     }
   }, [step, roles, stateCode, targetJob]);
 
+  // Finish handler: clear everything and go back to intro
   const handleFinish = () => {
     message.success("Finished. Your selections have not been saved.");
     setRoles([]); setStateCode("All"); setAbilities([]);
@@ -103,17 +122,21 @@ export default function AnalyzerWizard() {
 
   return (
     <div className={`analyzer-wrap ${step === 0 ? "is-intro" : ""}`}>
+      {/* Sticky previous summary + progress bar on steps 1-4 */}
       {step !== 0 && <PrevSummary items={prevItems} />}
       {step !== 0 && <ProgressBar current={step} total={TOTAL_STEPS} />}
 
+      {/* Step 0: Intro */}
       {step === 0 && <AnalyzerIntro onStart={() => goTo(1)} />}
 
+      {/* Step 1: Select past roles + state, build abilities */}
       {step === 1 && (
         <GetInfo
           stateCode={stateCode}
           setStateCode={setStateCode}
           onPrev={() => goTo(0)}
           onNext={(payload) => {
+            // Accept from child either an array of abilities, or a structured object { abilities, roles }
             if (Array.isArray(payload)) setAbilities(payload);
             else if (payload && typeof payload === "object") {
               setAbilities(payload.abilities || []);
@@ -124,6 +147,7 @@ export default function AnalyzerWizard() {
         />
       )}
 
+      {/* Step 2: Review/edit abilities */}
       {step === 2 && (
         <AbilityAnalyzer
           abilities={abilities}
@@ -135,6 +159,7 @@ export default function AnalyzerWizard() {
         />
       )}
 
+      {/* Step 3: Suggested jobs based on abilities */}
       {step === 3 && (
         <JobSuggestion
           abilities={abilities}
@@ -146,11 +171,12 @@ export default function AnalyzerWizard() {
         />
       )}
 
+      {/* Step 4: Unmatched list + generate roadmap */}
       {step === 4 && (
         <SkillGap
           targetJob={targetJob}
           unmatched={unmatched}
-          abilities={abilities}        // ⬅️ 传 abilities 以计算 “Met”
+          abilities={abilities}        // passed so GapTable can show "Met" if needed
           onPrev={() => goTo(3)}
           onFinish={handleFinish}
         />

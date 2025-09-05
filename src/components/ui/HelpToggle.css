@@ -21,7 +21,7 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  /* 提升触控命中 */
+
   border-radius: 999px;
   cursor: pointer;
   background: var(--help-primary);

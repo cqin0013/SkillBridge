@@ -1,13 +1,13 @@
 
 import { Link } from "react-router-dom";
 import "./Hero.css";
-import heroBg from "../../../assets/images/bridge.png"; // 无文字的大桥图
+import heroBg from "../../../assets/images/bridge.png"; 
 
 export default function Hero() {
   return (
     <section
       className="sb-hero"
-      style={{ "--hero-bg": `url(${heroBg})` }} // 把图传给 CSS 变量
+      style={{ "--hero-bg": `url(${heroBg})` }} 
       aria-label="SkillBridge introduction"
     >
       <div className="sb-hero__inner">
@@ -18,7 +18,7 @@ export default function Hero() {
             Assess transferable skills, see role pathways, and get a learning plan.
           </p>
           <div className="sb-hero__cta">
-            {/* ✅ 改成跳到 /Analyzer?step=1 */}
+            {/* nav to /Analyzer?step=1 */}
             <Link
               to={{ pathname: "/Analyzer", search: "?step=1" }}
               className="sb-btn sb-btn--primary"

@@ -1,17 +1,16 @@
-/* 聚合全局样式：入口只需引入本文件一次 */
+
 @import "./base.css";
 @import "./typography.css";
 @import "./buttons.css";
 
-/* 你也可以在这里追加全局覆盖 */
-/* 默认（桌面端）三列 */
+
 .ability-groups-row {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
-/* 分组卡（可选，提升观感） */
+
 .ability-group-card {
     border: 1px solid #e5e7eb;
     border-radius: 10px;
@@ -45,7 +44,7 @@
     padding: 8px 12px;
 }
 
-/* 移动端（≤768px）单列 */
+
 @media (max-width: 768px) {
     .ability-groups-row {
         grid-template-columns: 1fr;

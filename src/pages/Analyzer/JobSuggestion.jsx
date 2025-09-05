@@ -1,3 +1,8 @@
+// JobSuggestion.jsx
+// Step 3: Rank and display recommended occupations based on the user's abilities.
+// Uses a POST to /occupations/rank-by-codes with three arrays of codes.
+// The user selects one job card; we compute unmatched items and persist to sessionStorage.
+
 import React, { useEffect, useMemo, useState } from "react";
 import StageBox from "../../components/ui/StageBox";
 import HelpToggle from "../../components/ui/HelpToggle";
@@ -18,25 +23,27 @@ export default function JobSuggestion({
 }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]); // ranked job results from backend
   const [showHelp, setShowHelp] = useState(false);
 
-  // —— 新增：从 localStorage 读取最新 abilities —— //
+  // Prefer the latest selections persisted by AbilityAnalyzer; fallback to props
   const latestAbilities = useMemo(() => {
     try {
       const raw = localStorage.getItem("sb_selections");
       if (raw) return JSON.parse(raw);
-    } catch {}
+    } catch (err){
+      console.error("Failed to parse sb_selections from localStorage:", err);
+    }
     return abilities;
   }, [abilities]);
 
-  // 汇总三类已编码能力（作为分母）
+  // Prepare arrays of codified abilities to send as request body
   const arraysB = useMemo(() => {
     const knowledge_codes = [];
     const skill_codes = [];
     const tech_codes = [];
     latestAbilities.forEach((a) => {
-      const code = a?.code || a?.name; // 没 code 时 fallback 用 name
+      const code = a?.code || a?.name; // fallback to name if code missing
       const t = a?.aType || a?.type;
       if (!code || !t) return;
       if (t === "knowledge") knowledge_codes.push(code);
@@ -46,6 +53,7 @@ export default function JobSuggestion({
     return { knowledge_codes, skill_codes, tech_codes };
   }, [latestAbilities]);
 
+  // Total count of codified abilities; used as denominator for match percentage
   const totalCodified = useMemo(
     () =>
       arraysB.knowledge_codes.length +
@@ -54,7 +62,7 @@ export default function JobSuggestion({
     [arraysB]
   );
 
-  // 拉取推荐（使用三数组形态；调试 UI 已移除）
+  // Fetch ranked jobs; sorts by matched count and keeps top 10
   useEffect(() => {
     let aborted = false;
     const run = async () => {
@@ -91,11 +99,11 @@ export default function JobSuggestion({
 
     run();
     return () => {
-      aborted = true;
+      aborted = true; // prevent state after unmount
     };
   }, [arraysB, totalCodified]);
 
-  // 计算 unmatchedFlat 并回传
+  // Build the "unmatched" flat list for a selected job and push to parent/session
   const buildAndPushUnmatched = (jobLike) => {
     const found =
       (typeof jobLike === "string"
@@ -123,7 +131,7 @@ export default function JobSuggestion({
     onUnmatchedChange?.(payload);
   };
 
-  // 卡片网格数据
+  // Convert backend items -> JobCardGrid items with a computed match%
   const jobs = useMemo(() => {
     return items.map((it) => {
       const count = Number(it.count || 0);
@@ -137,6 +145,7 @@ export default function JobSuggestion({
     });
   }, [items, totalCodified]);
 
+  // Handle card selection from JobCardGrid
   const handleSelect = (sel) => {
     let key = typeof sel === "string" ? sel : null;
     if (!key && sel && typeof sel === "object") key = sel.code || sel.job || null;
@@ -145,7 +154,7 @@ export default function JobSuggestion({
     buildAndPushUnmatched(key);
   };
 
-  // 父级或刷新恢复 targetJob 时同步
+  // If targetJob exists (from parent or after refresh), rebuild unmatched when items arrive
   useEffect(() => {
     if (!targetJob || !items.length) return;
     buildAndPushUnmatched(targetJob);
@@ -162,7 +171,7 @@ export default function JobSuggestion({
   return (
     <section className="anlz-page">
       <div className="container">
-        {/* 上卡片：标题 + 步骤（默认折叠，由 StageBox 渲染） */}
+        {/* Top StageBox with how-to-use guidance */}
         <StageBox
           pill="Step 3"
           title="Job Suggestions"
@@ -183,7 +192,7 @@ export default function JobSuggestion({
           {err && <Alert type="warning" showIcon style={{ marginTop: 8 }} message={err} />}
         </StageBox>
 
-        {/* 下卡片：白底内容 + HelpToggle + 网格 */}
+        {/* Bottom card: white content area with HelpToggle + grid of job cards */}
         <StageBox>
           <div className="anlz-second-card">
             <div className="question-row">

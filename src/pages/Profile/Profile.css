@@ -1,40 +1,54 @@
+/* Profile.css
+   Purpose: Styling for the Profile (Roadmap) page.
+   - Constrains the page width to a readable line length
+   - Provides responsive typography for the header
+   - Adds a global "muted" helper color
+   - Includes small-screen tweaks for paddings and font sizes
+*/
 .profile-page {
+    /* Limit content width and center it */
     width: min(1100px, 92%);
     margin: 0 auto;
+/* Top/bottom padding to separate from surrounding layout */
     padding: 1rem 0 2rem;
 }
 
-/* 标题区 */
+/* ---------- Header Area ---------- */
+/* Main profile title: responsive size, bold, tight line-height */
 .profile-header h1 {
     margin: 0;
     font-size: clamp(1.5rem, 4vw, 2rem);
-    /* 在手机到桌面自适应 */
+        /* scales from phones to desktops */
     font-weight: 800;
     line-height: 1.2;
 }
 
+/* Secondary line under the title (subheading/description) */
 .profile-header .muted {
     margin-top: .25rem;
     color: var(--color-muted);
     font-size: clamp(.9rem, 2.5vw, 1rem);
 }
 
-/* 全局 muted 辅助文本 */
+/* ---------- Global Helpers ---------- */
+/* Muted helper class that reuses the design token */
 .muted {
-    color: var(--color-muted)
+    color: var(--color-muted);
 }
 
-/* 小屏优化 */
+/* ---------- Small-Screen Tweaks ---------- */
 @media (max-width:520px) {
     .profile-page {
-        padding: .75rem 0 1.5rem
+        /* Slightly tighter paddings on narrow devices */
+            padding: .75rem 0 1.5rem;
     }
 
     .profile-header h1 {
-        font-size: 1.4rem
+        /* Cap title size to avoid wrapping too much on very small screens */
+            font-size: 1.4rem;
     }
 
     .profile-header .muted {
-        font-size: .85rem
+        font-size: .85rem;
     }
 }

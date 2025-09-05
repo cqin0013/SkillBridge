@@ -1,13 +1,21 @@
-/* ===== Analyzer common layout (clean & mobile-friendly) ===== */
+/* ===== Analyzer common layout (clean & mobile-friendly) =====
+   This stylesheet provides a compact, responsive layout for the Analyzer pages.
+   It defines a centered container, a neutral white "content card" style,
+   question header rows with an inline HelpToggle, a toolbar row, and a
+   printable region used by the Skill Gap export. */
 
-/* container */
+/* Page container:
+   - Constrains width for readable line length
+   - Adds horizontal padding for small screens */
 .anlz-page .container {
     max-width: 920px;
     margin: 0 auto;
     padding: 0 16px;
 }
 
-/* white content card */
+/* Secondary "white card" used for the main content of each step:
+   - Subtle border + radius to separate from background
+   - Internal padding for breathing room */
 .anlz-second-card {
     background: #fff;
     border: 1px solid var(--color-border);
@@ -15,7 +23,9 @@
     padding: 12px;
 }
 
-/* question row (title + help) */
+/* Question row:
+   - Left: section title
+   - Right: HelpToggle (collapsible help content) */
 .question-row {
     display: flex;
     align-items: center;
@@ -23,23 +33,28 @@
     gap: 12px;
     margin-bottom: 8px;
 }
+/* Question title:
+   - Uses clamp() to scale typography responsively */
 .question-title {
     margin: .25rem 0 .5rem;
     font-size: clamp(1rem, 2.5vw, 1.125rem);
     line-height: 1.35;
 }
 
-/* toolbar (e.g. Export PDF) */
+/* Toolbar row (e.g., Export PDF button area):
+   - Right-aligned by default, wraps on small screens */
 .sg-toolbar {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
     flex-wrap: wrap;
-    /* 小屏可换行 */
+        /* allow wrapping on narrow widths */
     margin: .25rem 0 .75rem;
 }
 
-/* printable region */
+/* Printable region:
+   - Neutral white background, border, and light radius
+   - Used to wrap tables that might be exported */
 .sg-print-area {
     background: #fff;
     padding: 12px;
@@ -47,7 +62,8 @@
     border-radius: var(--radius-sm);
 }
 
-/* --------- Mobile tweaks --------- */
+/* --------- Mobile tweaks ---------
+   Reduce padding and adjust layout on small viewports. */
 @media (max-width:640px) {
     .anlz-page .container {
         padding: 0 12px;
@@ -61,6 +77,7 @@
         padding: 10px;
     }
 }
+
 @media (max-width:520px) {
     .question-row {
         flex-wrap: wrap;

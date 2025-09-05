@@ -17,7 +17,7 @@ position: fixed;
     padding: .3125rem 0 calc(.3125rem + var(--safe-bottom));
 }
 
-/* 内层布局：水平排列，超小屏换行 */
+/* inner layout */
 .footer-inner {
 max-width: 1200px;
     margin-inline: auto;
@@ -28,7 +28,7 @@ display: flex;
     gap: 8px;
 flex-wrap: wrap;
 }
-/* 链接样式：简洁的点状下划线 */
+/* link format */
 .site-footer a {
     color: inherit;
     text-decoration: underline 0.05em dotted;
@@ -38,31 +38,20 @@ flex-wrap: wrap;
     text-decoration-style: solid;
     color: #374151;
 }
-/* 小屏：居中、更紧凑 */
+
 @media (max-width: 640px) {
     .footer-inner {
         justify-content: center;
         gap: 6px;
     }
 }
-/* 深色模式 */
-@media (prefers-color-scheme: dark) {
-    .site-footer {
-        background: #0b1220;
-        border-top-color: #1f2937;
-        color: #9ca3af;
-    }
-  .site-footer a:hover {
-      color: #e5e7eb;
-  }
-  }
-/* --- Safe-area 变量（iOS 刘海屏等）--- */
+
 :root {
 --footer-h: 36px;
-    /* 估算高度，确保内容区留白 */
+
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
-/* 避免内容被 Footer 遮挡：body 留出底部空间 */
+
 body {
 margin: 0;
     padding-bottom: calc(var(--footer-h) + var(--safe-bottom));

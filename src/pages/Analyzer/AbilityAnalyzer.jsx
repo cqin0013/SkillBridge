@@ -1,23 +1,23 @@
-// src/pages/Analyzer/AbilityAnalyzer/AbilityAnalyzer.jsx
+// AbilityAnalyzer.jsx
+// Component for selecting and managing a user's Knowledge, Skills, and Tech Skills.
+// Handles both manual input (via SkillPicker) and auto-suggestions from occupation codes.
+
 import React, { useEffect, useMemo, useState } from "react";
 import StageBox from "../../components/ui/StageBox";
 import HelpToggle from "../../components/ui/HelpToggle";
 import PageActions from "../../components/ui/PageActions";
 import SkillPicker from "../../components/ui/SkillPicker";
 import { Button, Alert, Spin, Tag } from "antd";
-
 import AbilityList from "../../components/ui/AbilityList";
 
 import { skillCategories } from "../../assets/data/skill.static";
 import { knowledgeCategories } from "../../assets/data/knowledge.static";
 import { techSkillCategories } from "../../assets/data/techskill.static";
 
-// （按你的要求，保持不引入本地 CSS）
-// import "./AbilityAnalyzer.css";
-
+// Backend API base (hosted on Render)
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
-/** Build picker categories for Skills */
+/** Helper: Build picker categories for Skills */
 const buildSkillCats = () => [
   { id: "content", label: "Content", skills: (skillCategories.content || []).map(s => s.name) },
   { id: "process", label: "Process", skills: (skillCategories.process || []).map(s => s.name) },
@@ -25,7 +25,7 @@ const buildSkillCats = () => [
   { id: "technical", label: "Technical", skills: (skillCategories.crossFunctional?.technical || []).map(s => s.name) },
 ];
 
-/** Build picker categories for Knowledge */
+/** Helper: Build picker categories for Knowledge */
 const buildKnowledgeCats = () => [
   { id: "management", label: "Management", skills: (knowledgeCategories.management || []).map(s => s.name) },
   { id: "production", label: "Production", skills: (knowledgeCategories.production || []).map(s => s.name) },
@@ -38,7 +38,7 @@ const buildKnowledgeCats = () => [
   { id: "communication", label: "Communication", skills: (knowledgeCategories.communication || []).map(s => s.name) },
 ];
 
-/** Build picker categories for Tech Skills */
+/** Helper: Build picker categories for Tech Skills */
 const buildTechSkillCats = () => [
   { id: "business", label: "Business", skills: (techSkillCategories.business || []).map(s => s.name) },
   { id: "productivity", label: "Productivity", skills: (techSkillCategories.productivity || []).map(s => s.name) },
@@ -54,19 +54,16 @@ const buildTechSkillCats = () => [
 ];
 
 /**
+ * AbilityAnalyzer Component
+ *
  * Props:
- * - occupationCodes?: string | string[]
- * - abilities?: Array<string | {title?:string, name?:string, code?:string, type?:'knowledge'|'skill'|'tech', aType?:same}>
- * - onPrev: () => void
- * - onNext: (abilities: {name:string, code?:string, aType?:string}[]) => void
+ * - occupationCodes: string | string[] | undefined
+ * - abilities: optional list of abilities (string or object form)
+ * - onPrev: callback when user clicks "Back"
+ * - onNext: callback when user clicks "Next", receives final list
  */
-export default function AbilityAnalyzer({
-  occupationCodes,
-  abilities = [],
-  onPrev,
-  onNext,
-}) {
-  // Normalize incoming (keep code/type if provided)
+export default function AbilityAnalyzer({ occupationCodes, abilities = [], onPrev, onNext }) {
+  // Normalize incoming abilities into consistent shape
   const normalizeOne = (a) => {
     if (typeof a === "string") return { name: a, aType: "skill" };
     const name = a.name || a.title || "";
@@ -76,11 +73,12 @@ export default function AbilityAnalyzer({
   };
   const normalizedIncoming = (abilities || []).map(normalizeOne);
 
+  // State: local ability list, loading indicators, error message
   const [localAbilities, setLocalAbilities] = useState(normalizedIncoming);
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
 
-  // —— 新增：持久化到 localStorage —— //
+  // Persist selections into localStorage (so they can be reused later)
   const persistSelections = (list) => {
     const selections = list.map((x) => ({
       type: x.aType || x.type || "skill",
@@ -90,10 +88,10 @@ export default function AbilityAnalyzer({
     localStorage.setItem("sb_selections", JSON.stringify(selections));
   };
 
-  // Help toggle for the "Add abilities..." question (in Card 2)
+  // Help toggle (for explanatory popup in step 2)
   const [qHelpOpen, setQHelpOpen] = useState(false);
 
-  // Optionally fetch suggestions by occupationCodes, then merge
+  // Fetch suggestions based on occupationCodes
   useEffect(() => {
     const codes =
       typeof occupationCodes === "string"
@@ -109,6 +107,7 @@ export default function AbilityAnalyzer({
         setLoading(true);
         setLoadErr("");
 
+        // Call API for each occupation code
         const results = await Promise.all(
           codes.map(async (code) => {
             const res = await fetch(`${API_BASE}/occupations/${encodeURIComponent(code)}/titles`);
@@ -117,6 +116,7 @@ export default function AbilityAnalyzer({
           })
         );
 
+        // Extract abilities
         const fetched = [];
         for (const data of results) {
           const knowledge = Array.isArray(data.knowledge_titles) ? data.knowledge_titles : [];
@@ -129,7 +129,7 @@ export default function AbilityAnalyzer({
           );
         }
 
-        // merge by code if present, else by (type+name)
+        // Merge incoming + fetched abilities without duplicates
         const map = new Map();
         [...normalizedIncoming, ...fetched].forEach((it) => {
           const key = it.code || `n:${it.name}|${it.aType || "skill"}`;
@@ -137,7 +137,7 @@ export default function AbilityAnalyzer({
         });
         const merged = [...map.values()];
         setLocalAbilities(merged);
-        persistSelections(merged); // ★ 初始化时也存一次
+        persistSelections(merged);
       } catch (err) {
         console.error(err);
         setLoadErr("Failed to load abilities from occupation code(s). Please retry.");
@@ -147,16 +147,15 @@ export default function AbilityAnalyzer({
     };
 
     fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(occupationCodes)]);
 
-  // Shared SkillPicker (modal) 状态
+  // State for shared SkillPicker modal
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCats, setPickerCats] = useState([]);
   const [pickerTitle, setPickerTitle] = useState("Pick items");
-  const [pickerType, setPickerType] = useState("skill"); // 'skill' | 'knowledge' | 'tech'
+  const [pickerType, setPickerType] = useState("skill");
 
-  // 仅按“类型+名称”去重，保证不同类型的同名不会互相影响
+  // Add multiple abilities at once
   const addMany = (names, aType = "skill") => {
     setLocalAbilities((prev) => {
       const seen = new Set(prev.map((x) => `${x.aType || "skill"}|${x.name}`));
@@ -165,18 +164,20 @@ export default function AbilityAnalyzer({
         const key = `${aType}|${n}`;
         if (!seen.has(key)) next.push({ name: n, aType });
       });
-      persistSelections(next);   // ★ 新增：保存
+      persistSelections(next);
       return next;
     });
   };
 
+  // Remove a single ability
   const removeOne = (name, aType) =>
     setLocalAbilities((xs) => {
       const next = xs.filter((x) => !(x.name === name && (x.aType || "skill") === aType));
-      persistSelections(next);   // ★ 新增：保存
+      persistSelections(next);
       return next;
     });
 
+  // Open different category pickers
   const openSkillPicker = () => {
     setPickerTitle("Pick skills by category");
     setPickerCats(buildSkillCats());
@@ -196,7 +197,7 @@ export default function AbilityAnalyzer({
     setPickerOpen(true);
   };
 
-  // Group into three lists
+  // Group abilities by type for display
   const groups = useMemo(() => {
     const knowledge = [];
     const skill = [];
@@ -210,11 +211,12 @@ export default function AbilityAnalyzer({
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // 折叠开关（默认全部展开）
+  // Toggle expand/collapse of each group
   const [openKeys, setOpenKeys] = useState(["knowledge", "tech", "skill"]);
   const toggleKey = (key) =>
     setOpenKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 
+  // Disable "Next" if no abilities or still loading
   const nextDisabled = !localAbilities.length || loading;
   const nextDisabledReason = loading
     ? "Loading abilities from occupation…"
@@ -222,16 +224,13 @@ export default function AbilityAnalyzer({
     ? "Please add at least one ability."
     : null;
 
-  // —— 关键修复：仅预选“当前选择器类型”的项目 —— //
+  // Preselect items in picker (only of the current type)
   const selectedForCurrentType = useMemo(
-    () =>
-      localAbilities
-        .filter((x) => (x.aType || "skill") === pickerType)
-        .map((x) => x.name),
+    () => localAbilities.filter((x) => (x.aType || "skill") === pickerType).map((x) => x.name),
     [localAbilities, pickerType]
   );
 
-  // —— 可选保护：仅接受当前选择器分类中真实存在的名称 —— //
+  // Only accept items that exist in the current category
   const currentNames = useMemo(
     () => new Set((pickerCats || []).flatMap((c) => c?.skills || [])),
     [pickerCats]
@@ -240,7 +239,7 @@ export default function AbilityAnalyzer({
   return (
     <section className="ability-page">
       <div className="container">
-        {/* Card 1: step header + instructions（由 StageBox 的 tip props 渲染） */}
+        {/* Card 1: Step header & instructions */}
         <StageBox
           pill="Step 2"
           title="Your Abilities"
@@ -258,29 +257,24 @@ export default function AbilityAnalyzer({
               <Spin /> <span style={{ marginLeft: 8 }}>Loading abilities…</span>
             </div>
           )}
-          {loadErr && (
-            <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />
-          )}
+          {loadErr && <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />}
         </StageBox>
 
-        {/* Card 2: white background + help + groups + add buttons */}
+        {/* Card 2: Help + Groups + Add buttons */}
         <StageBox>
           <div className="ability-second-card">
             <div className="question-row">
               <h3 className="question-title">Add abilities you already have</h3>
               <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen(v => !v)}>
                 <b>What counts as an “ability”?</b><br />
-                • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”, “Anatomy”).<br />
-                • <i>Tech Skills</i>: tools/technologies you can use (e.g., “Excel”, “React”).<br />
-                • <i>Skills</i>: behaviors and methods (e.g., “Stakeholder communication”, “Root-cause analysis”).<br />
-                Tip: Start broad, then remove items that don’t fit you.
+                • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”).<br />
+                • <i>Tech Skills</i>: tools/technologies (e.g., “Excel”, “React”).<br />
+                • <i>Skills</i>: behaviors/methods (e.g., “Stakeholder communication”).<br />
               </HelpToggle>
             </div>
 
-            <div
-              className="ability-groups-row"
-              style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}
-            >
+            {/* Display grouped abilities */}
+            <div className="ability-groups-row" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
               {/* Knowledge */}
               <div className="ability-group-card">
                 <div className="ability-group-header">
@@ -332,30 +326,27 @@ export default function AbilityAnalyzer({
               <Button onClick={openKnowledgePicker} disabled={loading}>Add knowledge</Button>
               <Button onClick={openTechSkillPicker} disabled={loading}>Add tech skills</Button>
               <Button onClick={openSkillPicker} disabled={loading}>Add skills</Button>
-              <span style={{ marginLeft: 6, color: "var(--color-muted)" }}>
-                Total: {localAbilities.length}
-              </span>
+              <span style={{ marginLeft: 6, color: "var(--color-muted)" }}>Total: {localAbilities.length}</span>
             </div>
           </div>
         </StageBox>
 
-        {/* Actions */}
+        {/* Navigation actions */}
         <PageActions
           onPrev={onPrev}
           onNext={() => {
-            persistSelections(localAbilities); // ★ Next 前也存一遍
+            persistSelections(localAbilities);
             onNext(localAbilities);
           }}
           nextDisabled={nextDisabled}
           nextDisabledReason={nextDisabledReason}
         />
 
-        {/* Shared picker modal; add with current pickerType */}
+        {/* Shared picker modal */}
         <SkillPicker
           open={pickerOpen}
           onClose={() => setPickerOpen(false)}
           onConfirm={(picked) => {
-            // 只接受当前选择器分类中真实存在的名称，避免串类误加
             const filtered = (picked || []).filter((n) => currentNames.has(n));
             addMany(filtered, pickerType);
             setPickerOpen(false);

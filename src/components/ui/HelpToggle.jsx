@@ -5,9 +5,9 @@ import "./HelpToggle.css";
 
 export default function HelpToggle({
   show,
-  onToggle,        // 仍然支持你原来的切换函数
-  setShow,         // 可选：更精确地设置显隐（推荐传）
-  onClose,         // 可选：提供关闭回调
+  onToggle,        
+  setShow,         
+  onClose,         
   closeOnBlur = true,
   closeOnEsc = true,
   children,
@@ -18,10 +18,10 @@ export default function HelpToggle({
     if (!show) return;
     if (typeof setShow === "function") setShow(false);
     else if (typeof onClose === "function") onClose();
-    else if (typeof onToggle === "function") onToggle(); // 兜底：只能“切换”
+    else if (typeof onToggle === "function") onToggle(); 
   }, [show, setShow, onClose, onToggle]);
 
-  // 点击组件外部自动关闭
+  // auto close
   useEffect(() => {
     if (!closeOnBlur || !show) return;
     const handleOutside = (e) => {
@@ -37,7 +37,7 @@ export default function HelpToggle({
     };
   }, [closeOnBlur, show, close]);
 
-  // 按下 Esc 关闭
+  //  Esc -> close
   useEffect(() => {
     if (!closeOnEsc || !show) return;
     const onKey = (e) => {

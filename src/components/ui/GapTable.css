@@ -14,7 +14,7 @@
   --radius: 12px;
   --shadow: 0 6px 18px rgba(0, 0, 0, .06);
 }
-/* 建议给表格外层包一层，作为横向滚动兜底 */
+
 .gap-table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -64,7 +64,7 @@
   border-bottom: none
 }
 
-/* 行高亮 + 左侧彩条 */
+
 .gap-table tr.ok td {
   background: linear-gradient(90deg, rgba(29, 78, 216, .06), #fff 40%);
 }
@@ -86,7 +86,7 @@
   border-left: 4px solid var(--sb-partial)
 }
 
-/* 单元格内部布局 */
+/* cell layout */
 .sg-cell {
   display: flex;
   align-items: center;
@@ -119,7 +119,7 @@
     table-layout: auto
   }
 
-  /* 放松固定列宽 */
+
   .gap-table thead th {
     padding: 10px 12px;
     font-size: .9rem
@@ -130,7 +130,7 @@
     width: auto
   }
 
-  /* 让列自适应 */
+ 
   .gap-table tbody td {
     padding: 10px 12px;
     font-size: .88rem
@@ -144,10 +144,9 @@
     white-space: normal
   }
 
-  /* 允许换行，避免过度截断 */
+  /*change line */
 }
 
-/* 极窄屏：徽章缩小，避免挤压 */
 @media (max-width:420px) {
   .sg-badge {
     font-size: .7rem;

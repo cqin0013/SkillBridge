@@ -1,9 +1,8 @@
-/* ===== Wizard progress (文字 + 条形) ===== */
+
 .wiz-progress {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-    /* 小屏自动换行 */
     gap: .5rem;
   margin: 1rem 0;
 }
@@ -12,27 +11,22 @@
   color: #555;
 }
 
-/* 条形进度条容器 */
+/* progress */
 .wiz-bar {
   flex: 1;
-  /* 占满剩余宽度 */
   height: 6px;
   background: #e5e7eb;
-  /* 灰色轨道 */
   border-radius: 999px;
   overflow: hidden;
   min-width: 120px;
-  /* 保证最小宽度，避免太短 */
 }
 
 .wiz-bar-fill {
   height: 100%;
   background: #007bff;
-  /* 主色 */
   border-radius: inherit;
   transition: width .3s ease;
 }
-/* 上一步摘要 */
 .prev-summary {
   background: #f8f8f8;
   border-left: 4px solid #007bff;
@@ -57,7 +51,6 @@
   color: #333;
 }
 
-/* 移动端优化 */
 @media (max-width:520px) {
   .wiz-progress {
     gap: .4rem;
