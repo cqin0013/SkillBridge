@@ -80,6 +80,16 @@ export default function AbilityAnalyzer({
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
 
+  // —— 新增：持久化到 localStorage —— //
+  const persistSelections = (list) => {
+    const selections = list.map((x) => ({
+      type: x.aType || x.type || "skill",
+      code: x.code || x.name,
+      name: x.name,
+    }));
+    localStorage.setItem("sb_selections", JSON.stringify(selections));
+  };
+
   // Help toggle for the "Add abilities..." question (in Card 2)
   const [qHelpOpen, setQHelpOpen] = useState(false);
 
@@ -125,7 +135,9 @@ export default function AbilityAnalyzer({
           const key = it.code || `n:${it.name}|${it.aType || "skill"}`;
           if (!map.has(key)) map.set(key, it);
         });
-        setLocalAbilities([...map.values()]);
+        const merged = [...map.values()];
+        setLocalAbilities(merged);
+        persistSelections(merged); // ★ 初始化时也存一次
       } catch (err) {
         console.error(err);
         setLoadErr("Failed to load abilities from occupation code(s). Please retry.");
@@ -153,12 +165,17 @@ export default function AbilityAnalyzer({
         const key = `${aType}|${n}`;
         if (!seen.has(key)) next.push({ name: n, aType });
       });
+      persistSelections(next);   // ★ 新增：保存
       return next;
     });
   };
 
   const removeOne = (name, aType) =>
-    setLocalAbilities((xs) => xs.filter((x) => !(x.name === name && (x.aType || "skill") === aType)));
+    setLocalAbilities((xs) => {
+      const next = xs.filter((x) => !(x.name === name && (x.aType || "skill") === aType));
+      persistSelections(next);   // ★ 新增：保存
+      return next;
+    });
 
   const openSkillPicker = () => {
     setPickerTitle("Pick skills by category");
@@ -325,7 +342,10 @@ export default function AbilityAnalyzer({
         {/* Actions */}
         <PageActions
           onPrev={onPrev}
-          onNext={() => onNext(localAbilities)}
+          onNext={() => {
+            persistSelections(localAbilities); // ★ Next 前也存一遍
+            onNext(localAbilities);
+          }}
           nextDisabled={nextDisabled}
           nextDisabledReason={nextDisabledReason}
         />

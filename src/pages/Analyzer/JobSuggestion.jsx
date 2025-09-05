@@ -21,13 +21,22 @@ export default function JobSuggestion({
   const [items, setItems] = useState([]);
   const [showHelp, setShowHelp] = useState(false);
 
+  // —— 新增：从 localStorage 读取最新 abilities —— //
+  const latestAbilities = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("sb_selections");
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return abilities;
+  }, [abilities]);
+
   // 汇总三类已编码能力（作为分母）
   const arraysB = useMemo(() => {
     const knowledge_codes = [];
     const skill_codes = [];
     const tech_codes = [];
-    abilities.forEach((a) => {
-      const code = a?.code;
+    latestAbilities.forEach((a) => {
+      const code = a?.code || a?.name; // 没 code 时 fallback 用 name
       const t = a?.aType || a?.type;
       if (!code || !t) return;
       if (t === "knowledge") knowledge_codes.push(code);
@@ -35,7 +44,7 @@ export default function JobSuggestion({
       else if (t === "tech") tech_codes.push(code);
     });
     return { knowledge_codes, skill_codes, tech_codes };
-  }, [abilities]);
+  }, [latestAbilities]);
 
   const totalCodified = useMemo(
     () =>
