@@ -12,6 +12,7 @@ import { skillCategories } from "../../assets/data/skill.static";
 import { knowledgeCategories } from "../../assets/data/knowledge.static";
 import { techSkillCategories } from "../../assets/data/techskill.static";
 
+// （按你的要求，可不引入本地 CSS；但为实现响应式，需在全局样式放入下面提供的 CSS 片段）
 // import "./AbilityAnalyzer.responsive.css";
 
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
@@ -58,14 +59,12 @@ const buildTechSkillCats = () => [
  * - abilities?: Array<string | {title?:string, name?:string, code?:string, type?:'knowledge'|'skill'|'tech', aType?:same}>
  * - onPrev: () => void
  * - onNext: (abilities: {name:string, code?:string, aType?:string}[]) => void
- * - onOccupationSubmit?: (occupationText: string) => void   // NEW (可选)
  */
 export default function AbilityAnalyzer({
   occupationCodes,
   abilities = [],
   onPrev,
   onNext,
-  onOccupationSubmit, // NEW
 }) {
   // Normalize incoming (keep code/type if provided)
   const normalizeOne = (a) => {
@@ -80,10 +79,6 @@ export default function AbilityAnalyzer({
   const [localAbilities, setLocalAbilities] = useState(normalizedIncoming);
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
-
-  // NEW: occupation input + hint control
-  const [occupationInput, setOccupationInput] = useState("");     // NEW
-  const [showOccHint, setShowOccHint] = useState(false);          // NEW
 
   // Help toggle for the "Add abilities..." question (in Card 2)
   const [qHelpOpen, setQHelpOpen] = useState(false);
@@ -143,13 +138,13 @@ export default function AbilityAnalyzer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(occupationCodes)]);
 
-  // Shared SkillPicker (modal) state
+  // Shared SkillPicker (modal) 状态
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCats, setPickerCats] = useState([]);
   const [pickerTitle, setPickerTitle] = useState("Pick items");
   const [pickerType, setPickerType] = useState("skill"); // 'skill' | 'knowledge' | 'tech'
 
-  // Only dedupe by type+name
+  // 仅按“类型+名称”去重，保证不同类型的同名不会互相影响
   const addMany = (names, aType = "skill") => {
     setLocalAbilities((prev) => {
       const seen = new Set(prev.map((x) => `${x.aType || "skill"}|${x.name}`));
@@ -198,8 +193,8 @@ export default function AbilityAnalyzer({
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // Collapse control
-  const [openKeys, setOpenKeys] = useState([]); // [] means all collapsed
+  // 折叠开关 —— 默认折叠（空数组）
+  const [openKeys, setOpenKeys] = useState([]); // [] 表示全部折叠
   const toggleKey = (key) =>
     setOpenKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 
@@ -210,7 +205,7 @@ export default function AbilityAnalyzer({
     ? "Please add at least one ability."
     : null;
 
-  // Selected names for current picker type
+  // 仅预选“当前选择器类型”的项目（用于 SkillPicker initiallySelected）
   const selectedForCurrentType = useMemo(
     () =>
       localAbilities
@@ -219,7 +214,7 @@ export default function AbilityAnalyzer({
     [localAbilities, pickerType]
   );
 
-  // Guard names to only those in current picker categories
+  // 仅接受当前选择器分类中真实存在的名称（防止串类误加）
   const currentNames = useMemo(
     () => new Set((pickerCats || []).flatMap((c) => c?.skills || [])),
     [pickerCats]
@@ -228,7 +223,7 @@ export default function AbilityAnalyzer({
   return (
     <section className="ability-page">
       <div className="container">
-        {/* Card 1: step header + instructions */}
+        {/* Card 1: step header + instructions（由 StageBox 的 tip props 渲染） */}
         <StageBox
           pill="Step 2"
           title="Your Abilities"
@@ -249,45 +244,6 @@ export default function AbilityAnalyzer({
           {loadErr && (
             <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />
           )}
-
-          {/* NEW: Occupation input with "Please press Enter" hint */}
-          <div style={{ marginTop: ".75rem" }}>
-            <label htmlFor="occupation-input" style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>
-              Target occupation (optional)
-            </label>
-            <input
-              id="occupation-input"
-              type="text"
-              placeholder="Enter your target occupation"
-              value={occupationInput}
-              onChange={(e) => {
-                setOccupationInput(e.target.value);
-                setShowOccHint(!!e.target.value);         // 输入后显示提示
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setShowOccHint(false);                  // 按下回车隐藏提示
-                  if (onOccupationSubmit) {
-                    onOccupationSubmit(occupationInput);  // 可选：把输入传给父组件
-                  }
-                  // 你也可以在这里触发本页逻辑，比如：
-                  // - setLoading(true) 后调用你的搜索接口，再 merge 到 localAbilities
-                }
-              }}
-              style={{
-                width: "100%",
-                padding: ".55rem .7rem",
-                border: "1px solid var(--color-border, #e5e7eb)",
-                borderRadius: "6px",
-              }}
-            />
-            {showOccHint && (
-              <p style={{ marginTop: 6, fontSize: ".875rem", color: "var(--color-muted, #6b7280)" }}>
-                Please press Enter ↵
-              </p>
-            )}
-          </div>
-          {/* END NEW */}
         </StageBox>
 
         {/* Card 2: groups + add buttons */}
@@ -304,6 +260,7 @@ export default function AbilityAnalyzer({
               </HelpToggle>
             </div>
 
+            {/* ✅ 去掉内联 gridTemplateColumns，改用类名以便媒体查询控制 */}
             <div className="ability-groups-row">
               {/* Knowledge */}
               <div className="ability-group-card">
