@@ -12,45 +12,57 @@ import { skillCategories } from "../../assets/data/skill.static";
 import { knowledgeCategories } from "../../assets/data/knowledge.static";
 import { techSkillCategories } from "../../assets/data/techskill.static";
 
-// （按你的要求，可不引入本地 CSS；但为实现响应式，需在全局样式放入下面提供的 CSS 片段）
+// 可不引入本地 CSS；若要做响应式，请把对应 CSS 片段放到全局样式
 // import "./AbilityAnalyzer.responsive.css";
 
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
+/** Helpers */
+const norm = (s) => String(s || "").trim();
+const normKey = (s) => norm(s).toLowerCase();
+
 /** Build picker categories for Skills */
 const buildSkillCats = () => [
-  { id: "content", label: "Content", skills: (skillCategories.content || []).map(s => s.name) },
-  { id: "process", label: "Process", skills: (skillCategories.process || []).map(s => s.name) },
-  { id: "resourceManagement", label: "Resource Management", skills: (skillCategories.crossFunctional?.resourceManagement || []).map(s => s.name) },
-  { id: "technical", label: "Technical", skills: (skillCategories.crossFunctional?.technical || []).map(s => s.name) },
+  { id: "content", label: "Content", skills: (skillCategories.content || []).map((s) => s.name) },
+  { id: "process", label: "Process", skills: (skillCategories.process || []).map((s) => s.name) },
+  {
+    id: "resourceManagement",
+    label: "Resource Management",
+    skills: (skillCategories.crossFunctional?.resourceManagement || []).map((s) => s.name),
+  },
+  {
+    id: "technical",
+    label: "Technical",
+    skills: (skillCategories.crossFunctional?.technical || []).map((s) => s.name),
+  },
 ];
 
 /** Build picker categories for Knowledge */
 const buildKnowledgeCats = () => [
-  { id: "management", label: "Management", skills: (knowledgeCategories.management || []).map(s => s.name) },
-  { id: "production", label: "Production", skills: (knowledgeCategories.production || []).map(s => s.name) },
-  { id: "technical", label: "Technical", skills: (knowledgeCategories.technical || []).map(s => s.name) },
-  { id: "science", label: "Science", skills: (knowledgeCategories.science || []).map(s => s.name) },
-  { id: "health", label: "Health", skills: (knowledgeCategories.health || []).map(s => s.name) },
-  { id: "education", label: "Education", skills: (knowledgeCategories.education || []).map(s => s.name) },
-  { id: "culture", label: "Culture", skills: (knowledgeCategories.culture || []).map(s => s.name) },
-  { id: "public", label: "Public", skills: (knowledgeCategories.public || []).map(s => s.name) },
-  { id: "communication", label: "Communication", skills: (knowledgeCategories.communication || []).map(s => s.name) },
+  { id: "management", label: "Management", skills: (knowledgeCategories.management || []).map((s) => s.name) },
+  { id: "production", label: "Production", skills: (knowledgeCategories.production || []).map((s) => s.name) },
+  { id: "technical", label: "Technical", skills: (knowledgeCategories.technical || []).map((s) => s.name) },
+  { id: "science", label: "Science", skills: (knowledgeCategories.science || []).map((s) => s.name) },
+  { id: "health", label: "Health", skills: (knowledgeCategories.health || []).map((s) => s.name) },
+  { id: "education", label: "Education", skills: (knowledgeCategories.education || []).map((s) => s.name) },
+  { id: "culture", label: "Culture", skills: (knowledgeCategories.culture || []).map((s) => s.name) },
+  { id: "public", label: "Public", skills: (knowledgeCategories.public || []).map((s) => s.name) },
+  { id: "communication", label: "Communication", skills: (knowledgeCategories.communication || []).map((s) => s.name) },
 ];
 
 /** Build picker categories for Tech Skills */
 const buildTechSkillCats = () => [
-  { id: "business", label: "Business", skills: (techSkillCategories.business || []).map(s => s.name) },
-  { id: "productivity", label: "Productivity", skills: (techSkillCategories.productivity || []).map(s => s.name) },
-  { id: "development", label: "Development", skills: (techSkillCategories.development || []).map(s => s.name) },
-  { id: "database", label: "Database", skills: (techSkillCategories.database || []).map(s => s.name) },
-  { id: "education", label: "Education", skills: (techSkillCategories.education || []).map(s => s.name) },
-  { id: "industry", label: "Industry", skills: (techSkillCategories.industry || []).map(s => s.name) },
-  { id: "network", label: "Network", skills: (techSkillCategories.network || []).map(s => s.name) },
-  { id: "system", label: "System", skills: (techSkillCategories.system || []).map(s => s.name) },
-  { id: "security", label: "Security", skills: (techSkillCategories.security || []).map(s => s.name) },
-  { id: "communication", label: "Communication", skills: (techSkillCategories.communication || []).map(s => s.name) },
-  { id: "management", label: "Management", skills: (techSkillCategories.management || []).map(s => s.name) },
+  { id: "business", label: "Business", skills: (techSkillCategories.business || []).map((s) => s.name) },
+  { id: "productivity", label: "Productivity", skills: (techSkillCategories.productivity || []).map((s) => s.name) },
+  { id: "development", label: "Development", skills: (techSkillCategories.development || []).map((s) => s.name) },
+  { id: "database", label: "Database", skills: (techSkillCategories.database || []).map((s) => s.name) },
+  { id: "education", label: "Education", skills: (techSkillCategories.education || []).map((s) => s.name) },
+  { id: "industry", label: "Industry", skills: (techSkillCategories.industry || []).map((s) => s.name) },
+  { id: "network", label: "Network", skills: (techSkillCategories.network || []).map((s) => s.name) },
+  { id: "system", label: "System", skills: (techSkillCategories.system || []).map((s) => s.name) },
+  { id: "security", label: "Security", skills: (techSkillCategories.security || []).map((s) => s.name) },
+  { id: "communication", label: "Communication", skills: (techSkillCategories.communication || []).map((s) => s.name) },
+  { id: "management", label: "Management", skills: (techSkillCategories.management || []).map((s) => s.name) },
 ];
 
 /**
@@ -66,10 +78,10 @@ export default function AbilityAnalyzer({
   onPrev,
   onNext,
 }) {
-  // Normalize incoming (keep code/type if provided)
+  // Normalize incoming
   const normalizeOne = (a) => {
-    if (typeof a === "string") return { name: a, aType: "skill" };
-    const name = a.name || a.title || "";
+    if (typeof a === "string") return { name: norm(a), aType: "skill" };
+    const name = norm(a.name || a.title || "");
     const code = a.code;
     const aType = a.aType || a.type || "skill";
     return { name, code, aType };
@@ -80,10 +92,10 @@ export default function AbilityAnalyzer({
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
 
-  // Help toggle for the "Add abilities..." question (in Card 2)
+  // Help toggle for question (Card 2)
   const [qHelpOpen, setQHelpOpen] = useState(false);
 
-  // Optionally fetch suggestions by occupationCodes, then merge
+  // Fetch suggestions by occupationCodes
   useEffect(() => {
     const codes =
       typeof occupationCodes === "string"
@@ -113,16 +125,16 @@ export default function AbilityAnalyzer({
           const skills = Array.isArray(data.skill_titles) ? data.skill_titles : [];
           const techs = Array.isArray(data.tech_titles) ? data.tech_titles : [];
           fetched.push(
-            ...knowledge.map((x) => ({ name: x.title, code: x.code, aType: "knowledge" })),
-            ...skills.map((x) => ({ name: x.title, code: x.code, aType: "skill" })),
-            ...techs.map((x) => ({ name: x.title, code: x.code, aType: "tech" }))
+            ...knowledge.map((x) => ({ name: norm(x.title), code: x.code, aType: "knowledge" })),
+            ...skills.map((x) => ({ name: norm(x.title), code: x.code, aType: "skill" })),
+            ...techs.map((x) => ({ name: norm(x.title), code: x.code, aType: "tech" }))
           );
         }
 
-        // merge by code if present, else by (type+name)
+        // Merge by code if present, else by (type+name)
         const map = new Map();
         [...normalizedIncoming, ...fetched].forEach((it) => {
-          const key = it.code || `n:${it.name}|${it.aType || "skill"}`;
+          const key = it.code || `n:${normKey(it.name)}|${(it.aType || "skill")}`;
           if (!map.has(key)) map.set(key, it);
         });
         setLocalAbilities([...map.values()]);
@@ -138,27 +150,31 @@ export default function AbilityAnalyzer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(occupationCodes)]);
 
-  // Shared SkillPicker (modal) 状态
+  // Shared SkillPicker (modal)
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCats, setPickerCats] = useState([]);
   const [pickerTitle, setPickerTitle] = useState("Pick items");
   const [pickerType, setPickerType] = useState("skill"); // 'skill' | 'knowledge' | 'tech'
 
-  // 仅按“类型+名称”去重，保证不同类型的同名不会互相影响
+  // Add many by (type|name) dedupe
   const addMany = (names, aType = "skill") => {
     setLocalAbilities((prev) => {
-      const seen = new Set(prev.map((x) => `${x.aType || "skill"}|${x.name}`));
+      const seen = new Set(prev.map((x) => `${(x.aType || "skill")}|${normKey(x.name)}`));
       const next = [...prev];
       names.forEach((n) => {
-        const key = `${aType}|${n}`;
-        if (!seen.has(key)) next.push({ name: n, aType });
+        const nClean = norm(n);
+        const key = `${aType}|${normKey(nClean)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          next.push({ name: nClean, aType });
+        }
       });
       return next;
     });
   };
 
   const removeOne = (name, aType) =>
-    setLocalAbilities((xs) => xs.filter((x) => !(x.name === name && (x.aType || "skill") === aType)));
+    setLocalAbilities((xs) => xs.filter((x) => !(normKey(x.name) === normKey(name) && (x.aType || "skill") === aType)));
 
   const openSkillPicker = () => {
     setPickerTitle("Pick skills by category");
@@ -193,8 +209,8 @@ export default function AbilityAnalyzer({
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // 折叠开关 —— 默认折叠（空数组）
-  const [openKeys, setOpenKeys] = useState([]); // [] 表示全部折叠
+  // Collapse state: [] = all collapsed
+  const [openKeys, setOpenKeys] = useState([]);
   const toggleKey = (key) =>
     setOpenKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 
@@ -205,7 +221,7 @@ export default function AbilityAnalyzer({
     ? "Please add at least one ability."
     : null;
 
-  // 仅预选“当前选择器类型”的项目（用于 SkillPicker initiallySelected）
+  // Current picker already-selected names for this type
   const selectedForCurrentType = useMemo(
     () =>
       localAbilities
@@ -214,16 +230,17 @@ export default function AbilityAnalyzer({
     [localAbilities, pickerType]
   );
 
-  // 仅接受当前选择器分类中真实存在的名称（防止串类误加）
-  const currentNames = useMemo(
-    () => new Set((pickerCats || []).flatMap((c) => c?.skills || [])),
-    [pickerCats]
-  );
+  // Build a normalized set of valid names for current categories, for robust filtering
+  const currentNamesNormSet = useMemo(() => {
+    const all = (pickerCats || []).flatMap((c) => c?.skills || []);
+    const set = new Set(all.map(normKey));
+    return set;
+  }, [pickerCats]);
 
   return (
     <section className="ability-page">
       <div className="container">
-        {/* Card 1: step header + instructions（由 StageBox 的 tip props 渲染） */}
+        {/* Card 1: header + instructions */}
         <StageBox
           pill="Step 2"
           title="Your Abilities"
@@ -241,9 +258,7 @@ export default function AbilityAnalyzer({
               <Spin /> <span style={{ marginLeft: 8 }}>Loading abilities…</span>
             </div>
           )}
-          {loadErr && (
-            <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />
-          )}
+          {loadErr && <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />}
         </StageBox>
 
         {/* Card 2: groups + add buttons */}
@@ -251,7 +266,7 @@ export default function AbilityAnalyzer({
           <div className="ability-second-card">
             <div className="question-row" style={{ marginBottom: 10 }}>
               <h3 className="question-title" style={{ margin: 0 }}>Add abilities you already have</h3>
-              <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen(v => !v)}>
+              <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen((v) => !v)}>
                 <b>What counts as an “ability”?</b><br />
                 • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”, “Anatomy”).<br />
                 • <i>Tech Skills</i>: tools/technologies you can use (e.g., “Excel”, “React”).<br />
@@ -260,7 +275,6 @@ export default function AbilityAnalyzer({
               </HelpToggle>
             </div>
 
-            {/* ✅ 去掉内联 gridTemplateColumns，改用类名以便媒体查询控制 */}
             <div className="ability-groups-row">
               {/* Knowledge */}
               <div className="ability-group-card">
@@ -333,8 +347,18 @@ export default function AbilityAnalyzer({
           open={pickerOpen}
           onClose={() => setPickerOpen(false)}
           onConfirm={(picked) => {
-            const filtered = (picked || []).filter((n) => currentNames.has(n));
+            // 1) 统一映射：兼容 string / {name} / {label} / {value}
+            const names = (picked || [])
+              .map((p) => (typeof p === "string" ? p : (p?.name || p?.label || p?.value || "")))
+              .map(norm)
+              .filter(Boolean);
+
+            // 2) 仅接收当前分类里真实存在的项（大小写无关）
+            const filtered = names.filter((n) => currentNamesNormSet.has(normKey(n)));
+
+            // 3) 添加到对应类型（含去重）
             addMany(filtered, pickerType);
+
             setPickerOpen(false);
           }}
           initiallySelected={selectedForCurrentType}
