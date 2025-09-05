@@ -5,63 +5,52 @@ import HelpToggle from "../../components/ui/HelpToggle";
 import PageActions from "../../components/ui/PageActions";
 import SkillPicker from "../../components/ui/SkillPicker";
 import { Button, Alert, Spin, Tag } from "antd";
+
 import AbilityList from "../../components/ui/AbilityList";
 
 import { skillCategories } from "../../assets/data/skill.static";
 import { knowledgeCategories } from "../../assets/data/knowledge.static";
 import { techSkillCategories } from "../../assets/data/techskill.static";
 
+// （按你的要求，保持不引入本地 CSS）
+// import "./AbilityAnalyzer.css";
+
 const API_BASE = "https://skillbridge-hnxm.onrender.com";
 
-// -------- utils ----------
-const norm = (s) => String(s ?? "").trim();
-const normKey = (s) => norm(s).toLowerCase();
-const pickName = (x) =>
-  typeof x === "string" ? x : (x?.name || x?.label || x?.value || "");
-
-// 把可能混有对象/字符串的数组统一成“纯名称字符串数组”
-const toNameArray = (arr) => (Array.isArray(arr) ? arr.map(pickName).map(norm).filter(Boolean) : []);
-
-// -------- build categories (兼容对象/字符串两种数据结构) ----------
+/** Build picker categories for Skills */
 const buildSkillCats = () => [
-  { id: "content", label: "Content", skills: toNameArray(skillCategories.content) },
-  { id: "process", label: "Process", skills: toNameArray(skillCategories.process) },
-  {
-    id: "resourceManagement",
-    label: "Resource Management",
-    skills: toNameArray(skillCategories?.crossFunctional?.resourceManagement),
-  },
-  {
-    id: "technical",
-    label: "Technical",
-    skills: toNameArray(skillCategories?.crossFunctional?.technical),
-  },
+  { id: "content", label: "Content", skills: (skillCategories.content || []).map(s => s.name) },
+  { id: "process", label: "Process", skills: (skillCategories.process || []).map(s => s.name) },
+  { id: "resourceManagement", label: "Resource Management", skills: (skillCategories.crossFunctional?.resourceManagement || []).map(s => s.name) },
+  { id: "technical", label: "Technical", skills: (skillCategories.crossFunctional?.technical || []).map(s => s.name) },
 ];
 
+/** Build picker categories for Knowledge */
 const buildKnowledgeCats = () => [
-  { id: "management", label: "Management", skills: toNameArray(knowledgeCategories.management) },
-  { id: "production", label: "Production", skills: toNameArray(knowledgeCategories.production) },
-  { id: "technical", label: "Technical", skills: toNameArray(knowledgeCategories.technical) },
-  { id: "science", label: "Science", skills: toNameArray(knowledgeCategories.science) },
-  { id: "health", label: "Health", skills: toNameArray(knowledgeCategories.health) },
-  { id: "education", label: "Education", skills: toNameArray(knowledgeCategories.education) },
-  { id: "culture", label: "Culture", skills: toNameArray(knowledgeCategories.culture) },
-  { id: "public", label: "Public", skills: toNameArray(knowledgeCategories.public) },
-  { id: "communication", label: "Communication", skills: toNameArray(knowledgeCategories.communication) },
+  { id: "management", label: "Management", skills: (knowledgeCategories.management || []).map(s => s.name) },
+  { id: "production", label: "Production", skills: (knowledgeCategories.production || []).map(s => s.name) },
+  { id: "technical", label: "Technical", skills: (knowledgeCategories.technical || []).map(s => s.name) },
+  { id: "science", label: "Science", skills: (knowledgeCategories.science || []).map(s => s.name) },
+  { id: "health", label: "Health", skills: (knowledgeCategories.health || []).map(s => s.name) },
+  { id: "education", label: "Education", skills: (knowledgeCategories.education || []).map(s => s.name) },
+  { id: "culture", label: "Culture", skills: (knowledgeCategories.culture || []).map(s => s.name) },
+  { id: "public", label: "Public", skills: (knowledgeCategories.public || []).map(s => s.name) },
+  { id: "communication", label: "Communication", skills: (knowledgeCategories.communication || []).map(s => s.name) },
 ];
 
+/** Build picker categories for Tech Skills */
 const buildTechSkillCats = () => [
-  { id: "business", label: "Business", skills: toNameArray(techSkillCategories.business) },
-  { id: "productivity", label: "Productivity", skills: toNameArray(techSkillCategories.productivity) },
-  { id: "development", label: "Development", skills: toNameArray(techSkillCategories.development) },
-  { id: "database", label: "Database", skills: toNameArray(techSkillCategories.database) },
-  { id: "education", label: "Education", skills: toNameArray(techSkillCategories.education) },
-  { id: "industry", label: "Industry", skills: toNameArray(techSkillCategories.industry) },
-  { id: "network", label: "Network", skills: toNameArray(techSkillCategories.network) },
-  { id: "system", label: "System", skills: toNameArray(techSkillCategories.system) },
-  { id: "security", label: "Security", skills: toNameArray(techSkillCategories.security) },
-  { id: "communication", label: "Communication", skills: toNameArray(techSkillCategories.communication) },
-  { id: "management", label: "Management", skills: toNameArray(techSkillCategories.management) },
+  { id: "business", label: "Business", skills: (techSkillCategories.business || []).map(s => s.name) },
+  { id: "productivity", label: "Productivity", skills: (techSkillCategories.productivity || []).map(s => s.name) },
+  { id: "development", label: "Development", skills: (techSkillCategories.development || []).map(s => s.name) },
+  { id: "database", label: "Database", skills: (techSkillCategories.database || []).map(s => s.name) },
+  { id: "education", label: "Education", skills: (techSkillCategories.education || []).map(s => s.name) },
+  { id: "industry", label: "Industry", skills: (techSkillCategories.industry || []).map(s => s.name) },
+  { id: "network", label: "Network", skills: (techSkillCategories.network || []).map(s => s.name) },
+  { id: "system", label: "System", skills: (techSkillCategories.system || []).map(s => s.name) },
+  { id: "security", label: "Security", skills: (techSkillCategories.security || []).map(s => s.name) },
+  { id: "communication", label: "Communication", skills: (techSkillCategories.communication || []).map(s => s.name) },
+  { id: "management", label: "Management", skills: (techSkillCategories.management || []).map(s => s.name) },
 ];
 
 /**
@@ -77,12 +66,12 @@ export default function AbilityAnalyzer({
   onPrev,
   onNext,
 }) {
-  // Normalize incoming (兼容 string / object)
+  // Normalize incoming (keep code/type if provided)
   const normalizeOne = (a) => {
-    if (typeof a === "string") return { name: norm(a), aType: "skill" };
-    const name = norm(a?.name || a?.title || "");
-    const code = a?.code;
-    const aType = a?.aType || a?.type || "skill";
+    if (typeof a === "string") return { name: a, aType: "skill" };
+    const name = a.name || a.title || "";
+    const code = a.code;
+    const aType = a.aType || a.type || "skill";
     return { name, code, aType };
   };
   const normalizedIncoming = (abilities || []).map(normalizeOne);
@@ -90,9 +79,11 @@ export default function AbilityAnalyzer({
   const [localAbilities, setLocalAbilities] = useState(normalizedIncoming);
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
+
+  // Help toggle for the "Add abilities..." question (in Card 2)
   const [qHelpOpen, setQHelpOpen] = useState(false);
 
-  // 拉取 occupation 建议列表并合并
+  // Optionally fetch suggestions by occupationCodes, then merge
   useEffect(() => {
     const codes =
       typeof occupationCodes === "string"
@@ -118,20 +109,20 @@ export default function AbilityAnalyzer({
 
         const fetched = [];
         for (const data of results) {
-          const knowledge = Array.isArray(data?.knowledge_titles) ? data.knowledge_titles : [];
-          const skills = Array.isArray(data?.skill_titles) ? data.skill_titles : [];
-          const techs = Array.isArray(data?.tech_titles) ? data.tech_titles : [];
+          const knowledge = Array.isArray(data.knowledge_titles) ? data.knowledge_titles : [];
+          const skills = Array.isArray(data.skill_titles) ? data.skill_titles : [];
+          const techs = Array.isArray(data.tech_titles) ? data.tech_titles : [];
           fetched.push(
-            ...knowledge.map((x) => ({ name: norm(pickName(x?.title ?? x)), code: x?.code, aType: "knowledge" })),
-            ...skills.map((x) => ({ name: norm(pickName(x?.title ?? x)), code: x?.code, aType: "skill" })),
-            ...techs.map((x) => ({ name: norm(pickName(x?.title ?? x)), code: x?.code, aType: "tech" }))
+            ...knowledge.map((x) => ({ name: x.title, code: x.code, aType: "knowledge" })),
+            ...skills.map((x) => ({ name: x.title, code: x.code, aType: "skill" })),
+            ...techs.map((x) => ({ name: x.title, code: x.code, aType: "tech" }))
           );
         }
 
         // merge by code if present, else by (type+name)
         const map = new Map();
         [...normalizedIncoming, ...fetched].forEach((it) => {
-          const key = it?.code ? `c:${it.code}` : `n:${(it.aType || "skill")}|${normKey(it.name)}`;
+          const key = it.code || `n:${it.name}|${it.aType || "skill"}`;
           if (!map.has(key)) map.set(key, it);
         });
         setLocalAbilities([...map.values()]);
@@ -147,33 +138,27 @@ export default function AbilityAnalyzer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(occupationCodes)]);
 
-  // ---------- Picker 共享状态 ----------
+  // Shared SkillPicker (modal) 状态
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCats, setPickerCats] = useState([]);
   const [pickerTitle, setPickerTitle] = useState("Pick items");
   const [pickerType, setPickerType] = useState("skill"); // 'skill' | 'knowledge' | 'tech'
 
-  // 安全添加（按 aType|name 去重）
+  // 仅按“类型+名称”去重，保证不同类型的同名不会互相影响
   const addMany = (names, aType = "skill") => {
     setLocalAbilities((prev) => {
-      const seen = new Set(prev.map((x) => `${(x.aType || "skill")}|${normKey(x.name)}`));
+      const seen = new Set(prev.map((x) => `${x.aType || "skill"}|${x.name}`));
       const next = [...prev];
       names.forEach((n) => {
-        const nClean = norm(n);
-        const key = `${aType}|${normKey(nClean)}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          next.push({ name: nClean, aType });
-        }
+        const key = `${aType}|${n}`;
+        if (!seen.has(key)) next.push({ name: n, aType });
       });
       return next;
     });
   };
 
   const removeOne = (name, aType) =>
-    setLocalAbilities((xs) =>
-      xs.filter((x) => !(normKey(x.name) === normKey(name) && (x.aType || "skill") === aType))
-    );
+    setLocalAbilities((xs) => xs.filter((x) => !(x.name === name && (x.aType || "skill") === aType)));
 
   const openSkillPicker = () => {
     setPickerTitle("Pick skills by category");
@@ -194,13 +179,13 @@ export default function AbilityAnalyzer({
     setPickerOpen(true);
   };
 
-  // 分组
+  // Group into three lists
   const groups = useMemo(() => {
     const knowledge = [];
     const skill = [];
     const tech = [];
     localAbilities.forEach((it) => {
-      const t = it?.aType || "skill";
+      const t = it.aType || "skill";
       if (t === "knowledge") knowledge.push(it);
       else if (t === "tech") tech.push(it);
       else skill.push(it);
@@ -208,8 +193,8 @@ export default function AbilityAnalyzer({
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // 折叠状态
-  const [openKeys, setOpenKeys] = useState([]); // 默认全部折叠
+  // 折叠开关（默认全部展开）
+  const [openKeys, setOpenKeys] = useState(["knowledge", "tech", "skill"]);
   const toggleKey = (key) =>
     setOpenKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 
@@ -220,22 +205,25 @@ export default function AbilityAnalyzer({
     ? "Please add at least one ability."
     : null;
 
-  // 当前类型已选（回显）
+  // —— 关键修复：仅预选“当前选择器类型”的项目 —— //
   const selectedForCurrentType = useMemo(
-    () => localAbilities.filter((x) => (x.aType || "skill") === pickerType).map((x) => x.name),
+    () =>
+      localAbilities
+        .filter((x) => (x.aType || "skill") === pickerType)
+        .map((x) => x.name),
     [localAbilities, pickerType]
   );
 
-  // 当前分类的名称集合（做大小写无关校验）
-  const currentNamesNormSet = useMemo(() => {
-    const all = (pickerCats || []).flatMap((c) => toNameArray(c?.skills));
-    return new Set(all.map(normKey));
-  }, [pickerCats]);
+  // —— 可选保护：仅接受当前选择器分类中真实存在的名称 —— //
+  const currentNames = useMemo(
+    () => new Set((pickerCats || []).flatMap((c) => c?.skills || [])),
+    [pickerCats]
+  );
 
   return (
     <section className="ability-page">
       <div className="container">
-        {/* Card 1 */}
+        {/* Card 1: step header + instructions（由 StageBox 的 tip props 渲染） */}
         <StageBox
           pill="Step 2"
           title="Your Abilities"
@@ -253,15 +241,17 @@ export default function AbilityAnalyzer({
               <Spin /> <span style={{ marginLeft: 8 }}>Loading abilities…</span>
             </div>
           )}
-          {loadErr && <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />}
+          {loadErr && (
+            <Alert type="warning" showIcon style={{ marginTop: ".5rem" }} message={loadErr} />
+          )}
         </StageBox>
 
-        {/* Card 2 */}
+        {/* Card 2: white background + help + groups + add buttons */}
         <StageBox>
           <div className="ability-second-card">
-            <div className="question-row" style={{ marginBottom: 10 }}>
-              <h3 className="question-title" style={{ margin: 0 }}>Add abilities you already have</h3>
-              <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen((v) => !v)}>
+            <div className="question-row">
+              <h3 className="question-title">Add abilities you already have</h3>
+              <HelpToggle show={qHelpOpen} onToggle={() => setQHelpOpen(v => !v)}>
                 <b>What counts as an “ability”?</b><br />
                 • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”, “Anatomy”).<br />
                 • <i>Tech Skills</i>: tools/technologies you can use (e.g., “Excel”, “React”).<br />
@@ -270,7 +260,10 @@ export default function AbilityAnalyzer({
               </HelpToggle>
             </div>
 
-            <div className="ability-groups-row">
+            <div
+              className="ability-groups-row"
+              style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}
+            >
               {/* Knowledge */}
               <div className="ability-group-card">
                 <div className="ability-group-header">
@@ -337,28 +330,14 @@ export default function AbilityAnalyzer({
           nextDisabledReason={nextDisabledReason}
         />
 
-        {/* Shared SkillPicker */}
+        {/* Shared picker modal; add with current pickerType */}
         <SkillPicker
           open={pickerOpen}
           onClose={() => setPickerOpen(false)}
           onConfirm={(picked) => {
-            // 1) 统一 picked => 纯字符串
-            const names = toNameArray(picked);
-            // 2) 先按“必须在当前分类中存在”过滤（大小写无关）
-            const filtered = names.filter((n) => currentNamesNormSet.has(normKey(n)));
-
-            // 3) 降级策略：如果用户确实选了东西，但因为名称不匹配全被过滤，直接添加，并在控制台给出告警
-            const finalNames =
-              filtered.length > 0 ? filtered : names;
-
-            if (filtered.length === 0 && names.length > 0) {
-              console.warn(
-                "[AbilityAnalyzer] Names not found in current category list. Bypassing filter.",
-                { picked, names, currentCategory: pickerType, currentCats: pickerCats }
-              );
-            }
-
-            addMany(finalNames, pickerType);
+            // 只接受当前选择器分类中真实存在的名称，避免串类误加
+            const filtered = (picked || []).filter((n) => currentNames.has(n));
+            addMany(filtered, pickerType);
             setPickerOpen(false);
           }}
           initiallySelected={selectedForCurrentType}
