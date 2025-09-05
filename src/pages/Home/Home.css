@@ -1,16 +1,12 @@
 .home {
   position: relative;
 min-height: 100vh;
-    /* 默认兜底 */
     min-height: 100dvh;
-    /* 新浏览器更准确 */
     min-height: 100svh;
-    /* Safari */
     overflow-x: hidden;
-    /* 只禁止横向溢出，纵向允许滚动 */
 }
 
-/* 背景层固定铺满 */
+
 .home-bg {
   position: absolute;
 inset: 0;
