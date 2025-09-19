@@ -50,17 +50,17 @@ export default defineConfig(({ mode }) => ({
     // chunkSizeWarningLimit: 1200,
   },
 
-  server: {
-    proxy: {
-      "/api": {
-        target: "https://skillbridge-hnxm.onrender.com",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (p) => p.replace(/^\/api/, ""),
-      },
-    },
-    // Optional dev tweaks:
-    // strictPort: true, // avoid slow retries if port is taken
-    // hmr: { overlay: true },
-  },
+  // server: {
+  //   proxy: {
+  //     "/api": {
+  //       target: "https://skillbridge-hnxm.onrender.com",
+  //       changeOrigin: true,
+  //       secure: true,
+  //       rewrite: (p) => p.replace(/^\/api/, ""),
+  //     },
+  //   },
+  //   // Optional dev tweaks:
+  //   // strictPort: true, // avoid slow retries if port is taken
+  //   // hmr: { overlay: true },
+  // },
 }));
