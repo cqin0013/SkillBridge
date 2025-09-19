@@ -1,14 +1,180 @@
-/* 全局容器布局 */
-.container {
-    max-width: 2000px;
-    margin: 20px auto;
-    padding: 0 12px;
+/* Allow vertical scroll, lock only horizontal (safe on mobile) */
+.no-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
-/* charts 区域：左 heatmap，右 stacked bar */
-.charts {
+/* Layout: StageBox + Map (no forced stretching) */
+.insight-screen {
+    width: 100vw;
+    min-height: 100dvh;
+    height: auto;
     display: grid;
-gap: 12px;
-grid-template-columns: 1fr 1.6fr;
+grid-template-rows: auto auto;
+    /* header row + map row both sized by content */
+    justify-items: center;
+    align-items: start;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    box-sizing: border-box;
 }
 
+/* StageBox container aligned with map width */
+.insight-stage {
+    width: min(90vw, 1200px);
+    box-sizing: border-box;
+    padding: 0 8px;
+}
+
+/* Tighten StageBox inner bottom spacing:
+   - remove bottom margin on last child elements
+   - reduce over-generous bottom paddings if present */
+.insight-stage :where(.ant-card-body, .ant-collapse-content-box) {
+    padding-bottom: 12px;
+}
+
+.insight-stage :where(.ant-card, .ant-collapse, .stagebox, .StageBox) {
+    margin-bottom: 0;
+}
+
+/* Kill last-child bottom margin within StageBox content */
+.insight-stage :where(.ant-card-body, .ant-collapse-content-box, .stagebox, .StageBox) :where(p, ul, ol, h1, h2, h3, h4, h5, h6, div):last-child {
+    margin-bottom: 0;
+}
+
+/* Map container: stable window; page can scroll if needed */
+.insight-map-wrap {
+    width: min(90vw, 1200px);
+    position: relative;
+    /* for absolute citation */
+    box-sizing: border-box;
+    padding: 0 8px 12px;
+    /* small breathing space under the map */
+}
+
+/* The viewport defines the actual map height */
+.map-viewport {
+    height: clamp(420px, 72vh, 720px);
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    justify-items: stretch;
+gap: 12px;
+overflow: visible;
+    /* do not clip the SVG or legend */
+}
+
+/* SVG should fill its parent */
+.map-viewport .rsm-svg {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+}
+
+.map-viewport>* {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Optional narrower width tweaks via JS: .is-mobile is added by useResponsive */
+.insight-screen.is-mobile .insight-stage {
+    width: min(96vw, 600px);
+    padding: 0 4px;
+}
+
+.insight-map-wrap.is-mobile {
+    width: min(96vw, 600px);
+}
+
+/* Bottom sheet (both mobile & desktop) */
+.state-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    display: flex;
+    justify-content: center;
+    z-index: 200;
+    /* above page content */
+    pointer-events: none;
+}
+
+.state-sheet__content {
+    pointer-events: auto;
+    width: min(94vw, 520px);
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.14);
+    padding: 12px;
+}
+
+.state-sheet__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.state-sheet__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.state-sheet__close {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.state-sheet__close:hover,
+.state-sheet__close:focus {
+    color: #111827;
+}
+
+.state-sheet__body {
+    font-size: 14px;
+    color: #374151;
+}
+
+.state-sheet__metric {
+    margin: 0 0 6px;
+}
+
+.state-sheet__hint {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Floating button bottom-right (safe-area friendly) */
+.insight-fab {
+    position: fixed;
+    right: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    z-index: 300;
+    /* above map and footer */
+}
+
+.insight-screen.is-mobile .insight-fab {
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+/* Citation inside map: bottom-left corner */
+.insight-citation {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    font-size: 11px;
+    color: #6b7280;
+}

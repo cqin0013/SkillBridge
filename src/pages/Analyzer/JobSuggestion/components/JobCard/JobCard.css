@@ -1,0 +1,87 @@
+/* ========== JobCard ========== */
+
+/* Wrapper */
+.job-card {
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+/* Selected state */
+.job-card--selected {
+  border: 2px solid var(--color-primary, #1677ff);
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px rgba(22,119,255,.2);
+}
+
+/* Title row: name + selected icon */
+.jobcard-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 允许标题自动换行且不挤压图标 */
+.jobcard-title-name {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.25rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;           /* 允许换行 */
+  overflow-wrap: anywhere;       /* 长单词/长代码也能断行 */
+  word-break: break-word;
+}
+
+/* Skills wrap */
+.jobcard-skillwrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+/* Industry tag 微调 */
+.jobcard-industry-tag {
+  background: #fafafa;
+  border-color: #f0f0f0;
+  color: #595959;
+}
+
+/* “Show more / less” link */
+.jobcard-morelink {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: .875rem;
+  color: var(--color-primary, #1677ff);
+  cursor: pointer;
+}
+.jobcard-morelink:hover { text-decoration: underline; }
+
+/* Collapse tweaks */
+.job-card .ant-collapse > .ant-collapse-item > .ant-collapse-header {
+  padding: 8px 0;
+  font-size: .9rem;
+}
+.job-card .ant-collapse-content-box {
+  padding: 0 0 8px 0;
+}
+/* 让行业标签里的长文本自动换行/断词 */
+.jobcard-industry-tag {
+  display: inline-block;   /* 允许设置宽度和换行 */
+  max-width: 100%;
+  white-space: normal;     /* 允许换行 */
+  overflow-wrap: anywhere; /* 无空格也能断行 */
+  word-break: break-word;  /* 兼容性兜底 */
+  line-height: 1.4;        /* 多行更易读 */
+}
+
+/* 可选：确保行业所在段落也允许断行 */
+.job-card .industry-paragraph {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

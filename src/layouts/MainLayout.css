@@ -1,21 +1,30 @@
-/* 让根节点撑满视口 */
-html, body, #root {
-  height: 100%;
-  margin: 0;
-}
+/* Keep this file scoped to layout to avoid global overrides. */
 
-/* 三段式：Header / Main / Footer */
-.main-layout {
-  height: 100vh;               /* 刚好一屏高 */
+/* Root flex column: makes sticky footer trivial */
+.app-shell {
+  min-height: 100dvh;
+  /* robust viewport units on mobile */
   display: flex;
   flex-direction: column;
 }
 
-/* 中间 main 占据剩余高度，并作为**唯一滚动容器** */
-.main-content {
+/* Main takes leftover space; prevents footer overlap */
+.app-main {
   flex: 1 1 auto;
-  min-height: 0;                /* 允许子元素撑满后滚动 */
-  overflow: auto;               /* 只在 main 里滚动 */
-  display: flex;
-  flex-direction: column;
+  min-height: 0;
+    /* allow children to control their own scroll */
 }
+
+/* Sticky footer:
+   - If your Footer renders <footer>...</footer>, this selector applies.
+   - If it renders <div class="footer">...</div>, the second selector applies. */
+.app-shell>footer,
+.app-shell>.footer {
+  margin-top: auto;
+  /* push footer to the bottom of the page */
+  flex-shrink: 0;
+  /* never shrink the footer */
+}
+
+/* Optional: when the home page hides the footer, nothing else is needed.
+   The layout still fills the viewport via .app-shell min-height. */

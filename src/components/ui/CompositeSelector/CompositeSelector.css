@@ -1,0 +1,8 @@
+/* src/components/shared/CompositeSelector.css */
+.composite-selector { width: 100%; }
+.cs-row { display: block; }
+.cs-title { font-size: 1.05rem; font-weight: 600; margin: 0 0 8px; }
+.cs-divider { height: 16px; }
+.cs-hint { margin-top: 6px; font-size: 0.875rem; color: #6b7280; }
+.cs-error { margin-top: 8px; color: #b91c1c; font-size: 0.9rem; }
+.cs-subtle { display: block; margin-top: 6px; }

@@ -1,18 +1,92 @@
-.home {
-  position: relative;
-min-height: 100vh;
-    min-height: 100dvh;
-    min-height: 100svh;
-    overflow-x: hidden;
+/* ==============================
+   Home.css （仅首页生效）
+   将原 Hero.css 的“Home-only Global Tweaks”
+   改为 .app-shell.is-home 作用域，避免影响其他页面
+   ============================== */
+
+/* 页面基础高度，仅首页需要 */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
 }
 
+/* 首页容器与主区域：可选的首屏不滚动策略 */
+.app-shell.is-home {
+  height: 100%;
+  overflow: hidden;
+  /* 如需滚动，删除这一行 */
+  overscroll-behavior: none;
+  /* 减少 iOS 回弹 */
+}
 
-.home-bg {
-  position: absolute;
-inset: 0;
-  background-image: var(--home-bg, none);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-z-index: -1;
+.app-shell.is-home .app-main {
+  height: 100%;
+  overflow: hidden;
+  /* 如需滚动，删除这一行 */
+}
+
+/* Header：仅首页透明且固定在顶部 */
+.app-shell.is-home .st-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-h, 64px);
+  z-index: 1000;
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+/* 仅首页把 hero 背景“顶到” header 背后 */
+.app-shell.is-home .sb-hero {
+  margin-top: calc(-1 * var(--header-h, 64px));
+  height: calc(100dvh + var(--header-h, 64px));
+  height: calc(100svh + var(--header-h, 64px));
+}
+
+/* Header 内容在深色首屏背景上“反色”处理，仅首页 */
+.app-shell.is-home .brand-name,
+.app-shell.is-home .st-link {
+  color: #f8fafc;
+  text-shadow: 0 2px 10px rgba(2, 6, 23, .45);
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+.app-shell.is-home .st-link:hover,
+.app-shell.is-home .st-link:focus,
+.app-shell.is-home .st-link.is-active,
+.app-shell.is-home .st-link[aria-current="page"] {
+  color: #ffffff;
+  border-bottom-color: rgba(255, 255, 255, .9);
+}
+
+.app-shell.is-home .brand-logo {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .35));
+}
+
+.app-shell.is-home .sb-hero__title {
+  margin: 0 0 10px;
+  font-weight: 900;
+  font-size: clamp(50px, 7vw, 66px);
+  line-height: 1.1;
+  color: #f9fafb;
+  text-shadow: 0 2px 14px rgba(20, 14, 10, .28);
+}
+
+.app-shell.is-home .sb-hero__subtitle {
+  margin: 0 0 22px;
+  font-size: clamp(18px, 3vw, 22px);
+  line-height: 1.55;
+  letter-spacing: .1px;
+  color: #f3eee6;
+  opacity: .96;
+}
+
+/* Hero 内按钮组（维持首页一致间距） */
+.app-shell.is-home .sb-hero__actions {
+  display: inline-flex;
+  gap: 12px;
 }

@@ -1,0 +1,18 @@
+/* 在左栏列内铺满；通过 max-width 控上限（不挤中列） */
+.prev-summary-card {
+  width: 100%;
+  /* max-width: 900px; */
+  box-sizing: border-box;
+}
+
+/* 正确换行 */
+.prev-summary-card .ant-descriptions-item-content,
+.prev-wrap {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* 标签换行友好 */
+.prev-summary-card .ant-tag { margin-bottom: 4px; }

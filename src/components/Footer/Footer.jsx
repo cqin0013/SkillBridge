@@ -1,13 +1,18 @@
+// Minimal footer: always visible, team name only.
+import React from "react";
+import { Layout, Typography } from "antd";
 import "./Footer.css";
 
-export default function Footer() {
+const { Footer } = Layout;
+
+export default function AppFooter() {
   return (
-    <footer className="site-footer">
-      <div className="footer-inner">
-        <p className="footer-text">
-          Made by Stranger Thinks
-        </p>
-      </div>
-    </footer>
+    <Footer
+      className="footer-mini"
+      aria-label="Application footer"
+      role="contentinfo"
+    >
+      <Typography.Text type="secondary">Stranger Thinks</Typography.Text>
+    </Footer>
   );
 }

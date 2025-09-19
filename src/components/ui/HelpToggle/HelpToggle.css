@@ -1,0 +1,56 @@
+/* src/components/ui/HelpToggle/HelpToggle.css */
+
+/* Popover 内容宽度保持适中 */
+.help-popover {
+  max-width: 360px;
+}
+
+/* 基础：让按钮内容完全居中，去掉多余内边距影响 */
+.help-toggle {
+  display: inline-grid;
+  place-items: center;
+  padding: 0 !important;
+  line-height: 1;
+}
+
+/* ===== 小圈大问号：尺寸变量 =====
+   你可以按需改这里的三个变量：
+   --help-diameter: 外圈直径
+   --help-icon:     图标基础字号
+   --help-scale:    额外放大倍数（在字号基础上再放大） */
+.help-toggle--compact {
+  --help-diameter: 28px;
+  --help-icon: 22px;
+  --help-scale: 1.12;
+}
+
+/* 强制外圈尺寸（覆盖 AntD circle 的默认宽高） */
+.help-toggle--compact.ant-btn,
+.help-toggle--compact.ant-btn.ant-btn-circle,
+.help-toggle--compact.ant-btn.ant-btn-icon-only {
+  width: var(--help-diameter);
+  height: var(--help-diameter);
+  min-width: var(--help-diameter);
+  padding: 0 !important;
+}
+
+/* 让图标更大一些，并微调对齐 */
+.help-toggle--compact .ant-btn-icon .anticon {
+  font-size: var(--help-icon);
+  transform: scale(var(--help-scale)); /* 进一步放大问号 */
+  line-height: 1;
+  /* 可选：略微下移 0.5px，视觉更居中
+     transform: translateY(0.5px) scale(var(--help-scale)); */
+}
+
+/* 避免按钮因为字体增大而被撑开（保险） */
+.help-toggle--compact .ant-btn-icon {
+  display: inline-grid;
+  place-items: center;
+}
+
+/* 让圆形更紧凑的同时保持主色外观 */
+.help-toggle--compact.ant-btn-primary {
+  /* 这里一般不需要改颜色；若要更小的视觉占比，可减弱阴影（如果你有全局按钮阴影的话） */
+  box-shadow: none;
+}

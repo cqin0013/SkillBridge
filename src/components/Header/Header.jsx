@@ -1,69 +1,85 @@
-// Header.jsx
-// Purpose: Main site header with brand logo, navigation links, and a responsive menu button.
-// - Shows logo + brand name on the left (clickable link to home).
-// - Navigation links on the right (Analyzer, Profile).
-// - On small screens, a hamburger menu toggles the nav open/closed.
-
-import React, { useState } from "react";
-import { NavLink, Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import StrangerThinkLogo from "../../assets/images/StrangerThink.png";
+import useResponsive from "../../lib/hooks/useResponsive";
 import "./Header.css";
-import StrangerThinkLogo from "../../assets/images/StrangerThink.jpg"; // Import local logo image
 
-// Utility function to compute NavLink class based on active state
-const linkClass = ({ isActive }) =>
-  `st-link${isActive ? " is-active" : ""}`;
+// Keep gold underline only; active state handled by CSS class
+const linkClass = ({ isActive }) => `st-link${isActive ? " is-active" : ""}`;
 
-const Header = () => {
-  // State for mobile nav menu toggle
+export default function Header() {
+  const { isDesktop, isMobile } = useResponsive();
   const [open, setOpen] = useState(false);
+  const navRef = useRef(null);
+  const btnRef = useRef(null);
+  const { pathname } = useLocation();
+
+  // Close dropdown when route changes
+  useEffect(() => setOpen(false), [pathname]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (
+        navRef.current && !navRef.current.contains(e.target) &&
+        btnRef.current && !btnRef.current.contains(e.target)
+      ) setOpen(false);
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
+  // Close with ESC
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <header className="st-header" aria-label="Main navigation">
-      {/* Left: Brand area (logo + brand name) */}
-      <div className="st-brand" aria-label="SkillBridge brand">
-        <img
-          src={StrangerThinkLogo}
-          alt="SkillBridge Logo"
-          className="brand-logo"
-        />
-        {/* Brand name links back to homepage */}
-        <Link to="/" className="brand-name">
-          SkillBridge
-        </Link>
-      </div>
+      <Link to="/" className="st-brand" aria-label="SkillBridge home">
+        <img src={StrangerThinkLogo} alt="SkillBridge logo" className="brand-logo" />
+        <span className="brand-name">SkillBridge</span>
+      </Link>
 
-      {/* Right: Navigation links (desktop and mobile) */}
-      <nav className={`st-nav ${open ? "is-open" : ""}`} aria-label="Primary">
-        {/* Special case: Home link only visible/needed on mobile nav */}
-        <NavLink to="/" className={`${linkClass} st-link-home`}>
-          Home
-        </NavLink>
+      {/* Desktop: inline nav on the right */}
+      {isDesktop && (
+        <nav id="primary-nav" className="st-nav" aria-label="Primary">
+          <NavLink to="/Analyzer" className={linkClass}>Analyzer</NavLink>
+          <NavLink to="/Profile"  className={linkClass}>Profile</NavLink>
+          <NavLink to="/Insight"  className={linkClass}>Insight</NavLink>
+        </nav>
+      )}
 
-        {/* Analyzer link */}
-        <NavLink to="/Analyzer" className={linkClass}>
-          Analyzer
-        </NavLink>
+      {/* Mobile: hamburger + dropdown */}
+      {isMobile && (
+        <>
+          <nav
+            id="primary-nav"
+            ref={navRef}
+            className={`st-nav ${open ? "is-open" : ""}`}
+            aria-label="Primary"
+          >
+            <NavLink to="/Analyzer" className={linkClass}>Analyzer</NavLink>
+            <NavLink to="/Profile"  className={linkClass}>Profile</NavLink>
+            <NavLink to="/Insight"  className={linkClass}>Insight</NavLink>
+          </nav>
 
-        {/* Profile link */}
-        <NavLink to="/profile" className={linkClass}>
-          Profile
-        </NavLink>
-      </nav>
-
-      {/* Mobile menu toggle button ("hamburger") */}
-      <button
-        className="st-menu"
-        aria-label="Toggle menu"      // Accessible label for screen readers
-        aria-expanded={open}         // Reflects open/closed state for accessibility
-        onClick={() => setOpen(!open)} // Toggle open state
-      >
-        {/* Three bars of the hamburger icon */}
-        <span className="st-bar" />
-        <span className="st-bar" />
-        <span className="st-bar" />
-      </button>
+          <button
+            ref={btnRef}
+            className="st-menu"
+            aria-label="Toggle menu"
+            aria-controls="primary-nav"
+            aria-expanded={open}
+            onClick={() => setOpen(v => !v)}
+          >
+            <span className="st-bar" />
+            <span className="st-bar" />
+            <span className="st-bar" />
+          </button>
+        </>
+      )}
     </header>
   );
-};
-
-export default Header;
+}

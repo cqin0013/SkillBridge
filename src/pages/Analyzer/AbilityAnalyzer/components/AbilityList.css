@@ -1,0 +1,50 @@
+/* ===== AbilityList (clean + mobile friendly) ===== */
+
+.abl-empty {
+  color: var(--color-muted, #8c8c8c);
+  font-size: 13px;
+}
+.abl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: .25rem;
+}
+
+.abl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  background: #fafafa;
+  transition: background 0.2s ease;
+}
+
+
+.abl-name {
+  font-size: clamp(13px, 2.6vw, 14px);
+  font-weight: 500;
+  color: #1f1f1f;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.abl-controls {
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+/* 低调的 Remove：中性灰，不使用 danger 红色 */
+.abl-controls .abl-remove-btn.ant-btn-text {
+  color: #595959;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.abl-controls .abl-remove-btn.ant-btn-text:hover {
+  background: #f0f0f0;
+  color: #262626;
+}
+

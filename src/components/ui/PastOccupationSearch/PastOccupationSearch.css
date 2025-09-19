@@ -1,0 +1,97 @@
+/* Container for each list item */
+
+
+/* Action buttons area */
+.pos__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+/* 让每条结果项改为“上下两行结构”：主行 + 详情行 */
+.pos__item.ant-list-item {
+  display: flex;           /* 覆盖 antd 默认 flex 行内布局 */
+  flex-direction: column;  /* 纵向堆叠：主行在上，详情在下 */
+  align-items: stretch;    /* 主行与详情都拉满宽度 */
+}
+/* Make buttons same min width so they align nicely */
+.pos__actions .ant-btn {
+  min-width: 84px;
+}
+
+/* ---- Modal body: limit height and enable scroll, prevent overflow ---- */
+.pos-modal .ant-modal-body {
+  max-height: 60vh;          /* content scrolls inside modal */
+  overflow: auto;
+}
+
+/* ---- List item basic ---- */
+.pos__item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  overflow: hidden;           /* clip any accidental overflow */
+}
+
+/* ---- Main row: title left, actions right (never overflow) ---- */
+.pos__main {
+  display: grid;
+  grid-template-columns: 1fr auto;  /* left grows, right hugs content */
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+}
+
+/* left title: allow shrink and wrap safely */
+.pos__title {
+  min-width: 0;                      /* allow ellipsis clamp */
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;               /* single line on wide screen */
+}
+
+/* right actions: keep on same row, but allow wrapping on very narrow */
+.pos__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;                   /* if too narrow, buttons wrap within the area */
+  max-width: 100%;
+}
+
+/* DO NOT force a large min width; let buttons shrink naturally to avoid overflow */
+/* If you previously set min-width on buttons, remove it or make it smaller */
+.pos__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;     /* 太窄时按钮自己折到下一行，但仍在右侧 */
+  max-width: 100%;
+}
+
+/* ---- Detail block: always on its own line, and wrap long text ---- */
+.pos__details {
+  margin-top: 8px;
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* meta look */
+.pos__meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ---- Small screens: let title wrap, keep actions right but not overflowing ---- */
+@media (max-width: 575px) {
+  .pos__title {
+    white-space: normal;             /* allow multi-line title on narrow width */
+  }
+  .pos__actions {
+    margin-left: auto;               /* keep aligned to the right edge */
+  }
+}

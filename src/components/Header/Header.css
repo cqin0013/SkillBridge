@@ -1,14 +1,21 @@
-:root {
-  --st-bg: #fff;
-  --st-ink: #0a1a2f;
-  --st-ink-sub: #173047;
-  --st-active: #0f73b6;
-  --st-underline: #f2be25;
-  --st-focus: #ffd54d;
-  --st-header-h: 52px;
+/* ================= Base: height & type scale ================= */
+.st-header {
+  height: var(--header-h, 64px);
+  --brand-font-size: 1.25rem;
+  /* brand & nav text size */
 }
 
-/* Header */
+/* Palette + explicit accent */
+:root {
+  --hdr-bg: #fff;
+    --hdr-fg: #0f172a;
+    --hdr-fg-sub: #334155;
+    --hdr-border: #e5e7eb;
+    --brand-accent: #f59e0b;
+    /* gold underline */
+}
+
+/* Header layout */
 .st-header {
   position: sticky;
   top: 0;
@@ -16,61 +23,62 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--st-bg);
-  height: var(--st-header-h);
-  padding: 0 16px;
-    border-bottom: 1px solid #e5e7eb;
+    /* brand left, nav right */
+    background: var(--hdr-bg);
+    padding: 0 18px;
+    border-bottom: 1px solid var(--hdr-border);
 }
 
-/* Brand */
+/* ================= Brand (logo + text) ================= */
 .st-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--st-ink);
-  font-weight: 800;
-  font-size: 1rem;
+  gap: 10px;
+    color: var(--hdr-fg);
+    font-weight: 900;
+    font-size: var(--brand-font-size);
   text-decoration: none;
+  transition: color .2s, transform .12s ease, filter .18s ease;
 }
 .brand-logo {
-  height: 36px;
+  height: clamp(32px, calc(var(--header-h, 64px) - 20px), 72px);
+    width: auto;
+  }
+  
+  .brand-name {
+    display: inline-block;
+    font-weight: 900;
+    letter-spacing: .3px;
+    color: var(--hdr-fg-sub);
+    border-bottom: 2px solid transparent;
+    transition: border-color .2s, transform .12s ease;
 }
 
-/* Nav */
+/* ================= Right-side nav ================= */
 .st-nav {
   display: flex;
-  gap: 14px;
+  gap: 16px;
 }
 .st-link {
-  color: var(--st-ink-sub);
-  font-weight: 600;
+  color: var(--hdr-fg-sub);
+    font-size: var(--brand-font-size);
+    font-weight: 700;
   text-decoration: none;
   border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
+  transition: border-color .2s, transform .12s;
 }
+/* Keep ONLY gold underline on hover/active; don't change text color */
 .st-link:hover,
-.st-link:focus {
-  color: var(--st-active);
-  border-bottom-color: var(--st-underline);
-}
+.st-link:focus,
 .st-link.is-active,
 .st-link[aria-current="page"] {
-  color: var(--st-active);
-  border-bottom-color: var(--st-underline);
-  font-weight: 700;
-}
-.st-link:focus-visible {
-  outline: 2px solid var(--st-focus);
-  outline-offset: 2px;
+  border-bottom-color: var(--brand-accent);
 }
 
-/* 默认隐藏 Home 链接（只在 mobile 出现） */
-.st-link-home {
-  display: none;
-}
-/* Mobile menu button */
+/* ================= Mobile hamburger ================= */
 .st-menu {
   display: none;
+    /* hidden on desktop via CSS, shown in mobile scope */
   background: none;
   border: 0;
   padding: 6px;
@@ -78,51 +86,49 @@
 }
 .st-bar {
   display: block;
-  width: 20px;
+  width: 22px;
   height: 2px;
-  background: var(--st-ink-sub);
+  background: var(--hdr-fg-sub);
   margin: 3px 0;
   border-radius: 2px;
 }
 
-/* Mobile layout */
+/* ============== Mobile dropdown & hamburger visibility ============== */
 @media (max-width: 768px) {
-  .brand-name {
-    display: none;
-    }
-    
-    /* Logo only */
-    .st-menu {
-      display: block;
-    }
-    
-    /* show burger */
+  /* Dropdown panel (hidden by default, absolute under header) */
     .st-nav {
       display: none;
     position: absolute;
-    top: var(--st-header-h);
+    top: var(--header-h, 64px);
     right: 12px;
-    background: var(--st-bg);
+    background: var(--hdr-bg);
     flex-direction: column;
     padding: 8px;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    border: 1px solid var(--hdr-border);
+      border-radius: var(--sb-borderRadius, 8px);
+      box-shadow: 0 10px 28px rgba(2, 6, 23, .08);
   }
     .st-nav.is-open {
       display: flex;
     }
   
     .st-link {
-      padding: 8px;
+    padding: 8px 10px;
       border-bottom: 0;
     }
-  
-    .st-link:hover {
-    background: rgba(15, 115, 182, 0.06);
-      border-radius: 4px;
+    /* Show hamburger only on mobile */
+    .st-menu {
+      display: block;
     }
-/* 移动端显示 Home 链接 */
-.st-link-home {
-  display: block;
-}
+    }
+/* ============== Intro theme: make header overlay (transparent) ============== */
+/* When page applies "intro-theme" class to <html> or <body>,
+   let background/hero visually cover behind header. */
+.intro-theme .st-header {
+  background: transparent;
+  border-bottom-color: transparent;
+  position: absolute;
+  /* overlay on top of hero */
+  left: 0;
+  right: 0;
 }

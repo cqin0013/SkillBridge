@@ -1,0 +1,123 @@
+/* =========================================================
+ * IndustrySelect – Full stylesheet (AntD v5)
+ * Notes:
+ *  - className 直接挂在 antd <Select> 根节点：industry-select
+ *  - 如需固定高度与 Input/Button 完全一致，可额外加类：h-40
+ *  - 若多选标签不在输入框内渲染（tagRender: null），建议给 <Select> 再加类：tagless
+ *    这样多选也可固定高度，不用自适应换行
+ * ========================================================= */
+
+:root {
+  --isel-h: 40px;         /* 统一高度变量：改成 38px 也OK */
+  --isel-pad-x: 11px;     /* 与 Input 视觉对齐的左右内边距 */
+}
+
+/* ---------- Base width ---------- */
+.industry-select-wrapper { width: 100%; }
+.industry-select {
+  width: 100%;
+  min-width: 0;            /* 作为 grid 子项时可收缩，避免把列撑破 */
+}
+
+/* ---------- Focus appearance ---------- */
+/* 去掉强蓝色外发光；保留边框色变化 */
+.industry-select.ant-select-focused .ant-select-selector,
+.industry-select .ant-select-selector:focus,
+.industry-select .ant-select-selector:focus-visible,
+.industry-select .ant-select-selection-search-input:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* ---------- SINGLE SELECT（内容垂直居中） ---------- */
+.industry-select.ant-select-single .ant-select-selector {
+  display: flex;
+  align-items: center;          /* 垂直居中 */
+  padding-inline: var(--isel-pad-x);
+  height: auto;                 /* 高度由 size 或工具类控制 */
+  box-sizing: border-box;
+}
+.industry-select.ant-select-single
+  .ant-select-selector .ant-select-selection-item,
+.industry-select.ant-select-single
+  .ant-select-selector .ant-select-selection-placeholder {
+  line-height: normal;          /* 跟随容器，不写死行高 */
+}
+
+/* ---------- MULTI SELECT（两种模式） ---------- */
+/* A) 默认：在选择框内渲染 tags → 自适应多行换行 */
+.industry-select.ant-select-multiple:not(.tagless) .ant-select-selector {
+  min-height: calc(var(--isel-h) - 2px);  /* 给个舒服的最小高度 */
+  height: auto;
+  display: flex;
+  align-items: flex-start;                 /* 多行 tags 顶端对齐 */
+  white-space: normal;                     /* 允许换行 */
+  padding: 4px var(--isel-pad-x);
+  box-sizing: border-box;
+}
+.industry-select.ant-select-multiple:not(.tagless)
+  .ant-select-selection-overflow {
+  flex-wrap: wrap;                         /* 多行换行 */
+}
+.industry-select .ant-select-selection-item { margin-bottom: 4px; }
+.industry-select .ant-select-selection-search-input {
+  height: auto !important;
+  min-height: calc(var(--isel-h) - 8px);   /* 搜索输入大致跟随高度 */
+}
+
+/* B) tagless：多选标签不在输入框内显示（你当前用法），则可固定高度 */
+.industry-select.tagless .ant-select-selector {
+  height: var(--isel-h);
+  display: flex;
+  align-items: center;
+  padding-inline: var(--isel-pad-x);
+  box-sizing: border-box;
+  overflow: hidden;                         /* 保持固定高的视觉 */
+}
+.industry-select.tagless .ant-select-selection-search-input {
+  height: calc(var(--isel-h) - 2px);
+}
+
+/* ---------- FIXED HEIGHT utility：h-40（与 Input/Button 完全等高） ---------- */
+/* 给 <Select> / <Input> / <Button> 同时加 class="h-40" 即可 */
+.h-40.ant-input {
+  height: 40px;
+  line-height: 40px;                        /* 文本垂直居中 */
+}
+.h-40.ant-btn {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 16px;
+}
+
+/* Select 固定 40px 高（若走 38px 体系就把 40 改 38，并把 38 改 36） */
+.h-40.ant-select .ant-select-selector {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--isel-pad-x);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.h-40.ant-select-single .ant-select-selector
+  .ant-select-selection-item,
+.h-40.ant-select-single .ant-select-selector
+  .ant-select-selection-placeholder {
+  line-height: 38px;
+}
+.h-40.ant-select-multiple .ant-select-selection-search-input {
+  height: 38px;
+}
+
+/* ---------- Dropdown contrast (optional) ---------- */
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background: #e6f4ff !important;       /* 选中项浅蓝底 */
+}
+.ant-select-item-option-selected .ant-select-item-option-content {
+  color: #1f2937 !important;            /* 深色文字提高对比 */
+}
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: #f5f5f5 !important;       /* 悬停浅灰 */
+}

@@ -1,0 +1,77 @@
+:root {
+  --wiz-track: #e5e7eb;          /* Track color */
+  --wiz-fill-start: #60a5fa;     /* Gradient start */
+  --wiz-fill-end: #8b5cf6;       /* Gradient end */
+}
+
+/* Wrapper container */
+.wiz-progress {
+  width: 100%;
+  padding: 6px 0;
+}
+
+/* Row: progress + label in one line */
+.wiz-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Make antd progress bar fill remaining width */
+.wiz-progress-bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Progress inner track */
+.wiz-progress .ant-progress-inner {
+  background: var(--wiz-track);
+  border-radius: 999px !important;
+  height: 10px !important;
+}
+
+/* Progress fill (gradient) */
+.wiz-progress .ant-progress-bg {
+  background: linear-gradient(90deg, var(--wiz-fill-start), var(--wiz-fill-end)) !important;
+  border-radius: 999px !important;
+  height: 10px !important;
+}
+
+/* Label */
+.wiz-progress-label {
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .wiz-progress .ant-progress-bg {
+    transition: none !important;
+  }
+}
+
+/* Small screen: reduce bar height */
+@media (max-width: 520px) {
+  .wiz-progress {
+    padding: 4px 0;
+  }
+  .wiz-progress .ant-progress-inner,
+  .wiz-progress .ant-progress-bg {
+    height: 8px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .wiz-progress .ant-progress-inner,
+  .wiz-progress .ant-progress-bg {
+    height: 7px !important;
+  }
+}
+
+/* Dark mode track */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --wiz-track: #1f2937;
+  }
+}

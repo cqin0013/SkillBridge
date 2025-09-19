@@ -1,70 +1,75 @@
 // /pages/profile/Profile.jsx
-// Purpose: Display, edit, clear, and export a user's Learning Roadmap.
-// - Reads roadmap steps from a local store (utils/roadmapStore)
-// - Provides an editor in a Drawer to modify steps
-// - Exports the visible roadmap DOM to a PDF
-// - Uses a StageBox at top to give consistent guidance and context
-
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, Empty, Button, Drawer, Space, Popconfirm, message } from "antd";
 import dayjs from "dayjs";
 import { getRoadmap, clearRoadmap } from "../../utils/roadmapStore";
 import { exportNodeToPdf } from "../../utils/exportPDF";
-import Roadmap from "../../components/ui/RoadMap";      // Visual read-only roadmap view (mind the exact filename/casing)
-import RoadmapEditor from "../../components/ui/RoadmapEditor"; // Editor UI for adding/reordering/removing steps
-
-// Consistent top section that shows a pill, title, subtitle and a collapsible tip
-import StageBox from "../../components/ui/StageBox";
+import Roadmap from "../../components/ui/RoadMap/RoadMap.jsx";
+import RoadmapEditor from "../../components/ui/RoadMap/RoadmapEditor";
+import StageBox from "../../components/ui/StageBox/StageBox";
+import PrevSummary from "../../components/ui/PrevSummary/PrevSummary";
+import { INDUSTRY_OPTIONS } from "../../lib/constants/industries";
 
 export default function Profile() {
-  // 'steps' is an ordered list of roadmap items displayed by <Roadmap />
   const [steps, setSteps] = useState([]);
-
-  // Drawer visibility for the editor
   const [open, setOpen] = useState(false);
-
-  // Export state to disable the button and show spinner while exporting
   const [exporting, setExporting] = useState(false);
-
-  // Ref that wraps the roadmap content we want to export as a PDF
   const roadmapRef = useRef(null);
 
-  // Load roadmap from local store on first mount
+  // PrevSummary data
+  const [prev, setPrev] = useState({
+    roles: [],
+    stateCode: "All",
+    industryIds: [],
+    targetJobTitle: "",
+    targetJobCode: "",
+    abilitiesCount: 0,
+  });
+
+  // 兼容数组 & 对象两种返回
   useEffect(() => {
     const data = getRoadmap();
-    // Store shape: { steps: [{ title: string, desc?: string, date?: string, ... }, ...] }
-    setSteps(data?.steps || []);
+    setSteps(Array.isArray(data) ? data : (data?.steps || []));
+    try {
+      const raw = sessionStorage.getItem("sb_profile_prev");
+      const base = raw ? JSON.parse(raw) : {};
+      let abilitiesCount = base?.abilitiesCount ?? 0;
+      if (!abilitiesCount) {
+        const metaRaw = sessionStorage.getItem("sb_selections_meta");
+        const meta = metaRaw ? JSON.parse(metaRaw) : null;
+        abilitiesCount = meta?.counts?.total ?? 0;
+      }
+      setPrev({
+        roles: base?.roles || [],
+        stateCode: base?.stateCode || "All",
+        industryIds: base?.industryIds || [],
+        targetJobTitle: base?.targetJobTitle || "",
+        targetJobCode: base?.targetJobCode || "",
+        abilitiesCount,
+      });
+    } catch {}
   }, []);
 
-  // Open the Drawer for editing
+  const industryNameMap = useMemo(() => {
+    const m = new Map();
+    (INDUSTRY_OPTIONS || []).forEach((o) => m.set(o.id, o.name));
+    return m;
+  }, []);
+  const industryNames = useMemo(
+    () => (prev.industryIds || []).map((id) => industryNameMap.get(id) || id),
+    [prev.industryIds, industryNameMap]
+  );
+
   const onEdit = () => setOpen(true);
+  const onClose = (updated) => { if (updated) setSteps(updated); setOpen(false); };
+  const onClear = () => { clearRoadmap(); setSteps([]); message.success("Roadmap cleared."); };
 
-  // Close the Drawer; if editor returns updated steps, apply them
-  const onClose = (updated) => {
-    if (updated) setSteps(updated);
-    setOpen(false);
-  };
-
-  // Clear the saved roadmap and UI state
-  const onClear = () => {
-    clearRoadmap();
-    setSteps([]);
-    message.success("Roadmap cleared.");
-  };
-
-  // Export the current visual roadmap (DOM) to PDF
   const onExportPdf = async () => {
-    if (!roadmapRef.current) return; // Nothing to export if the ref is not set
-
+    if (!roadmapRef.current) return;
     try {
       setExporting(true);
-
-      // Filename is timestamped, e.g. Roadmap_20250131_1530.pdf
       const filename = `Roadmap_${dayjs().format("YYYYMMDD_HHmm")}.pdf`;
-
-      // Uses a utility (e.g. html2canvas + jsPDF under the hood) to export the node
       await exportNodeToPdf(roadmapRef.current, filename);
-
       message.success("Roadmap PDF exported.");
     } catch (e) {
       console.error(e);
@@ -75,26 +80,27 @@ export default function Profile() {
   };
 
   return (
-    // Outer container; page-level paddings can be adjusted in global styles
     <div className="container" style={{ padding: 16 }}>
+      <div style={{ marginBottom: 12 }}>
+        <PrevSummary
+          pillText="Your info"
+          roles={prev.roles}
+          locationLabel={prev.stateCode}
+          industries={industryNames}
+          abilitiesCount={prev.abilitiesCount}
+          targetJobTitle={prev.targetJobTitle}
+          targetJobCode={prev.targetJobCode}
+        />
+      </div>
+
       <Card
         title="My Learning Roadmap"
-        // Action buttons in the card header; only show when we actually have steps
         extra={
           <Space wrap>
             {steps?.length > 0 && (
               <>
-                {/* Open the editor Drawer */}
-                <Button onClick={onEdit} type="primary">
-                  Edit Roadmap
-                </Button>
-
-                {/* Export the rendered roadmap to a PDF file */}
-                <Button onClick={onExportPdf} loading={exporting}>
-                  Export PDF
-                </Button>
-
-                {/* Clear all steps with a confirmation prompt */}
+                <Button onClick={onEdit} type="primary">Edit Roadmap</Button>
+                <Button onClick={onExportPdf} loading={exporting}>Export PDF</Button>
                 <Popconfirm
                   title="Clear roadmap?"
                   description="This will remove all steps in your roadmap."
@@ -109,18 +115,14 @@ export default function Profile() {
           </Space>
         }
       >
-        {/* Consistent explanatory header using StageBox */}
         <StageBox
-          pill="Step: Roadmap"                 // Small pill label for context
-          title="Roadmap Overview"            // Main heading for this page section
+          pill="Step: Roadmap"
+          title="Roadmap Overview"
           subtitle="Follow the stages below to track your progress."
           tipTitle="How to use this page"
           tipContent={
             <>
-              <p>
-                This page shows your learning or project roadmap. Each stage has a title,
-                optional date, and a short description.
-              </p>
+              <p>This page shows your learning or project roadmap. Each stage has a title, optional date, and a short description.</p>
               <p>
                 Use <strong>Edit Roadmap</strong> to add, remove, or reorder stages.
                 Click <strong>Export PDF</strong> to download a snapshot of your current roadmap.
@@ -132,25 +134,19 @@ export default function Profile() {
               </p>
             </>
           }
-          defaultTipOpen={true}               // Show the guidance by default on first visit
+          defaultTipOpen={true}
         />
 
         {steps?.length ? (
-          // When steps exist: show the read-only roadmap.
-          // The wrapper div is what gets exported to PDF.
           <div ref={roadmapRef}>
             <Roadmap steps={steps} />
           </div>
         ) : (
-          // Empty state when there is no roadmap:
-          // Provide a primary action to create/edit and disable export
           <div style={{ textAlign: "center" }}>
             <Empty description="You already match your target job well. No roadmap needed." />
             <div style={{ marginTop: 12 }}>
               <Space>
-                <Button type="primary" onClick={() => setOpen(true)}>
-                  Create / Edit Roadmap
-                </Button>
+                <Button type="primary" onClick={() => setOpen(true)}>Create / Edit Roadmap</Button>
                 <Button disabled>Export PDF</Button>
               </Space>
             </div>
@@ -158,16 +154,13 @@ export default function Profile() {
         )}
       </Card>
 
-      {/* Drawer hosts the interactive RoadmapEditor.
-         'destroyOnClose' ensures a clean state each time the Drawer closes. */}
       <Drawer
         title={steps?.length ? "Edit Learning Roadmap" : "Create Learning Roadmap"}
         width={820}
         open={open}
         onClose={() => onClose()}
-        destroyOnClose
+        destroyOnHidden   // fix deprecated destroyOnClose
       >
-        {/* Editor returns updated steps to parent via onClose(updated) */}
         <RoadmapEditor initial={steps} onClose={onClose} />
       </Drawer>
     </div>

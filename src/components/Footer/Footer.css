@@ -1,58 +1,22 @@
-/* Ultra-flat & compact footer */
-.site-footer {
-background: #fff;
-    border-top: 1px solid #e5e7eb;
-font-size: .6875rem;
-    /* ~11px */
-    line-height: 1.2;
-color: #6b7280;
-    text-align: center;
-position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 20;
-
-    width: 100%;
-    padding: .3125rem 0 calc(.3125rem + var(--safe-bottom));
-}
-
-/* inner layout */
-.footer-inner {
-max-width: 1200px;
-    margin-inline: auto;
-    padding-inline: 12px;
-display: flex;
+/* Compact footer: centered, unobtrusive, always visible */
+.footer-mini.ant-layout-footer {
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: 22px;
+    /* keep your original compact height */
+    display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-flex-wrap: wrap;
-}
-/* link format */
-.site-footer a {
-    color: inherit;
-    text-decoration: underline 0.05em dotted;
-    text-underline-offset: 1px;
-}
-.site-footer a:hover {
-    text-decoration-style: solid;
-    color: #374151;
+justify-content: center;
+background: #fff;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    text-align: center;
 }
 
-@media (max-width: 640px) {
-    .footer-inner {
-        justify-content: center;
-        gap: 6px;
-    }
+/* Team name text */
+.footer-mini .ant-typography {
+    margin: 0;
+font-size: 12px;
+    line-height: 1;
 }
 
-:root {
---footer-h: 36px;
-
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-body {
-margin: 0;
-    padding-bottom: calc(var(--footer-h) + var(--safe-bottom));
-}
+/* Removed .footer-hidden since it's no longer used */
