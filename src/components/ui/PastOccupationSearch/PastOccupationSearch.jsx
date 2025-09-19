@@ -13,8 +13,9 @@ import {
   Space,
   Tag,
 } from "antd";
-import { API_BASE, MAX_SELECT } from "../../../lib/constants/app";
+import { MAX_SELECT } from "../../../lib/constants/app";
 import { INDUSTRY_OPTIONS } from "../../../lib/constants/industries";
+import { getApiBase } from "../../../lib/api/occupationsApi"; // ✅ use centralized API base
 import "./PastOccupationSearch.css";
 
 const { Paragraph, Text } = Typography;
@@ -23,6 +24,7 @@ export default function PastOccupationSearch({
   selected: selectedProp,
   onChangeSelected: onChangeSelectedProp,
 }) {
+  // --------------------- Local state ---------------------
   const [selected, setSelected] = useState(
     Array.isArray(selectedProp) ? selectedProp : []
   );
@@ -35,6 +37,7 @@ export default function PastOccupationSearch({
   const [tipAfterAction, setTipAfterAction] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // --------------------- Sync with parent ---------------------
   const syncSelected = (next) => {
     setSelected(next);
     try {
@@ -54,12 +57,12 @@ export default function PastOccupationSearch({
     [selected]
   );
 
+  // --------------------- Search logic ---------------------
   const handleSearch = async () => {
     const q = titleKw.trim();
     setErrorMsg("");
     setTipAfterAction("");
 
-    // ✅ 新增：必须先选 industry
     if (!industryId) {
       setErrorMsg("Please select a past industry before searching.");
       return;
@@ -76,11 +79,15 @@ export default function PastOccupationSearch({
     try {
       setSearchLoading(true);
       setResults([]);
+
+      const API_BASE = getApiBase(); // ✅ always resolve base here
       const url = `${API_BASE}/occupations/search-and-titles?s=${encodeURIComponent(
         q
       )}&include=title,description&limit=10`;
+
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Search failed: ${res.status}`);
+
       const data = await res.json();
       const items = Array.isArray(data?.items) ? data.items : [];
       const list = items.map((it) => ({
@@ -90,13 +97,15 @@ export default function PastOccupationSearch({
         occupation_industry: industryId,
       }));
       setResults(list);
-    } catch {
+    } catch (err) {
       setResults([]);
+      setErrorMsg(err.message || "Search failed. Please try again.");
     } finally {
       setSearchLoading(false);
     }
   };
 
+  // --------------------- Selection handlers ---------------------
   const toggleDetails = (code) => {
     setExpandedCodes((prev) => {
       const next = new Set(prev);
@@ -110,7 +119,7 @@ export default function PastOccupationSearch({
     if (selectedCodes.has(item.occupation_code)) return;
     const next = [...selected, item].slice(0, MAX_SELECT);
     syncSelected(next);
-    // ✅ 修改：只有没满 5 个时才显示 “Added…” 的提示
+
     if (next.length < MAX_SELECT) {
       setTipAfterAction("Added. You can search again or try another keyword.");
     } else {
@@ -124,6 +133,7 @@ export default function PastOccupationSearch({
     setTipAfterAction("Removed. You can search again or refine your keywords.");
   };
 
+  // --------------------- Render ---------------------
   return (
     <>
       {/* Search form */}
@@ -206,7 +216,7 @@ export default function PastOccupationSearch({
         }
         onCancel={() => setPickerOpen(false)}
         footer={null}
-        destroyOnHidden
+        destroyOnHide
         maskClosable={false}
       >
         {searchLoading ? (
@@ -290,7 +300,7 @@ export default function PastOccupationSearch({
             }}
           />
         )}
-      </Modal >
+      </Modal>
     </>
   );
 }
