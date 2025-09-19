@@ -6,7 +6,7 @@ import useResponsive from "../../lib/hooks/useResponsive";
 import StageBox from "../../components/ui/StageBox/StageBox";
 import AppModal from "../../components/ui/AppModal/AppModal";
 import PastOccupationSearch from "../../components/ui/PastOccupationSearch/PastOccupationSearch";
-import Citation from "../../components/Citation";
+import Citation from "../../components/ui/Citation/Citation";
 import "./Insight.css";
 
 /** Safe sessionStorage getter (SSR-safe). */
