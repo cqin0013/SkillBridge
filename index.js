@@ -33,6 +33,9 @@ import { fileURLToPath } from 'url';
 
 import path from 'node:path';
 
+// ★ 新增：纯 Node 版训练建议路由（不再使用 Python）
+import trainingAdviceRouter from './training-advice.router.js';
+
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
@@ -151,6 +154,9 @@ app.use(session({
   },
 }));
 // ===================== Security Enhancements End =====================
+
+// ★★★ 在 session 之后挂载「纯 Node 版」训练建议路由 ★★★
+app.use('/', trainingAdviceRouter);
 
 // ===================== Database Connection =====================
 const {
@@ -639,129 +645,6 @@ app.get('/debug/login', (req, res) => {
     return res.json({ ok: true, sid: req.sessionID, set: { userId: req.session.userId } });
   });
 });
-
-
-
-
-// ===================== Training Advice (single-file, no Flask) =====================
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname  = path.dirname(__filename);
-
-// 可在 .env 里覆盖：PYTHON、TGA_CLI、PY_TIMEOUT_MS
-const PYTHON       = process.env.PYTHON || 'python';              // Windows 可用 "py -3"
-const TGA_CLI      = process.env.TGA_CLI || path.join(__dirname, 'tga_bridge.py');
-const PY_TIMEOUTMS = Number(process.env.PY_TIMEOUT_MS || 120000); // 120s
-
-function runPy(args, { timeoutMs = PY_TIMEOUTMS } = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(PYTHON, [TGA_CLI, ...args], {
-      env: process.env,
-      cwd: __dirname,
-      windowsHide: true
-    });
-
-    let stdout = '', stderr = '';
-    const killer = setTimeout(() => {
-      try { child.kill('SIGKILL'); } catch (_) {}
-      reject(new Error('python_timeout'));
-    }, timeoutMs);
-
-    child.stdout.on('data', d => (stdout += d.toString()));
-    child.stderr.on('data', d => (stderr += d.toString()));
-    child.on('error', err => { clearTimeout(killer); reject(err); });
-    child.on('close', code => {
-      clearTimeout(killer);
-      try {
-        const json = JSON.parse(stdout || '{}');   // tga_bridge.py 会打印 JSON
-        if (code === 0 && !json.error) return resolve(json);
-        return reject(Object.assign(new Error('python_nonzero_exit'), { code, json, stderr }));
-      } catch {
-        return reject(Object.assign(new Error('python_invalid_json'), { code, stdout, stderr }));
-      }
-    });
-  });
-}
-
-/**
- * 统一接口：GET /training-advice/:code?limit=5
- * 规则：
- *  - 纯数字(4~6位) => ANZSCO：先 search，再逐个对 TGA 课程调 advice；若没有任何建议，则兜底返回 Top N 课程 + 详情链接
- *  - 其他 => 视作 TGA 课程代码，直接调 advice
- */
-app.get('/training-advice/:code', async (req, res) => {
-  const code  = (req.params.code || '').trim();
-  const limit = Math.max(1, Math.min(Number(req.query.limit || 5), 20));
-
-  if (!code) return res.status(400).json({ error: 'code_required' });
-
-  const isAnzsco = /^\d{4,6}$/.test(code);
-
-  try {
-    if (!isAnzsco) {
-      // 直接把它当作 TGA 课程代码
-      const adv = await runPy(['advice', code]);
-      return res.json({
-        input: code, type: 'TGA',
-        count: adv.count || 0,
-        items: adv.recommendations || []
-      });
-    }
-
-    // 是 ANZSCO：先搜，再按课程查 advice，直到凑到 limit 条
-    const search = await runPy(['search', code]);
-    const out = [];
-
-    for (const it of (search.items || [])) {
-      if (out.length >= limit) break;
-      const tga = it.code; if (!tga) continue;
-
-      try {
-        const adv = await runPy(['advice', tga]);
-        if ((adv.count || 0) > 0) {
-          out.push({
-            tgaCode: tga,
-            title: it.title,
-            componentType: it.componentType,
-            advice: adv.recommendations
-          });
-        }
-      } catch {
-        // 某个条目失败就跳过
-      }
-    }
-
-    // ——兜底：完全没有 advice，就返回 Top N 课程 + 官方链接（与你 Python 版兜底一致）——
-    if (out.length === 0) {
-      const fallback = (search.items || []).slice(0, limit).map(it => ({
-        tgaCode: it.code,
-        title: it.title,
-        componentType: it.componentType,
-        advice: null,
-        link: it.code ? `https://training.gov.au/Training/Details/${it.code}` : null
-      }));
-      return res.json({
-        anzsco: code,
-        found: 0,
-        items: fallback,
-        note: 'No UsageRecommendations in TGA; returned top matches with detail links.'
-      });
-    }
-
-    // 正常返回
-    return res.json({ anzsco: code, found: out.length, items: out });
-  } catch (e) {
-    console.error('[training-advice embedded]', e);
-    return res.status(502).json({
-      error: 'python_bridge_failed',
-      detail: e.message,
-      meta: e.json || e.stdout || e.stderr
-    });
-  }
-});
-
-
-
-
 
 // -----------------------------
 // Start server
