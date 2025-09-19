@@ -4,7 +4,6 @@ import { TwoCardScaffold } from "../Analyzer";
 import SectionBox from "../../../components/ui/SectionBox/SectionBox";
 import HelpToggle from "../../../components/ui/HelpToggle/HelpToggle";
 import PastOccupationSearch from "../../../components/ui/PastOccupationSearch/PastOccupationSearch";
-// ⛔️ Removed: PageActions (handled by TwoCardScaffold via actionsProps)
 
 import { MAX_SELECT } from "../../../lib/constants/app";
 import { AU_STATES } from "../../../lib/constants/geo";

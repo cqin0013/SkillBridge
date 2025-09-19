@@ -380,7 +380,7 @@ export default function JobSuggestion({
           )}
           {err && <Alert type="warning" showIcon style={{ marginTop: 8 }} message={err} />}
 
-          {/* ✅ 当 Next 被禁用且没有在加载/报错时，显示原因提示 */}
+   
           {!loading && !err && nextDisabled && (
             <Alert
               type="info"

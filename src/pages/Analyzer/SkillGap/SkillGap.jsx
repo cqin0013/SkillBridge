@@ -28,7 +28,6 @@ export const pageIntro = {
   ),
 };
 
-/** 将任意形状的 unmatched 规范化为 { knowledge[], skill[], tech[], unmatchedFlat[] } */
 function normalizeUnmatched(src) {
   if (!src) {
     return { knowledge: [], skill: [], tech: [], unmatchedFlat: [] };
@@ -38,7 +37,7 @@ function normalizeUnmatched(src) {
   const skill = arr(src.skill ?? src.skills ?? src.missingSkills);
   const tech = arr(src.tech ?? src.techs ?? src.missingTech ?? src.technology);
 
-  // 优先用传入的 unmatchedFlat；否则由三类拼装
+
   let unmatchedFlat = Array.isArray(src.unmatchedFlat) ? src.unmatchedFlat.slice() : [];
   if (!unmatchedFlat.length) {
     knowledge.forEach((x) => unmatchedFlat.push({ type: "Knowledge", title: x?.title || x?.name, code: x?.code }));
@@ -46,7 +45,7 @@ function normalizeUnmatched(src) {
     tech.forEach((x) => unmatchedFlat.push({ type: "Tech", title: x?.title || x?.name, code: x?.code }));
   }
 
-  // 去掉空项
+
   unmatchedFlat = unmatchedFlat.filter((x) => (x?.title || x?.code || "").toString().trim().length > 0);
 
   return { knowledge, skill, tech, unmatchedFlat };
@@ -65,7 +64,7 @@ export default function SkillGap({
   const [localUnmatched, setLocalUnmatched] = useState(unmatched || null);
   const printRef = useRef(null);
 
-  // 首次加载：如无 props，则尝试从 sessionStorage 读取兜底
+  
   useEffect(() => {
     if (localUnmatched) return;
     try {
@@ -78,12 +77,11 @@ export default function SkillGap({
     }
   }, [localUnmatched]);
 
-  // props 变化 -> 同步到本地
   useEffect(() => {
     if (unmatched) setLocalUnmatched(unmatched);
   }, [unmatched]);
 
-  // 规范化 rows（仅 Not Met）
+
   const normalized = useMemo(() => normalizeUnmatched(localUnmatched), [localUnmatched]);
 
   const rows = useMemo(
@@ -96,7 +94,7 @@ export default function SkillGap({
     [normalized.unmatchedFlat]
   );
 
-  // 将规范化的缺失项持久化（供 Finish/生成 Roadmap 使用）
+
   useEffect(() => {
     try {
       sessionStorage.setItem(
@@ -109,7 +107,7 @@ export default function SkillGap({
           updatedAt: Date.now(),
         })
       );
-      // 同页联动通知
+   
       window.dispatchEvent(
         new CustomEvent("sb:unmatched:update", { detail: { unmatched: normalized } })
       );
@@ -120,21 +118,20 @@ export default function SkillGap({
 
   const displayOccupation = targetJobTitle || targetJobCode || "-";
 
-  // 将页面动作接给 Scaffold
   useEffect(() => {
     if (typeof setActionsProps === "function") {
       setActionsProps({
         onPrev,
         onNext,
         nextText: "Next",
-        // 如果希望没有缺口时禁止下一步，可打开以下两行：
+  
         // nextDisabled: rows.length === 0,
         // nextDisabledReason: rows.length === 0 ? "No gaps to plan for." : undefined,
       });
     }
   }, [setActionsProps, onPrev, onNext, rows.length]);
 
-  // UI（内容区）
+  // UI
   return (
     <>
       <SectionBox

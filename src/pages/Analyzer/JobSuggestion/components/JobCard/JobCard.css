@@ -24,15 +24,15 @@
   gap: 8px;
 }
 
-/* 允许标题自动换行且不挤压图标 */
+
 .jobcard-title-name {
   font-weight: 600;
   font-size: 1rem;
   line-height: 1.25rem;
   flex: 1 1 auto;
   min-width: 0;
-  white-space: normal;           /* 允许换行 */
-  overflow-wrap: anywhere;       /* 长单词/长代码也能断行 */
+  white-space: normal;
+    overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -69,17 +69,17 @@
 .job-card .ant-collapse-content-box {
   padding: 0 0 8px 0;
 }
-/* 让行业标签里的长文本自动换行/断词 */
+
 .jobcard-industry-tag {
-  display: inline-block;   /* 允许设置宽度和换行 */
+  display: inline-block;
   max-width: 100%;
-  white-space: normal;     /* 允许换行 */
-  overflow-wrap: anywhere; /* 无空格也能断行 */
-  word-break: break-word;  /* 兼容性兜底 */
-  line-height: 1.4;        /* 多行更易读 */
+  white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.4;
 }
 
-/* 可选：确保行业所在段落也允许断行 */
+
 .job-card .industry-paragraph {
   white-space: normal;
   overflow-wrap: anywhere;
