@@ -20,43 +20,48 @@ const TOTAL_STEPS = 6;
 const clamp = (n) => Math.max(0, Math.min(TOTAL_STEPS - 1, Number.isFinite(n) ? n : 0));
 
 export default function AnalyzerWizard() {
+  // --- URL step param ---
   const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState(0);
 
+  // Parse ?step= from URL whenever it changes
   useEffect(() => {
     const s = parseInt(searchParams.get("step"), 10);
     if (!Number.isNaN(s)) setStep(clamp(s));
   }, [searchParams]);
 
+  // Move to a different step (and sync with URL)
   const goTo = (n) => {
     const s = clamp(n);
     setStep(s);
     const next = new URLSearchParams(searchParams);
-    if (s === 0) next.delete("step"); else next.set("step", String(s));
+    if (s === 0) next.delete("step");
+    else next.set("step", String(s));
     setSearchParams(next, { replace: true });
   };
 
-  // Cross-step state
-  const [roles, setRoles] = useState([]);
-  const [stateCode, setStateCode] = useState("All");
-  const [abilities, setAbilities] = useState([]);
-  const [selectedIndustryIds, setSelectedIndustryIds] = useState([]);
-  const [targetJobCode, setTargetJobCode] = useState("");
-  const [targetJobTitle, setTargetJobTitle] = useState("");
-  const [unmatched, setUnmatched] = useState(null);  // SkillGap 的缺失项
+  // --- Cross-step states ---
+  const [roles, setRoles] = useState([]);                 // Past roles
+  const [stateCode, setStateCode] = useState("All");      // Preferred state
+  const [abilities, setAbilities] = useState([]);         // Ability list
+  const [selectedIndustryIds, setSelectedIndustryIds] = useState([]); // Selected industries
+  const [targetJobCode, setTargetJobCode] = useState(""); // Chosen job code
+  const [targetJobTitle, setTargetJobTitle] = useState("");// Chosen job title
+  const [unmatched, setUnmatched] = useState(null);       // Skill gap (missing items)
 
-  // Industry id -> name map
+  // Build id -> name map for industries
   const industryNameMap = useMemo(() => {
     const m = new Map();
     (INDUSTRY_OPTIONS || []).forEach((o) => m.set(o.id, o.name));
     return m;
   }, []);
+  // Convert selected industry ids into readable names
   const selectedIndustryNames = useMemo(
     () => (selectedIndustryIds || []).map((id) => industryNameMap.get(id) || id),
     [selectedIndustryIds, industryNameMap]
   );
 
-  // 左侧摘要
+  // Left sidebar summary (not shown in Step 0)
   const leftSidebar =
     step !== 0 ? (
       <PrevSummary
@@ -72,7 +77,7 @@ export default function AnalyzerWizard() {
 
   const progress = <ProgressBar current={step} total={TOTAL_STEPS} debug={false} />;
 
-  /** —— 将 Profile 需要的摘要写入会话存储 —— */
+  /** --- Persist profile summary into sessionStorage --- */
   useEffect(() => {
     const payload = {
       roles: (roles || []).map((r) => r?.title || r?.name || r?.code || String(r)),
@@ -82,7 +87,9 @@ export default function AnalyzerWizard() {
       targetJobTitle,
       abilitiesCount: abilities?.length || 0,
     };
-    try { sessionStorage.setItem("sb_profile_prev", JSON.stringify(payload)); } catch {}
+    try {
+      sessionStorage.setItem("sb_profile_prev", JSON.stringify(payload));
+    } catch {}
   }, [
     JSON.stringify((roles || []).map((r) => r?.title || r?.name || r?.code || String(r))),
     stateCode,
@@ -92,14 +99,14 @@ export default function AnalyzerWizard() {
     abilities.length,
   ]);
 
-  /** —— 缺失项兜底持久化（SkillGap 也会写，这里再兜一层） —— */
+  /** --- Persist missing abilities as fallback --- */
   useEffect(() => {
     try {
       if (unmatched) sessionStorage.setItem("sb_unmatched", JSON.stringify(unmatched));
     } catch {}
   }, [JSON.stringify(unmatched || {})]);
 
-  /** 读取缺失项：优先内存，兜底 sessionStorage */
+  /** --- Read missing abilities: prefer in-memory, fallback to sessionStorage --- */
   const readUnmatched = () => {
     let g = unmatched;
     if (!g) {
@@ -112,16 +119,17 @@ export default function AnalyzerWizard() {
   };
 
   /**
-   * 把「缺失的能力」转换为 Roadmap steps（数组）。
-   * 只传 unmatched ability，不附加任何“Target: …”之类的额外步骤。
-   * step 结构与 Roadmap 组件/编辑器兼容：{ title, desc? }
+   * Convert unmatched abilities into roadmap steps
+   * - Input: gap object
+   * - Output: array of { title, desc? } (compatible with Roadmap component)
    */
   const buildRoadmapStepsFromGaps = (gapObj) => {
     if (!gapObj) return [];
 
-    // 直接优先用 flat 列表；否则从三类拼
+    // Prefer flat unmatched list if available
     let flat = Array.isArray(gapObj.unmatchedFlat) ? gapObj.unmatchedFlat.slice() : null;
 
+    // Helper to normalize into array
     const asArr = (x) => (Array.isArray(x) ? x : x ? [x] : []);
     if (!flat || flat.length === 0) {
       const knowledge = asArr(gapObj.knowledge ?? gapObj.knowledges ?? gapObj.missingKnowledge);
@@ -134,7 +142,7 @@ export default function AnalyzerWizard() {
       tech.forEach((x)      => flat.push({ type: "Tech",      title: x?.title || x?.name, code: x?.code }));
     }
 
-    // 归一化为 steps：标题=能力名/代码；desc=分类
+    // Normalize into steps
     let steps = (flat || [])
       .map((x) => ({
         title: (x?.title || x?.code || "").toString().trim(),
@@ -142,7 +150,7 @@ export default function AnalyzerWizard() {
       }))
       .filter((s) => s.title.length > 0);
 
-    // 去重（按 title + desc）
+    // Deduplicate by title+desc
     const seen = new Set();
     steps = steps.filter((s) => {
       const key = `${s.title}__${s.desc || ""}`.toLowerCase();
@@ -154,7 +162,7 @@ export default function AnalyzerWizard() {
     return steps;
   };
 
-  /** Finish：只把 unmatched ability 生成到 Roadmap（数组），不包含目标职位名 */
+  /** --- Handle finish: generate roadmap and save --- */
   const handleFinish = () => {
     Modal.confirm({
       title: "Generate a learning roadmap?",
@@ -163,8 +171,8 @@ export default function AnalyzerWizard() {
       cancelText: "No, just finish",
       onOk: () => {
         const gaps = readUnmatched();
-        const steps = buildRoadmapStepsFromGaps(gaps); // 只包含缺失能力
-        saveRoadmap(steps);                            // 注意：saveRoadmap 接收「数组」
+        const steps = buildRoadmapStepsFromGaps(gaps); // Only unmatched abilities
+        saveRoadmap(steps);                            // saveRoadmap expects array
         Modal.success({ title: "Roadmap generated", content: "Saved to Profile." });
         goTo(0);
       },
@@ -175,7 +183,7 @@ export default function AnalyzerWizard() {
     });
   };
 
-  // 控制 Step 3 的底部按钮（初始：Next 禁用）
+  // Step 3 button states (Next disabled until job selected)
   const [actionsStep3, setActionsStep3] = useState({
     onPrev: () => goTo(2),
     onNext: () => goTo(4),
@@ -185,10 +193,10 @@ export default function AnalyzerWizard() {
 
   return (
     <>
-      {/* Step 0 */}
+      {/* Step 0: Intro */}
       {step === 0 && <AnalyzerIntro onStart={() => goTo(1)} />}
 
-      {/* Step 1 */}
+      {/* Step 1: Collect info */}
       {step === 1 && (
         <GetInfo
           step={step}
@@ -206,13 +214,13 @@ export default function AnalyzerWizard() {
         />
       )}
 
-      {/* Step 2 */}
+      {/* Step 2: Ability analyzer */}
       {step === 2 && (
         <TwoCardScaffold
           progressBar={progress}
           stepPill="Step 2"
           title="Analyze your abilities"
-          introContent={<div>We will organize and deduplicate your abilities.</div>}
+          introContent={<div>We will organize important abilities based on your past occupation and self check.</div>}
           actionsContent={<div>You can merge / remove abilities, then continue.</div>}
           leftSidebar={leftSidebar}
           leftOffsetTop={72}
@@ -227,7 +235,7 @@ export default function AnalyzerWizard() {
         </TwoCardScaffold>
       )}
 
-      {/* Step 3 */}
+      {/* Step 3: Job suggestion */}
       {step === 3 && (
         <TwoCardScaffold
           progressBar={progress}
@@ -238,8 +246,7 @@ export default function AnalyzerWizard() {
           leftSidebar={leftSidebar}
           leftOffsetTop={72}
           maxWidth="xl"
-          // ✅ 不再写死；交给 actionsStep3（由子组件 JobSuggestion 动态更新）
-          actionsProps={actionsStep3}
+          actionsProps={actionsStep3} // Controlled by JobSuggestion
         >
           <JobSuggestion
             abilities={abilities}
@@ -252,14 +259,12 @@ export default function AnalyzerWizard() {
             onUnmatchedChange={setUnmatched}
             onPrev={() => goTo(2)}
             onNext={() => goTo(4)}
-            // ✅ 把 setter 传下去，让子组件能控制 Next 禁用与文案
-            setActionsProps={setActionsStep3}
+            setActionsProps={setActionsStep3} // Allows child to enable/disable Next
           />
         </TwoCardScaffold>
       )}
 
-
-      {/* Step 4 */}
+      {/* Step 4: Skill gap */}
       {step === 4 && (
         <TwoCardScaffold
           progressBar={progress}
@@ -282,7 +287,7 @@ export default function AnalyzerWizard() {
         </TwoCardScaffold>
       )}
 
-      {/* Step 5 */}
+      {/* Step 5: Training guidance */}
       {step === 5 && (
         <TwoCardScaffold
           progressBar={progress}
@@ -300,7 +305,7 @@ export default function AnalyzerWizard() {
             anzscoCodeLike={targetJobCode}
             addressText={stateCode}
             abilities={abilities}
-            unmatched={unmatched} 
+            unmatched={unmatched}
             onPrev={() => goTo(4)}
             onFinish={handleFinish}
           />
