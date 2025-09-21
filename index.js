@@ -155,22 +155,20 @@ const ANZSCO_MAJOR = Object.freeze({
  *   get:
  *     tags: [System]
  *     summary: Health check
- *     description: |
- *       Returns `{ ok: true }` if the API is up and the DB pool is reachable.
+ *     description: |-
+ *       Returns `{ ok: true }` if the service and DB pool are reachable.
  *     x-summary-zh: 健康检查
- *     x-description-zh: |
- *       当服务与数据库连接正常时返回 `{ ok: true }`。
+ *     x-description-zh: |-
+ *       如果服务与数据库可达，返回 `{ ok: true }`。
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
  *         content:
  *           application/json:
- *             example: { ok: true }
- *       500:
- *         description: Service or DB not reachable
- *         content:
- *           application/json:
- *             example: { ok: false, error: "db error" }
+ *             example:
+ *               ok: true
+ *       '500':
+ *         description: Server or DB error
  */
 app.get('/health', async (_req, res) => {
   try {
@@ -435,14 +433,15 @@ app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/
  * @openapi
  * /occupations/rank-by-codes:
  *   post:
- *     tags: [SOC]
+ *     tags:
+ *       - SOC
  *     summary: Rank occupations by selected ability codes (knowledge / skill / tech)
- *     description: |
+ *     description: |-
  *       Reverse-lookup by **ability codes** and aggregate hits per occupation,
  *       sorted by total hits (knowledge + skill + tech). Also returns **unmatched**
  *       codes (with titles) per occupation for gap highlighting.
  *     x-summary-zh: 基于能力代码（知识/技能/技术）聚合并排序职业
- *     x-description-zh: |
+ *     x-description-zh: |-
  *       以 **能力代码** 反向查职业，并统计每个职业的命中数（知识+技能+技术），按总命中降序。
  *       同时返回该职业的 **未命中的代码（含标题）**，便于展示能力缺口和培训建议。
  *     requestBody:
@@ -454,78 +453,160 @@ app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/
  *             properties:
  *               selections:
  *                 type: array
+ *                 description: |-
+ *                   EN: Ability selections (explicit objects with type+code).
+ *                   ZH: 能力选择（带有 type 与 code 的对象数组）。
  *                 items:
  *                   type: object
- *                   required: [type, code]
+ *                   required:
+ *                     - type
+ *                     - code
  *                   properties:
- *                     type: { type: string, enum: [knowledge, skill, tech] }
- *                     code: { type: string }
+ *                     type:
+ *                       type: string
+ *                       enum: [knowledge, skill, tech]
+ *                     code:
+ *                       type: string
  *               knowledge_codes:
  *                 type: array
- *                 items: { type: string }
+ *                 description: |-
+ *                   EN: Knowledge codes (optional).
+ *                   ZH: 知识代码（可选）。
+ *                 items:
+ *                   type: string
  *               skill_codes:
  *                 type: array
- *                 items: { type: string }
+ *                 description: |-
+ *                   EN: Skill codes (optional).
+ *                   ZH: 技能代码（可选）。
+ *                 items:
+ *                   type: string
  *               tech_codes:
  *                 type: array
- *                 items: { type: string }
+ *                 description: |-
+ *                   EN: Tech/tool codes (optional).
+ *                   ZH: 工具/技术代码（可选）。
+ *                 items:
+ *                   type: string
  *           examples:
  *             mixed:
  *               summary: Mixed input format
  *               value:
  *                 selections:
- *                   - { type: "knowledge", code: "2.C.1.a" }
- *                   - { type: "skill",     code: "2.A.1.b" }
- *                 tech_codes: ["43233208"]
+ *                   - type: knowledge
+ *                     code: 2.C.1.a
+ *                   - type: skill
+ *                     code: 2.A.1.b
+ *                 tech_codes:
+ *                   - 43233208
+ *             minimal-zh:
+ *               summary: 最小示例（混合写法）
+ *               value:
+ *                 selections:
+ *                   - type: knowledge
+ *                     code: 2.C.1.a
+ *                   - type: tech
+ *                     code: 43233208
+ *                 skill_codes:
+ *                   - 2.A.1.e
  *     responses:
- *       200:
- *         description: Ranked occupations with unmatched codes by category
+ *       '200':
+ *         description: |-
+ *           EN: Ranked occupations with unmatched codes by category.
+ *           ZH: 返回已排序的推荐职业，并包含各职业的“未命中的能力代码”列表。
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 total_selected: { type: integer, example: 3 }
+ *                 total_selected:
+ *                   type: integer
+ *                   example: 3
  *                 items:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       occupation_code: { type: string, example: "15-2031.00" }
- *                       occupation_title:{ type: string, example: "Operations Research Analysts" }
- *                       count:           { type: integer, example: 5 }
+ *                       occupation_code:
+ *                         type: string
+ *                         example: 15-2031.00
+ *                       occupation_title:
+ *                         type: string
+ *                         example: Operations Research Analysts
+ *                       count:
+ *                         type: integer
+ *                         description: total matched count (knowledge + skill + tech)
+ *                         example: 5
  *                       unmatched:
  *                         type: object
  *                         properties:
  *                           knowledge:
  *                             type: array
- *                             items: { type: object, properties: { code:{type:string}, title:{type:[string,"null"]} } }
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 code:
+ *                                   type: string
+ *                                 title:
+ *                                   type: string
+ *                                   nullable: true
  *                           skill:
  *                             type: array
- *                             items: { type: object, properties: { code:{type:string}, title:{type:[string,"null"]} } }
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 code:
+ *                                   type: string
+ *                                 title:
+ *                                   type: string
+ *                                   nullable: true
  *                           tech:
  *                             type: array
- *                             items: { type: object, properties: { code:{type:string}, title:{type:[string,"null"]} } }
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 code:
+ *                                   type: string
+ *                                 title:
+ *                                   type: string
+ *                                   nullable: true
  *             examples:
- *               sample:
- *                 summary: Example response
+ *               sample-en:
+ *                 summary: Example response (EN)
  *                 value:
  *                   total_selected: 3
  *                   items:
- *                     - occupation_code: "15-2031.00"
- *                       occupation_title: "Operations Research Analysts"
+ *                     - occupation_code: 15-2031.00
+ *                       occupation_title: Operations Research Analysts
  *                       count: 3
  *                       unmatched:
  *                         knowledge: []
- *                         skill:     []
- *                         tech:      [ { code: "43239999", title: "Some tool" } ]
- *       400:
- *         description: No codes provided
- *         content:
- *           application/json:
- *             example: { error: "no codes provided" }
- *       500:
- *         description: Server error
+ *                         skill: []
+ *                         tech:
+ *                           - code: 43239999
+ *                             title: Some tool
+ *               sample-zh:
+ *                 summary: 示例响应（中文）
+ *                 value:
+ *                   total_selected: 4
+ *                   items:
+ *                     - occupation_code: 15-2031.00
+ *                       occupation_title: 运筹学分析师
+ *                       count: 3
+ *                       unmatched:
+ *                         knowledge:
+ *                           - code: 2.C.3.d
+ *                             title: Building and Construction
+ *                         skill: []
+ *                         tech: []
+ *       '400':
+ *         description: |-
+ *           EN: No codes provided or invalid body.
+ *           ZH: 入参缺少能力代码或格式不合法。
+ *       '500':
+ *         description: |-
+ *           EN: Server error.
+ *           ZH: 服务器错误。
  */
 app.post('/occupations/rank-by-codes', async (req, res) => {
   // 解析入参
