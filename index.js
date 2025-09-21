@@ -11,6 +11,10 @@
 // - GET  /api/anzsco/:code/training-advice <-- 已有（课程建议）
 // - GET  /api/anzsco/:code/demand          <-- 已有（地区需求）
 
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger.js';
+import { swaggerSpecEn, swaggerSpecZh } from './swagger.i18n.js';
+
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -145,6 +149,20 @@ const ANZSCO_MAJOR = Object.freeze({
 });
 
 // ===================== Health =====================
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     tags: [Meta]
+ *     summary: Health check
+ *     x-summary-zh: 健康检查
+ *     description: "Returns `{ ok: true }` if the service and DB pool are reachable."
+ *     x-description-zh: "如果服务与数据库可达，返回 `{ ok: true }`。"
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+
 app.get('/health', async (_req, res) => {
   try {
     const conn = await pool.getConnection();
@@ -164,6 +182,51 @@ app.get('/health', async (_req, res) => {
  * - 如果不传 s，则仅按 first 返回该行业内的前 N 个（按标题排序）
  */
 // 复用现有模糊打分逻辑的 ANZSCO 搜索：首位行业 + 标题模糊
+/**
+ * @openapi
+ * /anzsco/search:
+ *   get:
+ *     tags: [ANZSCO]
+ *     summary: Search ANZSCO by first digit (major group) and keyword
+ *     x-summary-zh: 按首位行业与关键词搜索 ANZSCO
+ *     description: Returns 6-digit ANZSCO codes filtered by the first digit (major group 1..8) and optional title keyword.
+ *     x-description-zh: 在 ANZSCO 中按**第 1 位行业**（1..8）与**标题关键词**进行模糊检索，返回 6 位 ANZSCO 代码。
+ *     parameters:
+ *       - in: query
+ *         name: first
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: ["1","2","3","4","5","6","7","8"]
+ *         description: Major group digit (1..8).
+ *         x-description-zh: 第 1 位行业代码（1..8）。
+ *       - in: query
+ *         name: s
+ *         schema: { type: string }
+ *         description: Optional title keyword.
+ *         x-description-zh: 标题关键词（可选）。
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 12, minimum: 1, maximum: 50 }
+ *         description: Max items to return (1..50).
+ *         x-description-zh: 返回条数上限（1..50）。
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SearchResponse'
+ *             examples:
+ *               sample:
+ *                 summary: Professionals + engineer
+ *                 value:
+ *                   major: { first: "2", name: "Professionals" }
+ *                   items:
+ *                     - { anzsco_code: "261313", anzsco_title: "Software Engineer" }
+ *                     - { anzsco_code: "233311", anzsco_title: "Electrical Engineer" }
+ */
+
 app.get('/anzsco/search', async (req, res) => {
   const sRaw  = String(req.query.s ?? '').trim();
   const first = String(req.query.first ?? '').trim(); // '1'..'8'
@@ -225,6 +288,31 @@ app.get('/anzsco/search', async (req, res) => {
  * - 输入 ANZSCO 6 位；通过 ANZSCO→OSCA→ISCO→SOC 找到 SOC occupation(s)
  * - 返回这些 SOC 的 ability（knowledge/skill/tech），供前端修改后再做匹配
  */
+/**
+ * @openapi
+ * /anzsco/{code}/skills:
+ *   get:
+ *     tags: [ANZSCO]
+ *     summary: Map ANZSCO (6-digit) to SOC abilities
+ *     x-summary-zh: ANZSCO(6位) 映射到 SOC 能力清单
+ *     description: Resolve ANZSCO→OSCA→ISCO→SOC, then return merged ability titles (knowledge/skill/tech) of all linked SOC occupations.
+ *     x-description-zh: 通过 ANZSCO→OSCA→ISCO→SOC 映射，汇总所有关联 SOC 的知识/技能/技术标题并去重返回。
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema: { type: string, pattern: '^[0-9]{6}$' }
+ *         description: 6-digit ANZSCO code.
+ *         x-description-zh: 6 位 ANZSCO 代码。
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SkillsResponse'
+ */
+
 app.get('/anzsco/:code/skills', async (req, res) => {
   const anz6 = String(req.params.code || '').trim();
   if (!/^\d{6}$/.test(anz6)) {
@@ -370,6 +458,30 @@ app.get('/debug/login', (req, res) => {
     return res.json({ ok: true, sid: req.sessionID, set: { userId: req.session.userId } });
   });
 });
+
+
+
+
+// 在所有业务路由之后、错误处理中间件之前挂载：
+// ===== Swagger 文档（中英文）=====
+app.get('/openapi.en.json', (_req, res) => res.json(swaggerSpecEn));
+app.get('/openapi.zh.json', (_req, res) => res.json(swaggerSpecZh));
+
+// 方式 A：一个 /docs 页面，内置下拉切换（推荐）
+app.use('/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(null, {
+    explorer: true,
+    swaggerOptions: {
+      urls: [
+        { url: '/openapi.en.json', name: 'English' },
+        { url: '/openapi.zh.json', name: '中文' },
+      ],
+    },
+    customSiteTitle: 'SkillBridge API Docs',
+  }),
+);
+
 
 // 错误处理
 app.use((err, req, res, next) => {

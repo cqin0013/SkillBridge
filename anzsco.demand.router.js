@@ -105,6 +105,44 @@ export default function initAnzscoDemandRoutes(pool) {
    *  - /api/anzsco/261313/demand
    *  - /api/anzsco/261313/demand?state=VIC
    */
+ /**
+ * @openapi
+ * /api/anzsco/{code}/demand:
+ *   get:
+ *     tags: [ANZSCO]
+ *     summary: Shortage ratings (national / by state)
+ *     x-summary-zh: 短缺评级（全国 / 各州）
+ *     description: |
+ *       If `state` is provided (e.g., VIC/NSW/QLD/SA/WA/TAS/NT/ACT), return the national rating, the specified state rating, and skill level.
+ *       Otherwise return **all states** ratings in one object.
+ *     x-description-zh: |
+ *       传 `state`（如 VIC/NSW/QLD/SA/WA/TAS/NT/ACT）时，返回全国评级、该州评级与技能等级；不传则返回**所有州**的评级对象。
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema: { type: string, pattern: '^[0-9]{6}$' }
+ *         description: 6-digit ANZSCO code.
+ *         x-description-zh: 6 位 ANZSCO 代码。
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *           enum: [NSW,VIC,QLD,SA,WA,TAS,NT,ACT]
+ *         description: Optional Australian state code.
+ *         x-description-zh: 可选的澳洲州代码。
+ *     responses:
+ *       200:
+ *         description: Success (one-state or all-states)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/DemandOneStateResponse'
+ *                 - $ref: '#/components/schemas/DemandAllStatesResponse'
+ */
+
+
   router.get('/:code/demand', async (req, res) => {
     const code = String(req.params.code || '').trim();
     const state = String(req.query.state || '').trim().toUpperCase(); // NSW / VIC / ...

@@ -1,64 +1,29 @@
-Training Recommendations (New Core API)
 
-Single-file integration: Node.js calls a Python CLI (tga_bridge.py) in the background to communicate with the TGA SOAP.
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/anzsco/search?first=2&s=engineer&limit=12
+Search 6-digit ANZSCO by "first industry + keyword"
 
-ANZSCO code (4-6 digits): First search for courses by ANZSCO, then retrieve usage recommendations for each one. If no courses are found, a list of the top N courses and official links to details will be returned.
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/anzsco/261313/skills
+Reverse search SOC capability set from 6-digit ANZSCO
 
-TGA course code (non-numeric, such as CHC42121): Directly retrieve usage recommendations for the course.
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/api/anzsco/531111/training-advice?limit=10
+Training recommendations (VET courses)
 
-GET /training-advice/:code?limit=5
 
-code: ANZSCO (e.g., 411711) or TGA code (e.g., CHC42121)
+(ANZSCO) Regional/National Shortage Rating (based on shortage_list)
+All States:
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/api/anzsco/261313/demand
 
-limit: Maximum number of "recommended" courses to return. Defaults to 5 (this value is also used as a fallback to select the top N).
+Designated states (e.g. VIC):
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/api/anzsco/261313/demand?state=VIC
 
-Example 1: ANZSCO
 
-curl "http://localhost:8080/training-advice/411711?limit=5"
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/docs
+Swagger Doc
 
-Possible response (with recommendations):
+-----------------------------------------
 
-{
-"anzsco": "411711",
-"found": 2,
-"items": [
-{
-"tgaCode": "CHC42121",
-"title": "Certificate IV in Community Development",
-"componentType": ["Qualification"],
-"advice": [
-{ "type": "Text", "text": "...", "source": "TGA", "url": "..." }
-]
-}
-]
-}
+(SOC/US) Fuzzy job search (including aliases/reported names)
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/occupations/search-and-titles?s=software%20engineer&limit=10&includeAliases=1
 
-Possible response (no recommendation → fallback):
-
-{
-"anzsco": "411711",
-"found": 0,
-"items": [
-{
-"tgaCode": "CHC42121",
-"title": "Certificate IV in Community Development",
-"componentType": ["Qualification"],
-"advice": null,
-"link": "https://training.gov.au/Training/Details/CHC42121"
-}
-],
-"note": "No Usage Recommendations in TGA; returned top matches with detail links."
-}
-
-Example 2: TGA course code
-
-curl "http://localhost:8080/training-advice/CHC42121"
-
-Response:
-
-{
-"input": "CHC42121",
-"type": "TGA",
-"count": 0,
-"items": []
-}
+(SOC/USA) Take the three categories of capability titles of a SOC
+https://progressive-alysia-skillbridge-437200d9.koyeb.app/occupations/15-2041.00/titles
