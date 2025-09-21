@@ -15,32 +15,47 @@ export default function initAnzscoTrainingRoutes(pool) {
  * /api/anzsco/{code}/training-advice:
  *   get:
  *     tags: [ANZSCO]
- *     summary: Get VET training courses by ANZSCO
- *     x-summary-zh: 按 ANZSCO 获取 VET 培训课程
- *     description: Return distinct VET courses mapped from an ANZSCO code. Supports paging via `limit`.
- *     x-description-zh: 根据 ANZSCO 代码返回去重后的 VET 课程列表，支持 `limit` 分页。
+ *     summary: List VET courses linked to an ANZSCO 6-digit code
+ *     description: |
+ *       Returns **distinct** VET courses associated with the given **ANZSCO 6-digit code**,
+ *       alphabetically ordered by course name. Also includes a **total** count for pagination/"show more".
+ *     x-summary-zh: 按 ANZSCO 六位 code 返回关联的 VET 课程（去重+按名排序）
+ *     x-description-zh: |
+ *       返回与指定 **ANZSCO 六位 code** 关联的 **去重** VET 课程，并按课程名排序。
+ *       同时返回 **total** 以便前端分页或“还有更多”提示。
  *     parameters:
  *       - in: path
  *         name: code
  *         required: true
  *         schema: { type: string, pattern: '^[0-9]{6}$' }
- *         description: 6-digit ANZSCO code.
- *         x-description-zh: 6 位 ANZSCO 代码。
+ *         description: ANZSCO 6-digit code.
  *       - in: query
  *         name: limit
- *         schema: { type: integer, default: 10, minimum: 1, maximum: 50 }
- *         description: Max items to return (1..50).
- *         x-description-zh: 返回条数上限（1..50）。
+ *         required: false
+ *         schema: { type: integer, default: 10, minimum: 1, maximum: 100 }
+ *         description: Limit number of courses returned.
  *     responses:
  *       200:
- *         description: Success
+ *         description: Courses found
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/TrainingAdviceResponse'
+ *             examples:
+ *               sample:
+ *                 value:
+ *                   anzsco: { code: "531111", title: "Clerk" }
+ *                   total: 128
+ *                   vet_courses:
+ *                     - { vet_course_code: "BSB20112", course_name: "Certificate II in Business" }
+ *                     - { vet_course_code: "AUR20105", course_name: "Certificate II in Automotive Administration" }
+ *       400:
+ *         description: Invalid ANZSCO code
+ *       404:
+ *         description: ANZSCO not found
+ *       500:
+ *         description: Server error
  */
-
-
   router.get('/:code/training-advice', async (req, res) => {
     const code  = req.params.code?.trim();
     const limit = Math.min(parseInt(req.query.limit ?? '10', 10) || 10, 50); // 上限 50

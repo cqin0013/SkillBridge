@@ -153,16 +153,25 @@ const ANZSCO_MAJOR = Object.freeze({
  * @openapi
  * /health:
  *   get:
- *     tags: [Meta]
+ *     tags: [System]
  *     summary: Health check
+ *     description: |
+ *       Returns `{ ok: true }` if the API is up and the DB pool is reachable.
  *     x-summary-zh: 健康检查
- *     description: "Returns `{ ok: true }` if the service and DB pool are reachable."
- *     x-description-zh: "如果服务与数据库可达，返回 `{ ok: true }`。"
+ *     x-description-zh: |
+ *       当服务与数据库连接正常时返回 `{ ok: true }`。
  *     responses:
  *       200:
  *         description: OK
+ *         content:
+ *           application/json:
+ *             example: { ok: true }
+ *       500:
+ *         description: Service or DB not reachable
+ *         content:
+ *           application/json:
+ *             example: { ok: false, error: "db error" }
  */
-
 app.get('/health', async (_req, res) => {
   try {
     const conn = await pool.getConnection();
@@ -187,46 +196,49 @@ app.get('/health', async (_req, res) => {
  * /anzsco/search:
  *   get:
  *     tags: [ANZSCO]
- *     summary: Search ANZSCO by first digit (major group) and keyword
- *     x-summary-zh: 按首位行业与关键词搜索 ANZSCO
- *     description: Returns 6-digit ANZSCO codes filtered by the first digit (major group 1..8) and optional title keyword.
- *     x-description-zh: 在 ANZSCO 中按**第 1 位行业**（1..8）与**标题关键词**进行模糊检索，返回 6 位 ANZSCO 代码。
+ *     summary: Search ANZSCO by first-digit (major group) and keyword
+ *     description: |
+ *       Fuzzy search **ANZSCO 6-digit codes** by **major group** (first digit 1..8) and optional title keyword.
+ *       Sorts results by a relevance score (exact/prefix/boundary/substring).
+ *     x-summary-zh: 按“首位行业 + 标题关键词”搜索 ANZSCO 六位职业
+ *     x-description-zh: |
+ *       依据 **首位行业（1..8）** 与**标题关键词**做模糊检索，返回符合条件的 **ANZSCO 六位 code**，按相关性排序（完全匹配 > 前缀 > 单词边界 > 子串）。
  *     parameters:
  *       - in: query
  *         name: first
  *         required: true
- *         schema:
- *           type: string
- *           enum: ["1","2","3","4","5","6","7","8"]
- *         description: Major group digit (1..8).
- *         x-description-zh: 第 1 位行业代码（1..8）。
+ *         schema: { type: string, enum: ["1","2","3","4","5","6","7","8"] }
+ *         description: Major group first digit (1..8).
  *       - in: query
  *         name: s
  *         schema: { type: string }
- *         description: Optional title keyword.
- *         x-description-zh: 标题关键词（可选）。
+ *         description: Optional title keyword; if empty, only filters by major group.
  *       - in: query
  *         name: limit
  *         schema: { type: integer, default: 12, minimum: 1, maximum: 50 }
- *         description: Max items to return (1..50).
- *         x-description-zh: 返回条数上限（1..50）。
  *     responses:
  *       200:
- *         description: Success
+ *         description: Search results
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SearchResponse'
  *             examples:
- *               sample:
+ *               professionals_engineer:
  *                 summary: Professionals + engineer
  *                 value:
  *                   major: { first: "2", name: "Professionals" }
  *                   items:
  *                     - { anzsco_code: "261313", anzsco_title: "Software Engineer" }
  *                     - { anzsco_code: "233311", anzsco_title: "Electrical Engineer" }
+ *       400:
+ *         description: Invalid parameters
+ *         content:
+ *           application/json:
+ *             example: { error: "param \"first\" must be 1..8" }
+ *       500:
+ *         description: Server error
  */
-
 app.get('/anzsco/search', async (req, res) => {
   const sRaw  = String(req.query.s ?? '').trim();
   const first = String(req.query.first ?? '').trim(); // '1'..'8'
@@ -293,26 +305,36 @@ app.get('/anzsco/search', async (req, res) => {
  * /anzsco/{code}/skills:
  *   get:
  *     tags: [ANZSCO]
- *     summary: Map ANZSCO (6-digit) to SOC abilities
- *     x-summary-zh: ANZSCO(6位) 映射到 SOC 能力清单
- *     description: Resolve ANZSCO→OSCA→ISCO→SOC, then return merged ability titles (knowledge/skill/tech) of all linked SOC occupations.
- *     x-description-zh: 通过 ANZSCO→OSCA→ISCO→SOC 映射，汇总所有关联 SOC 的知识/技能/技术标题并去重返回。
+ *     summary: Map ANZSCO (6-digit) to SOC occupations and aggregate abilities
+ *     description: |
+ *       Given an **ANZSCO 6-digit code**, follows the mapping chain **ANZSCO → OSCA → ISCO → SOC**,
+ *       collects the mapped SOC occupations, and returns **distinct ability titles** (knowledge / skill / tech).
+ *       These abilities are the pool for client-side selection before ranking.
+ *     x-summary-zh: ANZSCO 六位映射至 SOC 并汇总能力清单
+ *     x-description-zh: |
+ *       输入 **ANZSCO 六位 code**，按 **ANZSCO → OSCA → ISCO → SOC** 映射链取到对应 SOC 职业集合，
+ *       并汇总去重后的 **能力（知识/技能/技术）标题**，供前端后续挑选用于匹配职业。
  *     parameters:
  *       - in: path
  *         name: code
  *         required: true
  *         schema: { type: string, pattern: '^[0-9]{6}$' }
- *         description: 6-digit ANZSCO code.
- *         x-description-zh: 6 位 ANZSCO 代码。
+ *         description: ANZSCO 6-digit code.
  *     responses:
  *       200:
- *         description: Success
+ *         description: Aggregated abilities and mapped SOC occupations
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SkillsResponse'
+ *       400:
+ *         description: Invalid ANZSCO code
+ *         content:
+ *           application/json:
+ *             example: { error: "anzsco 6-digit code required" }
+ *       500:
+ *         description: Server error
  */
-
 app.get('/anzsco/:code/skills', async (req, res) => {
   const anz6 = String(req.params.code || '').trim();
   if (!/^\d{6}$/.test(anz6)) {
@@ -404,8 +426,248 @@ app.use('/api/anzsco', initAnzscoTrainingRoutes(pool)); // -> /api/anzsco/:code/
 app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/demand
 
 // ===================== 既有的 SOC 侧接口（保持不变） =====================
-// ...（此处保留你原有的 /occupations/search-and-titles /:code/titles /match-top /rank-by-codes 代码不变）
-/* 你的原有 SOC 路由全部保留——为节省篇幅，这里不再粘贴；直接使用你文件里的现成实现 */
+// ===== 推荐职业 + 未命中 ability 列表 =====
+// 请求体可两种写法（二选一或混用）:
+// 1) { selections:[{type:'knowledge'|'skill'|'tech', code:'...'}, ...] }
+// 2) { knowledge_codes:['2.C.1.a',...], skill_codes:['2.B.1.e',...], tech_codes:['43233208',...] }
+
+/**
+ * @openapi
+ * /occupations/rank-by-codes:
+ *   post:
+ *     tags: [SOC]
+ *     summary: Rank occupations by selected ability codes (knowledge / skill / tech)
+ *     description: |
+ *       Reverse-lookup by **ability codes** and aggregate hits per occupation,
+ *       sorted by total hits (knowledge + skill + tech). Also returns **unmatched**
+ *       codes (with titles) per occupation for gap highlighting.
+ *     x-summary-zh: 基于能力代码（知识/技能/技术）聚合并排序职业
+ *     x-description-zh: |
+ *       以 **能力代码** 反向查职业，并统计每个职业的命中数（知识+技能+技术），按总命中降序。
+ *       同时返回该职业的 **未命中的代码（含标题）**，便于展示能力缺口和培训建议。
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               selections:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required: [type, code]
+ *                   properties:
+ *                     type: { type: string, enum: [knowledge, skill, tech] }
+ *                     code: { type: string }
+ *               knowledge_codes:
+ *                 type: array
+ *                 items: { type: string }
+ *               skill_codes:
+ *                 type: array
+ *                 items: { type: string }
+ *               tech_codes:
+ *                 type: array
+ *                 items: { type: string }
+ *           examples:
+ *             mixed:
+ *               summary: Mixed input format
+ *               value:
+ *                 selections:
+ *                   - { type: "knowledge", code: "2.C.1.a" }
+ *                   - { type: "skill",     code: "2.A.1.b" }
+ *                 tech_codes: ["43233208"]
+ *     responses:
+ *       200:
+ *         description: Ranked occupations with unmatched codes by category
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_selected: { type: integer, example: 3 }
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       occupation_code: { type: string, example: "15-2031.00" }
+ *                       occupation_title:{ type: string, example: "Operations Research Analysts" }
+ *                       count:           { type: integer, example: 5 }
+ *                       unmatched:
+ *                         type: object
+ *                         properties:
+ *                           knowledge:
+ *                             type: array
+ *                             items: { type: object, properties: { code:{type:string}, title:{type:[string,"null"]} } }
+ *                           skill:
+ *                             type: array
+ *                             items: { type: object, properties: { code:{type:string}, title:{type:[string,"null"]} } }
+ *                           tech:
+ *                             type: array
+ *                             items: { type: object, properties: { code:{type:string}, title:{type:[string,"null"]} } }
+ *             examples:
+ *               sample:
+ *                 summary: Example response
+ *                 value:
+ *                   total_selected: 3
+ *                   items:
+ *                     - occupation_code: "15-2031.00"
+ *                       occupation_title: "Operations Research Analysts"
+ *                       count: 3
+ *                       unmatched:
+ *                         knowledge: []
+ *                         skill:     []
+ *                         tech:      [ { code: "43239999", title: "Some tool" } ]
+ *       400:
+ *         description: No codes provided
+ *         content:
+ *           application/json:
+ *             example: { error: "no codes provided" }
+ *       500:
+ *         description: Server error
+ */
+app.post('/occupations/rank-by-codes', async (req, res) => {
+  // 解析入参
+  let selections = ensureArray(req.body?.selections)
+    .map(x => ({ type: String(x.type||'').toLowerCase(), code: String(x.code||'').trim() }))
+    .filter(x => x.type && x.code && ['knowledge','skill','tech'].includes(x.type));
+
+  const kn2 = ensureArray(req.body?.knowledge_codes).map(x => ({ type:'knowledge', code:String(x).trim() }));
+  const sk2 = ensureArray(req.body?.skill_codes).map(x => ({ type:'skill',     code:String(x).trim() }));
+  const te2 = ensureArray(req.body?.tech_codes).map(x => ({ type:'tech',      code:String(x).trim() }));
+  selections = selections.concat(kn2, sk2, te2);
+
+  // 去重
+  const seen = new Set();
+  selections = selections.filter(s => {
+    const k = `${s.type}|${s.code}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  if (selections.length === 0) {
+    return res.status(400).json({ error: 'no codes provided' });
+  }
+
+  // 选中全集（用于后面求未命中）
+  const selKn = new Set(selections.filter(x => x.type==='knowledge').map(x => x.code));
+  const selSk = new Set(selections.filter(x => x.type==='skill').map(x => x.code));
+  const selTe = new Set(selections.filter(x => x.type==='tech').map(x => x.code));
+
+  const conn = await pool.getConnection();
+  try {
+    // 先把“选中 code → 标题”做映射，方便生成 unmatched 的 {code,title}
+    const knTitleMap = new Map(), skTitleMap = new Map(), teTitleMap = new Map();
+
+    if (selKn.size) {
+      const codes = [...selKn];
+      const [rows] = await conn.query(
+        `SELECT knowledge_code, knowledge_title FROM knowledge_data
+          WHERE knowledge_code IN (${codes.map(()=>'?').join(',')})`, codes);
+      rows.forEach(r => knTitleMap.set(r.knowledge_code, strip(r.knowledge_title)));
+    }
+    if (selSk.size) {
+      const codes = [...selSk];
+      const [rows] = await conn.query(
+        `SELECT skill_code, skill_title FROM skill_data
+          WHERE skill_code IN (${codes.map(()=>'?').join(',')})`, codes);
+      rows.forEach(r => skTitleMap.set(r.skill_code, strip(r.skill_title)));
+    }
+    if (selTe.size) {
+      const codes = [...selTe];
+      const [rows] = await conn.query(
+        `SELECT tech_skill_code, tech_title FROM technology_skill_data
+          WHERE tech_skill_code IN (${codes.map(()=>'?').join(',')})`, codes);
+      rows.forEach(r => teTitleMap.set(r.tech_skill_code, strip(r.tech_title)));
+    }
+
+    // 命中职业聚合
+    const results = [];
+    if (selKn.size) {
+      const codes = [...selKn];
+      const [rows] = await conn.query(
+        `SELECT ok.occupation_code, o.occupation_title, ok.knowledge_code AS code, 'knowledge' AS type
+           FROM occup_know_data ok
+           JOIN occupation_data o ON o.occupation_code = ok.occupation_code
+          WHERE ok.knowledge_code IN (${codes.map(()=>'?').join(',')})`, codes);
+      results.push(...rows);
+    }
+    if (selSk.size) {
+      const codes = [...selSk];
+      const [rows] = await conn.query(
+        `SELECT os.occupation_code, o.occupation_title, os.skill_code AS code, 'skill' AS type
+           FROM occup_skill_data os
+           JOIN occupation_data o ON o.occupation_code = os.occupation_code
+          WHERE os.skill_code IN (${codes.map(()=>'?').join(',')})`, codes);
+      results.push(...rows);
+    }
+    if (selTe.size) {
+      const codes = [...selTe];
+      const [rows] = await conn.query(
+        `SELECT ot.occupation_code, o.occupation_title, ot.tech_skill_code AS code, 'tech' AS type
+           FROM occup_tech_data ot
+           JOIN occupation_data o ON o.occupation_code = ot.occupation_code
+          WHERE ot.tech_skill_code IN (${codes.map(()=>'?').join(',')})`, codes);
+      results.push(...rows);
+    }
+
+    // 以职业为键做聚合（记录命中的三类 code 集合）
+    const byOcc = new Map();
+    for (const r of results) {
+      const key = r.occupation_code;
+      const entry = byOcc.get(key) || {
+        occupation_code: r.occupation_code,
+        occupation_title: strip(r.occupation_title),
+        matched: { knowledge_codes: new Set(), skill_codes: new Set(), tech_codes: new Set() }
+      };
+      if (r.type==='knowledge') entry.matched.knowledge_codes.add(r.code);
+      if (r.type==='skill')     entry.matched.skill_codes.add(r.code);
+      if (r.type==='tech')      entry.matched.tech_codes.add(r.code);
+      byOcc.set(key, entry);
+    }
+
+    // 生成结果：按命中数量降序；并附上“未命中”codes+titles
+    const items = [...byOcc.values()].map(e => {
+      const kc = e.matched.knowledge_codes.size;
+      const sc = e.matched.skill_codes.size;
+      const tc = e.matched.tech_codes.size;
+
+      const unmatched_kn = [...selKn]
+        .filter(code => !e.matched.knowledge_codes.has(code))
+        .map(code => ({ code, title: knTitleMap.get(code) ?? null }));
+
+      const unmatched_sk = [...selSk]
+        .filter(code => !e.matched.skill_codes.has(code))
+        .map(code => ({ code, title: skTitleMap.get(code) ?? null }));
+
+      const unmatched_te = [...selTe]
+        .filter(code => !e.matched.tech_codes.has(code))
+        .map(code => ({ code, title: teTitleMap.get(code) ?? null }));
+
+      return {
+        occupation_code: e.occupation_code,
+        occupation_title: e.occupation_title,
+        count: kc + sc + tc,  // 命中总数（用于排序）
+        unmatched: {
+          knowledge: unmatched_kn,
+          skill:     unmatched_sk,
+          tech:      unmatched_te
+        }
+      };
+    }).sort((a, b) => b.count - a.count || a.occupation_title.localeCompare(b.occupation_title));
+
+    res.json({ total_selected: selections.length, items });
+  } catch (e) {
+    console.error('rank-by-codes error:', e);
+    res.status(500).json({ error: 'server error' });
+  } finally {
+    conn.release();
+  }
+});
+
+
 
 // ===================== Debug & Errors =====================
 app.get('/test-occupations', async (_req, res) => {
@@ -426,6 +688,19 @@ app.get('/debug/me', (req, res) => {
   res.json({ hasSession: !!req.session, sessionID: req.sessionID, userId: req.session?.userId ?? null });
 });
 
+/**
+ * @openapi
+ * /debug/redis:
+ *   get:
+ *     tags: [Debug]
+ *     summary: Redis connectivity check
+ *     x-summary-zh: Redis 连接检查
+ *     responses:
+ *       200:
+ *         description: OK
+ *       500:
+ *         description: Not reachable
+ */
 app.get('/debug/redis', async (_req, res) => {
   try {
     const pong = await redis.ping();
@@ -448,6 +723,19 @@ app.get('/debug/redis-write', async (_req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /debug/login:
+ *   get:
+ *     tags: [Debug]
+ *     summary: Demo login (session.save surfaced as JSON)
+ *     x-summary-zh: Demo 登录（将 session.save 错误以 JSON 暴露）
+ *     responses:
+ *       200:
+ *         description: OK
+ *       500:
+ *         description: Session save error
+ */
 app.get('/debug/login', (req, res) => {
   req.session.userId = 'u-123';
   req.session.save((err) => {

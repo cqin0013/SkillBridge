@@ -110,39 +110,63 @@ export default function initAnzscoDemandRoutes(pool) {
  * /api/anzsco/{code}/demand:
  *   get:
  *     tags: [ANZSCO]
- *     summary: Shortage ratings (national / by state)
- *     x-summary-zh: 短缺评级（全国 / 各州）
+ *     summary: Shortage rating (national or by state) for an ANZSCO 6-digit code
  *     description: |
- *       If `state` is provided (e.g., VIC/NSW/QLD/SA/WA/TAS/NT/ACT), return the national rating, the specified state rating, and skill level.
- *       Otherwise return **all states** ratings in one object.
+ *       Returns **national** shortage rating and (optionally) a **specific state** rating
+ *       for an ANZSCO 6-digit code. If `state` is omitted, returns a map of all states.
+ *     x-summary-zh: ANZSCO 六位的短缺评级（全国/按州）
  *     x-description-zh: |
- *       传 `state`（如 VIC/NSW/QLD/SA/WA/TAS/NT/ACT）时，返回全国评级、该州评级与技能等级；不传则返回**所有州**的评级对象。
+ *       返回指定 ANZSCO 六位的 **全国**短缺评级；如提供 `state`，同时返回该州评级。
+ *       省略 `state` 时返回 **全部州**的评级映射。
  *     parameters:
  *       - in: path
  *         name: code
  *         required: true
  *         schema: { type: string, pattern: '^[0-9]{6}$' }
- *         description: 6-digit ANZSCO code.
- *         x-description-zh: 6 位 ANZSCO 代码。
+ *         description: ANZSCO 6-digit code.
  *       - in: query
  *         name: state
+ *         required: false
  *         schema:
  *           type: string
- *           enum: [NSW,VIC,QLD,SA,WA,TAS,NT,ACT]
- *         description: Optional Australian state code.
- *         x-description-zh: 可选的澳洲州代码。
+ *           enum: [ACT, NSW, NT, QLD, SA, TAS, VIC, WA]
+ *         description: |
+ *           Two/three-letter Australian state code (optional).
+ *           If omitted, returns ratings for all states.
  *     responses:
  *       200:
- *         description: Success (one-state or all-states)
+ *         description: Demand rating payload
  *         content:
  *           application/json:
- *             schema:
- *               oneOf:
- *                 - $ref: '#/components/schemas/DemandOneStateResponse'
- *                 - $ref: '#/components/schemas/DemandAllStatesResponse'
+ *             oneOf:
+ *               - $ref: '#/components/schemas/DemandAllStatesResponse'
+ *               - $ref: '#/components/schemas/DemandOneStateResponse'
+ *             examples:
+ *               all_states:
+ *                 summary: All states
+ *                 value:
+ *                   anzsco: { anzsco_code: "261313", anzsco_title: "Software Engineer" }
+ *                   skill_level: "1"
+ *                   ratings:
+ *                     national: "Shortage"
+ *                     NSW: "Shortage"
+ *                     VIC: "Shortage"
+ *               one_state:
+ *                 summary: One state (VIC)
+ *                 value:
+ *                   anzsco: { anzsco_code: "261313", anzsco_title: "Software Engineer" }
+ *                   skill_level: "1"
+ *                   national_rating: "Shortage"
+ *                   state: "Victoria"
+ *                   state_code: "VIC"
+ *                   state_rating: "Shortage"
+ *       400:
+ *         description: Invalid parameters
+ *       404:
+ *         description: No rating found
+ *       500:
+ *         description: Server error
  */
-
-
   router.get('/:code/demand', async (req, res) => {
     const code = String(req.params.code || '').trim();
     const state = String(req.query.state || '').trim().toUpperCase(); // NSW / VIC / ...
