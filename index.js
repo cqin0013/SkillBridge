@@ -34,7 +34,11 @@ import { fileURLToPath } from 'url';
 import path from 'node:path';
 
 // ★ 新增：纯 Node 版训练建议路由（不再使用 Python）
-import trainingAdviceRouter from './training-advice.router.js';
+//import trainingAdviceRouter from './training-advice.router.js';
+
+// ✅ 新增：ANZSCO 两个路由
+import initAnzscoTrainingRoutes from './anzsco.training.router.js';
+import initAnzscoDemandRoutes   from './anzsco.demand.router.js';
 
 const app = express();
 
@@ -156,7 +160,7 @@ app.use(session({
 // ===================== Security Enhancements End =====================
 
 // ★★★ 在 session 之后挂载「纯 Node 版」训练建议路由 ★★★
-app.use('/', trainingAdviceRouter);
+//app.use('/', trainingAdviceRouter);
 
 // ===================== Database Connection =====================
 const {
@@ -201,6 +205,11 @@ app.get('/health', async (_req, res) => {
     res.status(500).json({ ok: false, error: String(e?.message || e) });
   }
 });
+
+
+app.use('/api/anzsco', initAnzscoTrainingRoutes(pool)); // -> /api/anzsco/:code/training-advice
+app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/demand
+
 
 // -----------------------------
 // 1) Search occupations (returns only base info; supports includeAliases flag; no score in response)
