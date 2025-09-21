@@ -4,7 +4,6 @@ import StrangerThinkLogo from "../../assets/images/StrangerThink.png";
 import useResponsive from "../../lib/hooks/useResponsive";
 import "./Header.css";
 
-// Keep gold underline only; active state handled by CSS class
 const linkClass = ({ isActive }) => `st-link${isActive ? " is-active" : ""}`;
 
 export default function Header() {
@@ -14,10 +13,10 @@ export default function Header() {
   const btnRef = useRef(null);
   const { pathname } = useLocation();
 
-  // Close dropdown when route changes
+
   useEffect(() => setOpen(false), [pathname]);
 
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     const onDocClick = (e) => {
       if (
@@ -43,7 +42,6 @@ export default function Header() {
         <span className="brand-name">SkillBridge</span>
       </Link>
 
-      {/* Desktop: inline nav on the right */}
       {isDesktop && (
         <nav id="primary-nav" className="st-nav" aria-label="Primary">
           <NavLink to="/Analyzer" className={linkClass}>Analyzer</NavLink>

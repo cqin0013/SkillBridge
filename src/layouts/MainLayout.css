@@ -1,30 +1,23 @@
-/* Keep this file scoped to layout to avoid global overrides. */
-
-/* Root flex column: makes sticky footer trivial */
+/* Root app shell uses a column flex layout so the footer sits at the bottom */
 .app-shell {
-  min-height: 100dvh;
-  /* robust viewport units on mobile */
   display: flex;
   flex-direction: column;
+/* Fallbacks for older engines (order matters) */
+  min-height: 100vh;
+  /* very old Safari/Chrome fallback */
+  min-height: 100svh;
+  /* iOS Safari small viewport height (optional) */
+  min-height: 100dvh;
+  /* modern dynamic viewport height */
 }
 
-/* Main takes leftover space; prevents footer overlap */
+/* Header/Footer are natural-height; main grows to fill remaining space */
 .app-main {
   flex: 1 1 auto;
-  min-height: 0;
-    /* allow children to control their own scroll */
+  min-width: 0;
 }
 
-/* Sticky footer:
-   - If your Footer renders <footer>...</footer>, this selector applies.
-   - If it renders <div class="footer">...</div>, the second selector applies. */
-.app-shell>footer,
-.app-shell>.footer {
-  margin-top: auto;
-  /* push footer to the bottom of the page */
-  flex-shrink: 0;
-  /* never shrink the footer */
+/* Optional polish: respect device bottom safe area on iOS */
+.app-shell footer {
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
-
-/* Optional: when the home page hides the footer, nothing else is needed.
-   The layout still fills the viewport via .app-shell min-height. */

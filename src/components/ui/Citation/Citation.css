@@ -1,17 +1,16 @@
-/* src/components/Citation.css */
 .citation {
   font-size: 12px;
-  color: #6b7280; /* gray-500 */
+  color: #6b7280;
   line-height: 1.4;
 }
 
 .citation a {
-  color: #374151; /* gray-700 */
+  color: #374151;
   text-decoration: underline;
 }
 
 .citation a:hover {
-  color: #111827; /* gray-900 */
+  color: #111827;
 }
 
 .citation-prefix {

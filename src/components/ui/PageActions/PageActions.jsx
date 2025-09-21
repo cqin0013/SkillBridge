@@ -126,7 +126,7 @@ export default function PageActions({
         trigger={["hover", "focus"]}
         destroyOnHidden
         mouseEnterDelay={0.05}
-        classNames={{ root: "pa-tooltip" }} // v5 replacement of overlayClassName
+        classNames={{ root: "pa-tooltip" }} 
       >
         {content}
       </Tooltip>

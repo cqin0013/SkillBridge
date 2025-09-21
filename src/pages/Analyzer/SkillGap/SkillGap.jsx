@@ -1,7 +1,7 @@
 // src/pages/Analyzer/SkillGap/SkillGap.jsx
 // Content-only body for Step 4. Used inside TwoCardScaffold from Analyzer.jsx.
 
-import React, { useRef, useMemo, useState, useEffect } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import HelpToggle from "../../../components/ui/HelpToggle/HelpToggle";
 import SectionBox from "../../../components/ui/SectionBox/SectionBox";
 import GapTable from "../../../components/ui/GapTable";

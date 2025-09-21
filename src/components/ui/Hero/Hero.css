@@ -1,5 +1,4 @@
-/* src/components/IntroHero/IntroHero.css */
-/* 继承并泛化你现有的 Hero 样式，保持“背景覆盖 header”的行为 */
+
 .sb-hero {
   --bg: var(--hero-bg);
   background: var(--bg) center / cover no-repeat;
@@ -55,7 +54,6 @@
 }
 .sb-hero__actions { display: inline-flex; gap: 12px; }
 
-/* 与首页头部覆盖相关的全局增强（需要容器有 .app-shell 和 .st-header） */
 html, body, #root { height: 100%; margin: 0; }
 .app-shell:has(.sb-hero) { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .app-shell:has(.sb-hero) .app-main { height: 100%; overflow: hidden; }
@@ -66,7 +64,7 @@ html, body, #root { height: 100%; margin: 0; }
   background: transparent;
   border-bottom-color: transparent;
 }
-/* 让背景“顶到”并覆盖 header 背后 */
+/* background covered header area */
 .app-shell:has(.sb-hero) .sb-hero {
   margin-top: calc(-1 * var(--header-h, 64px));
   height: calc(100dvh + var(--header-h, 64px));

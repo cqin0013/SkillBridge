@@ -1,12 +1,11 @@
-// src/components/Citation.jsx
-import React from "react";
+
 import "./Citation.css";
 
 /**
  * Citation component for showing data sources.
  *
  * Props:
- * - source: string (required) → The name of the source (e.g., "Jobs and Skills Australia – NERO")
+ * - source: string (required) → The name of the source 
  * - url?: string → If provided, the source will be a clickable link
  * - year?: number | string → Year of the dataset (optional)
  * - extra?: string → Extra note (optional, e.g. "Data reference")

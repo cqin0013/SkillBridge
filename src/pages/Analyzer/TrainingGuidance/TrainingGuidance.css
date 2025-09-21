@@ -1,0 +1,11 @@
+/* TrainingGuidanceCard.css */
+.tg-card__tags {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.tg-card__text {
+    margin-bottom: 8px;
+}

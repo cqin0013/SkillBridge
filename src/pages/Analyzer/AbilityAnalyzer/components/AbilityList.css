@@ -37,7 +37,7 @@
   margin-left: 8px;
   flex-shrink: 0;
 }
-/* 低调的 Remove：中性灰，不使用 danger 红色 */
+
 .abl-controls .abl-remove-btn.ant-btn-text {
   color: #595959;
   padding: 4px 8px;

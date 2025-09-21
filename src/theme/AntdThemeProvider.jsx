@@ -1,46 +1,32 @@
-import React, { useEffect, useMemo } from "react";
-import { ConfigProvider, theme as antdTheme, App as AntApp } from "antd";
+// src/theme/AntdThemeProvider.jsx
+import { useEffect } from "react";
+import { ConfigProvider, App as AntApp } from "antd";
 
 /**
- * 全局主题 Provider
- * props:
- * - mode: 'light' | 'dark'
- * - density: 'default' | 'compact'
- * - primary: 品牌主色（默认 #1E3A8A）
- * - accent:  点缀色（默认 #F59E0B 金色）
+ * Global Theme Provider (light-only)
+ * - Exposes brand colors via Ant Design tokens and CSS variables
  */
 export default function BrandThemeProvider({
   children,
-  mode = "light",
-  density = "default",
-  primary = "#1E3A8A",
-  accent = "#F59E0B",
+  primary = "#1E3A8A", 
+  accent = "#F59E0B",  
 }) {
-  // 算法选择
-  const algorithms = useMemo(() => {
-    return [
-      antdTheme.defaultAlgorithm,
-      mode === "dark" ? antdTheme.darkAlgorithm : null,
-      density === "compact" ? antdTheme.compactAlgorithm : null,
-    ].filter(Boolean);
-  }, [mode, density]);
-
-  // 注入自定义语义变量（非 AntD token），供纯 CSS 使用
+  // Inject semantic CSS variables for custom (non-AntD) styles
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty("--brand-primary", primary);
     root.style.setProperty("--brand-accent", accent);
-    root.setAttribute("data-mode", mode);
-    root.setAttribute("data-density", density);
-  }, [primary, accent, mode, density]);
+    root.setAttribute("data-mode", "light");     
+    root.setAttribute("data-density", "default");
+  }, [primary, accent]);
 
   return (
     <ConfigProvider
       theme={{
-        cssVar: { key: "sb" }, // 开启 CSS 变量，--sb-colorPrimary 之类
-        algorithm: algorithms,
+        cssVar: { key: "sb" }, 
         token: {
           colorPrimary: primary,
+          colorInfo: accent,
           borderRadius: 8,
           fontSize: 16,
           fontSizeSM: 14,
@@ -48,7 +34,7 @@ export default function BrandThemeProvider({
           fontSizeIcon: 18,
         },
         components: {
-          Input:  { controlHeight: 44 },
+          Input: { controlHeight: 44 },
           Select: { controlHeight: 44 },
           Button: {
             controlHeight: 48,
@@ -68,7 +54,7 @@ export default function BrandThemeProvider({
             fontSizeHeading5: 18,
             titleMarginBottom: 8,
           },
-          Card:  { borderRadiusLG: 8 },
+          Card: { borderRadiusLG: 8 },
           Layout: { headerHeight: 64 },
           Table: { headerBg: "#fafafa", fontSize: 15 },
         },

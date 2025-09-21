@@ -23,14 +23,13 @@ export default [
     },
     settings: { react: { version: "detect" } },
     rules: {
-      // ⬇️ Enforce on-demand icon imports
+      //  Enforce on-demand icon imports
       "no-restricted-imports": ["error", {
         paths: [{
           name: "@ant-design/icons",
           importNames: ["default"],
           message: "Import specific icons, e.g. { InfoCircleFilled }."
         }],
-        patterns: ["@ant-design/icons/*/*"]
       }],
       "no-restricted-syntax": [
         "error",

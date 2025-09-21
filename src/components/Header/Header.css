@@ -1,18 +1,16 @@
-/* ================= Base: height & type scale ================= */
+
 .st-header {
   height: var(--header-h, 64px);
   --brand-font-size: 1.25rem;
-  /* brand & nav text size */
 }
 
-/* Palette + explicit accent */
 :root {
   --hdr-bg: #fff;
     --hdr-fg: #0f172a;
     --hdr-fg-sub: #334155;
     --hdr-border: #e5e7eb;
     --brand-accent: #f59e0b;
-    /* gold underline */
+
 }
 
 /* Header layout */
@@ -23,13 +21,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-    /* brand left, nav right */
     background: var(--hdr-bg);
     padding: 0 18px;
     border-bottom: 1px solid var(--hdr-border);
 }
 
-/* ================= Brand (logo + text) ================= */
+
 .st-brand {
   display: flex;
   align-items: center;
@@ -54,7 +51,7 @@
     transition: border-color .2s, transform .12s ease;
 }
 
-/* ================= Right-side nav ================= */
+/* Right-side nav */
 .st-nav {
   display: flex;
   gap: 16px;
@@ -67,7 +64,7 @@
   border-bottom: 2px solid transparent;
   transition: border-color .2s, transform .12s;
 }
-/* Keep ONLY gold underline on hover/active; don't change text color */
+
 .st-link:hover,
 .st-link:focus,
 .st-link.is-active,
@@ -75,10 +72,9 @@
   border-bottom-color: var(--brand-accent);
 }
 
-/* ================= Mobile hamburger ================= */
+/* Mobile hamburger */
 .st-menu {
   display: none;
-    /* hidden on desktop via CSS, shown in mobile scope */
   background: none;
   border: 0;
   padding: 6px;
@@ -91,44 +87,4 @@
   background: var(--hdr-fg-sub);
   margin: 3px 0;
   border-radius: 2px;
-}
-
-/* ============== Mobile dropdown & hamburger visibility ============== */
-@media (max-width: 768px) {
-  /* Dropdown panel (hidden by default, absolute under header) */
-    .st-nav {
-      display: none;
-    position: absolute;
-    top: var(--header-h, 64px);
-    right: 12px;
-    background: var(--hdr-bg);
-    flex-direction: column;
-    padding: 8px;
-    border: 1px solid var(--hdr-border);
-      border-radius: var(--sb-borderRadius, 8px);
-      box-shadow: 0 10px 28px rgba(2, 6, 23, .08);
-  }
-    .st-nav.is-open {
-      display: flex;
-    }
-  
-    .st-link {
-    padding: 8px 10px;
-      border-bottom: 0;
-    }
-    /* Show hamburger only on mobile */
-    .st-menu {
-      display: block;
-    }
-    }
-/* ============== Intro theme: make header overlay (transparent) ============== */
-/* When page applies "intro-theme" class to <html> or <body>,
-   let background/hero visually cover behind header. */
-.intro-theme .st-header {
-  background: transparent;
-  border-bottom-color: transparent;
-  position: absolute;
-  /* overlay on top of hero */
-  left: 0;
-  right: 0;
 }

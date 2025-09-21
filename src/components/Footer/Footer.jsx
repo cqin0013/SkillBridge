@@ -1,5 +1,5 @@
 // Minimal footer: always visible, team name only.
-import React from "react";
+
 import { Layout, Typography } from "antd";
 import "./Footer.css";
 

@@ -1,5 +1,4 @@
-// src/components/shared/BasePickerModal.jsx
-import React from "react";
+
 import { Modal, Alert, List, Checkbox, Typography } from "antd";
 import "./BasePickerModal.css";
 
@@ -7,7 +6,7 @@ const { Text } = Typography;
 
 /**
  * BasePickerModal
- * 通用勾选列表弹窗
+ * 
  *
  * Props:
  * - open: boolean

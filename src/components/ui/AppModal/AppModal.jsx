@@ -1,10 +1,9 @@
-// src/components/ui/AppModal/AppModal.jsx
-import React from "react";
+
 import { Modal } from "antd";
 
 /**
- * AppModal (Ant Design v5)
- * - Uses v5 props: `destroyOnHidden` and `styles.body` (no deprecated props).
+ * AppModal 
+ * - `destroyOnHidden` and `styles.body`
  * - Sensible defaults; pass only what you need.
  */
 export default function AppModal({
@@ -14,10 +13,10 @@ export default function AppModal({
   children,
   footer = null,
   width,
-  top = 24,                 // distance from viewport top; set to null to let antd center
+  top = 24,                 
   maskClosable = false,
-  bodyPaddingBlock = 12,    // vertical padding inside body
-  destroyOnHidden = true,   // unmount content when hidden
+  bodyPaddingBlock = 12,    
+  destroyOnHidden = true,   
   ...rest
 }) {
   return (

@@ -336,9 +336,9 @@ function AbilityAnalyzer(
             <div style={{ maxWidth: 420 }}>
               <b>What counts as an “ability”?</b>
               <Paragraph style={{ marginTop: 8, marginBottom: 0 }}>
-                • <i>Knowledge</i>: theory or domain know-how (e.g., “Project Management”).<br />
-                • <i>Tech Skills</i>: tools/technologies (e.g., “Excel”, “React”).<br />
-                • <i>Skills</i>: behaviors/methods (e.g., “Stakeholder communication”).
+                • <i>Knowledge</i>: theory or domain know-how.<br />
+                • <i>Tech Skills</i>: tools/technologies.<br />
+                • <i>Skills</i>: behaviors/methods.
               </Paragraph>
             </div>
           </HelpToggle>

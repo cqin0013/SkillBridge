@@ -12,9 +12,9 @@ export default function IndustrySelect({
   allowAll = false,
   showFilter = true,
   placeholder = "Select industry",
-  className = "",          // ✅ 用于命中 .ant-select 根元素
-  wrapperClassName = "",   // ✅ 新增：如果还想给外层包一层 class
-  size = "large",          // ✅ 默认 large，方便与 Input/Button 对齐
+  className = "",          
+  wrapperClassName = "",   
+  size = "large",          
 }) {
   const selectMode = multiple ? "multiple" : undefined;
 
@@ -48,8 +48,8 @@ export default function IndustrySelect({
   return (
     <div className={`industry-select-wrapper ${wrapperClassName}`}>
       <Select
-        className={`industry-select ${className}`}  // ✅ 让等高样式命中 .ant-select
-        size={size}                                  // ✅ 与 Input/Button 一致
+        className={`industry-select ${className}`} 
+        size={size}                                  
         mode={selectMode}
         value={computedValue}
         onChange={handleChange}
@@ -63,7 +63,7 @@ export default function IndustrySelect({
         dropdownMatchSelectWidth
       />
 
-      {/* 自定义的已选行业展示区（多选时） */}
+      {/* multiple selector */}
       {multiple && computedValue?.length > 0 && (
         <div className="industry-chosen-list">
           {computedValue.map((id) => {

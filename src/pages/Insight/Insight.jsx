@@ -93,7 +93,9 @@ export default function Insight() {
     } catch {}
     if (first) setPickerOpen(false);
   };
+  <div style={{ height: 40, width: "100%", background: "red", marginBottom: 16 }} />
 
+  
   return (
     <main className={`insight-screen${isMobile ? " is-mobile" : ""}`}>
       {/* Header section (StageBox) */}

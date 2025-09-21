@@ -1,5 +1,3 @@
-/* Container for each list item */
-
 
 /* Action buttons area */
 .pos__actions {
@@ -8,46 +6,46 @@
   gap: 8px;
   white-space: nowrap;
 }
-/* 让每条结果项改为“上下两行结构”：主行 + 详情行 */
+
 .pos__item.ant-list-item {
-  display: flex;           /* 覆盖 antd 默认 flex 行内布局 */
-  flex-direction: column;  /* 纵向堆叠：主行在上，详情在下 */
-  align-items: stretch;    /* 主行与详情都拉满宽度 */
+  display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
-/* Make buttons same min width so they align nicely */
+
 .pos__actions .ant-btn {
   min-width: 84px;
 }
 
-/* ---- Modal body: limit height and enable scroll, prevent overflow ---- */
+
 .pos-modal .ant-modal-body {
-  max-height: 60vh;          /* content scrolls inside modal */
+  max-height: 60vh;
   overflow: auto;
 }
 
-/* ---- List item basic ---- */
+
 .pos__item {
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
-  overflow: hidden;           /* clip any accidental overflow */
+  overflow: hidden;
 }
 
-/* ---- Main row: title left, actions right (never overflow) ---- */
+
 .pos__main {
   display: grid;
-  grid-template-columns: 1fr auto;  /* left grows, right hugs content */
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 12px;
   min-height: 40px;
 }
 
-/* left title: allow shrink and wrap safely */
+
 .pos__title {
-  min-width: 0;                      /* allow ellipsis clamp */
+  min-width: 0;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;               /* single line on wide screen */
+  white-space: nowrap;
 }
 
 /* right actions: keep on same row, but allow wrapping on very narrow */
@@ -56,18 +54,17 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  flex-wrap: wrap;                   /* if too narrow, buttons wrap within the area */
+  flex-wrap: wrap;
   max-width: 100%;
 }
 
-/* DO NOT force a large min width; let buttons shrink naturally to avoid overflow */
-/* If you previously set min-width on buttons, remove it or make it smaller */
+
 .pos__actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  flex-wrap: wrap;     /* 太窄时按钮自己折到下一行，但仍在右侧 */
+  flex-wrap: wrap;
   max-width: 100%;
 }
 

@@ -1,12 +1,11 @@
-// src/components/shared/CompositeSelector.jsx
-import React from "react";
+
 import { Input, Typography } from "antd";
 import "./CompositeSelector.css";
 
 const { Text } = Typography;
 
 /**
- * Reusable block: keyword input + single select + multi select
+ * keyword input + single select + multi select
  * - All fields are fully controlled (value & onChange come from parent)
  * - The single/multi selects are passed in as Components so you can plug in IndustrySelect or Antd Select
  */
@@ -44,7 +43,6 @@ export default function CompositeSelector({
 
   return (
     <div className={`composite-selector ${className}`}>
-      {/* Input */}
       <div className="cs-row">
         <h3 className="cs-title">{input.label}</h3>
         <Input

@@ -1,42 +1,23 @@
 /* =========================================================
- * Ultra-lite Global CSS
- * AntD visuals are controlled by ConfigProvider (cssVar).
- * This file only provides brand accent + a few generic rules.
+ * Ant Design visuals are primarily controlled by ConfigProvider (cssVar).
  * ========================================================= */
 
-/* 品牌点缀变量（全局可用） */
-:root {
-  --brand-accent: #F59E0B;
-}
-
-/* 基础排版 reset */
-html, body {
-  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC",
-    "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+/* Base typography & reset
+ * - Antialiasing for crisper text on macOS/Windows
+ */
+html,
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
   padding: 0;
 }
 
-/* 链接跟随 AntD 主色 */
+/* Links follow AntD primary color  */
 a {
   color: var(--sb-colorPrimary);
   text-decoration: none;
-}
-a:hover {
-  color: color-mix(in srgb, var(--sb-colorPrimary) 88%, white);
-  text-decoration: underline;
-}
-
-/* 通用强调线工具类 */
-.accent-rule {
-  width: 72px;
-  height: 4px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand-accent), #FDE68A);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--brand-accent) 18%, transparent),
-    0 6px 18px color-mix(in srgb, var(--brand-accent) 28%, transparent);
 }
 

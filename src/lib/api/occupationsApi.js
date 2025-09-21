@@ -1,8 +1,35 @@
-// src/services/occupationsApi.js
-import { fetchJson, getApiBase } from "./http";
+import { request as _request } from "../../utils/http";
 
-// Optional: re-export for diagnostics (e.g., console.log(getApiBase()))
-export { getApiBase } from "./http";
+/** Expose current API base for diagnostics/UI */
+export const getApiBase = () =>
+  (import.meta?.env?.VITE_API_BASE) || "https://skillbridge-hnxm.onrender.com";
+
+/**
+ * Internal wrapper: keep your old signature fetchJson(path, init, { retryOn5xx })
+ * - Retries only on network errors or 5xx (max 2 retries, simple backoff)
+ */
+async function fetchJson(path, init, extra) {
+  const doRetry = extra?.retryOn5xx === true;
+  const maxRetries = doRetry ? 2 : 0; // try at most 3 times total (1 + 2 retries)
+  let lastErr;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await _request(path, init);
+    } catch (e) {
+      const isHttp5xx = e?.name === "HttpError" && e.status >= 500;
+      const isNetErr = !e?.status && e?.name !== "AbortError"; // DNS/reset/etc.
+      if (attempt < maxRetries && (isHttp5xx || isNetErr)) {
+        // simple backoff: 200ms, 400ms
+        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+        continue;
+      }
+      lastErr = e;
+      break;
+    }
+  }
+  throw lastErr;
+}
 
 /**
  * GET /occupations/search-and-titles
@@ -24,7 +51,6 @@ export async function searchOccupations({
     include,
   }).toString();
 
-  // retryOn5xx=true: also fallback to the secondary base if server returns 5xx
   const data = await fetchJson(
     `/occupations/search-and-titles?${qs}`,
     { method: "GET" },

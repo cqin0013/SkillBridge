@@ -1,11 +1,10 @@
 // src/App.jsx
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "antd/dist/reset.css";
-
 import AntdThemeProvider from "./theme/AntdThemeProvider";          
 import MainLayout from "./layouts/MainLayout";
-
+import { Spin } from "antd";
 
 const Home = lazy(() => import("./pages/Home/Home.jsx"));
 const Analyzer = lazy(() => import("./pages/Analyzer/Analyzer.jsx"));
@@ -16,8 +15,7 @@ export default function App() {
   return (
     <AntdThemeProvider>
       <Router>
-        {/* 可换成骨架屏/Spinner，这里用最小空占位，避免额外样式依赖 */}
-        <Suspense fallback={null}>
+        <Suspense fallback={<Spin />}>
           <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Home />} />
