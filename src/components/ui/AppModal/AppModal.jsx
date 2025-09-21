@@ -1,10 +1,9 @@
-
 import { Modal } from "antd";
 
 /**
- * AppModal 
- * - `destroyOnHidden` and `styles.body`
- * - Sensible defaults; pass only what you need.
+ * AppModal
+ * Thin wrapper that applies shared defaults (padding, mask behaviour).
+ * Callers still control mount/unmount behaviour via their own state.
  */
 export default function AppModal({
   open,
@@ -13,10 +12,9 @@ export default function AppModal({
   children,
   footer = null,
   width,
-  top = 24,                 
+  top = 24,
   maskClosable = false,
-  bodyPaddingBlock = 12,    
-  destroyOnHidden = true,   
+  bodyPaddingBlock = 12,
   ...rest
 }) {
   return (
@@ -25,7 +23,6 @@ export default function AppModal({
       onCancel={onClose}
       title={title}
       footer={footer}
-      destroyOnHidden={destroyOnHidden}
       maskClosable={maskClosable}
       width={width}
       style={top != null ? { top } : undefined}

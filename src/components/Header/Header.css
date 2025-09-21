@@ -1,70 +1,65 @@
-
-.st-header {
-  height: var(--header-h, 64px);
-  --brand-font-size: 1.25rem;
-}
-
+/* =========================
+   Core variables & sizing
+   ========================= */
 :root {
+  --header-h: 64px;
   --hdr-bg: #fff;
-    --hdr-fg: #0f172a;
+  --hdr-fg: #0f172a;
     --hdr-fg-sub: #334155;
     --hdr-border: #e5e7eb;
     --brand-accent: #f59e0b;
-
+  --brand-font-size: 1.25rem;
 }
 
-/* Header layout */
+/* =========================
+   Header base layout
+   ========================= */
 .st-header {
+  height: var(--header-h);
   position: sticky;
   top: 0;
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
-    background: var(--hdr-bg);
+  background: var(--hdr-bg);
     padding: 0 18px;
     border-bottom: 1px solid var(--hdr-border);
 }
 
-
+/* Brand block */
 .st-brand {
   display: flex;
   align-items: center;
   gap: 10px;
-    color: var(--hdr-fg);
+  color: var(--hdr-fg);
     font-weight: 900;
     font-size: var(--brand-font-size);
   text-decoration: none;
   transition: color .2s, transform .12s ease, filter .18s ease;
 }
 .brand-logo {
-  height: clamp(32px, calc(var(--header-h, 64px) - 20px), 72px);
+  height: clamp(32px, calc(var(--header-h) - 20px), 72px);
     width: auto;
   }
-  
-  .brand-name {
-    display: inline-block;
-    font-weight: 900;
-    letter-spacing: .3px;
-    color: var(--hdr-fg-sub);
-    border-bottom: 2px solid transparent;
-    transition: border-color .2s, transform .12s ease;
+.brand-name {
+  display: inline-block;
+  font-weight: 900;
+  letter-spacing: .3px;
+  color: var(--hdr-fg-sub);
+  border-bottom: 2px solid transparent;
+  transition: border-color .2s, transform .12s ease;
 }
 
-/* Right-side nav */
-.st-nav {
-  display: flex;
-  gap: 16px;
-}
+/* Nav links (shared) */
 .st-link {
   color: var(--hdr-fg-sub);
-    font-size: var(--brand-font-size);
+  font-size: var(--brand-font-size);
     font-weight: 700;
   text-decoration: none;
   border-bottom: 2px solid transparent;
   transition: border-color .2s, transform .12s;
 }
-
 .st-link:hover,
 .st-link:focus,
 .st-link.is-active,
@@ -72,7 +67,7 @@
   border-bottom-color: var(--brand-accent);
 }
 
-/* Mobile hamburger */
+/* Hamburger button (hidden by default; shown in touch mode below) */
 .st-menu {
   display: none;
   background: none;
@@ -87,4 +82,73 @@
   background: var(--hdr-fg-sub);
   margin: 3px 0;
   border-radius: 2px;
+}
+
+/* =========================
+   Mode: Desktop (inline nav)
+   Expect .st-header.has class .is-desktop
+   ========================= */
+.st-header.is-desktop .st-menu {
+  display: none !important;
+}
+
+.st-header.is-desktop .st-nav {
+  position: static !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 16px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+/* =========================
+   Mode: Touch (tablet + mobile)
+   Dropdown panel, hidden by default; toggled via .is-open
+   Expect .st-header.has class .is-touch
+   ========================= */
+.st-header.is-touch .st-menu {
+  /* Override the base display:none */
+  display: inline-block !important;
+}
+
+.st-header.is-touch .st-nav {
+  position: fixed !important;
+  top: var(--header-h);
+  right: 12px;
+  left: auto;
+
+  display: flex !important;
+  flex-direction: column;
+  gap: 10px;
+
+  background: var(--hdr-bg);
+  border: 1px solid var(--hdr-border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .12);
+  border-radius: 10px;
+  padding: 10px 12px;
+
+  /* Hidden by default; shown with .is-open */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity .18s ease, transform .18s ease;
+
+  z-index: 60;
+  /* above sticky header */
+}
+
+/* Force black text in touch dropdown menu */
+.st-header.is-touch .st-nav .st-link {
+  color: #000;
+}
+
+.st-header.is-touch .st-nav.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }

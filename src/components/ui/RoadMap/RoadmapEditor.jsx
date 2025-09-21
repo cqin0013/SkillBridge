@@ -473,7 +473,6 @@ export default function RoadmapEditor({
         open={pickerOpen}
         width={560}
         onClose={() => setPickerOpen(false)}
-        destroyOnHidden
       >
         {LibraryTabs}
         <Space style={{ marginTop: 16 }}>

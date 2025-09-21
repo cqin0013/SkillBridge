@@ -1,13 +1,11 @@
-// src/lib/constants/industries.js
 
 export const INDUSTRY_OPTIONS = [
-  { id: "IMT",  name: "Information Media & Telecommunications" },
-  { id: "PSTS", name: "Professional, Scientific & Technical Services" },
-  { id: "HCSA", name: "Health Care & Social Assistance" },
-  { id: "EDU",  name: "Education & Training" },
-  { id: "CONS", name: "Construction" },
-  { id: "MFG",  name: "Manufacturing" },
-  { id: "RETAIL", name: "Retail Trade" },
-  { id: "FIN",  name: "Financial & Insurance Services" },
-  { id: "PAS",  name: "Public Administration & Safety" },
+  { id: "1", name: "Managers" },
+  { id: "2", name: "Professionals" },
+  { id: "3", name: "Technicians and Trades Workers" },
+  { id: "4", name: "Community and Personal Service Workers" },
+  { id: "5", name: "Clerical and Administrative Workers" },
+  { id: "6", name: "Sales Workers" },
+  { id: "7", name: "Machinery Operators and Drivers" },
+  { id: "8", name: "Labourers" },
 ];

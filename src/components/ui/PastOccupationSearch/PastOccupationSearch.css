@@ -1,35 +1,11 @@
-
-/* Action buttons area */
-.pos__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
 .pos__item.ant-list-item {
   display: flex;
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.pos__actions .ant-btn {
-  min-width: 84px;
-}
-
-
-.pos-modal .ant-modal-body {
-  max-height: 60vh;
-  overflow: auto;
-}
-
-
-.pos__item {
+  flex-direction: column;
+  align-items: stretch;
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
   overflow: hidden;
 }
-
 
 .pos__main {
   display: grid;
@@ -39,7 +15,6 @@
   min-height: 40px;
 }
 
-
 .pos__title {
   min-width: 0;
   font-weight: 600;
@@ -48,7 +23,6 @@
   white-space: nowrap;
 }
 
-/* right actions: keep on same row, but allow wrapping on very narrow */
 .pos__actions {
   display: flex;
   align-items: center;
@@ -58,17 +32,10 @@
   max-width: 100%;
 }
 
-
-.pos__actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-  max-width: 100%;
+.pos__actions .ant-btn {
+  min-width: 84px;
 }
 
-/* ---- Detail block: always on its own line, and wrap long text ---- */
 .pos__details {
   margin-top: 8px;
   width: 100%;
@@ -77,18 +44,22 @@
   word-break: break-word;
 }
 
-/* meta look */
 .pos__meta {
   font-size: 12px;
   color: #6b7280;
 }
 
-/* ---- Small screens: let title wrap, keep actions right but not overflowing ---- */
 @media (max-width: 575px) {
-  .pos__title {
-    white-space: normal;             /* allow multi-line title on narrow width */
+  .pos__main {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
+
+  .pos__title {
+    white-space: normal;
+  }
+
   .pos__actions {
-    margin-left: auto;               /* keep aligned to the right edge */
+    justify-content: flex-start;
   }
 }

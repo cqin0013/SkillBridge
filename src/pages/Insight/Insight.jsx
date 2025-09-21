@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import AUSChoropleth from "../../components/AUSChoropleth";
 import AUS_TOPO from "../../assets/australia_states.topo.json";
 import useResponsive from "../../lib/hooks/useResponsive";
 import StageBox from "../../components/ui/StageBox/StageBox";
-import AppModal from "../../components/ui/AppModal/AppModal";
 import PastOccupationSearch from "../../components/ui/PastOccupationSearch/PastOccupationSearch";
 import Citation from "../../components/ui/Citation/Citation";
 import "./Insight.css";
@@ -70,6 +69,7 @@ export default function Insight() {
 
   // Single-select job picker (modal)
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [renderModal, setRenderModal] = useState(false);
   const [singleSel, setSingleSel] = useState(() => {
     try {
       const raw = window.sessionStorage.getItem("pos_selected");
@@ -79,6 +79,25 @@ export default function Insight() {
       return [];
     }
   });
+
+  useEffect(() => {
+    if (pickerOpen) {
+      setRenderModal(true);
+    }
+  }, [pickerOpen]);
+
+  const handleModalClose = () => setPickerOpen(false);
+
+  const handleOpenModal = () => {
+    setRenderModal(true);
+    setPickerOpen(true);
+  };
+
+  const handleAfterOpenChange = (opened) => {
+    if (!opened) {
+      setRenderModal(false);
+    }
+  };
 
   /** Enforce single selection and update title immediately. */
   const handleChangeSingle = (arr) => {
@@ -91,11 +110,8 @@ export default function Insight() {
       window.sessionStorage.setItem("sb_targetJobTitle", nextTitle);
       window.sessionStorage.setItem("pos_selected", JSON.stringify(next));
     } catch {}
-    if (first) setPickerOpen(false);
+    if (first) handleModalClose();
   };
-  <div style={{ height: 40, width: "100%", background: "red", marginBottom: 16 }} />
-
-  
   return (
     <main className={`insight-screen${isMobile ? " is-mobile" : ""}`}>
       {/* Header section (StageBox) */}
@@ -184,29 +200,34 @@ export default function Insight() {
           type="primary"
           shape="round"
           size={isMobile ? "middle" : "large"}
-          onClick={() => setPickerOpen(true)}
+          onClick={handleOpenModal}
         >
           Want to explore another job? Click here
         </Button>
       </div>
 
       {/* v5 Modal hosting the single-select job picker */}
-      <AppModal
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        title="Search another job"
-        width={isMobile ? undefined : 720}
-        top={24}
-        bodyPaddingBlock={12}
-      >
-        <PastOccupationSearch
-          selected={singleSel}
-          onChangeSelected={handleChangeSingle}
-        />
-        <div style={{ marginTop: 8, fontSize: 12, color: "#6b7280" }}>
-          Only one job can be selected here. Picking a job will update the page header.
-        </div>
-      </AppModal>
+      {renderModal && (
+        <Modal
+          open={pickerOpen}
+          onCancel={handleModalClose}
+          afterOpenChange={handleAfterOpenChange}
+          title="Search another job"
+          width={isMobile ? undefined : 720}
+          style={{ top: 24 }}
+          styles={{ body: { paddingBlock: 12 } }}
+          footer={null}
+          maskClosable={false}
+        >
+          <PastOccupationSearch
+            selected={singleSel}
+            onChangeSelected={handleChangeSingle}
+          />
+          <div style={{ marginTop: 8, fontSize: 12, color: "#6b7280" }}>
+            Only one job can be selected here. Picking a job will update the page header.
+          </div>
+        </Modal>
+      )}
     </main>
   );
 }

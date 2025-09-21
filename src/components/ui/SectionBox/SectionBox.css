@@ -1,13 +1,17 @@
-/* 默认 */
+/* SectionBox variants
+   ------------------- */
+
+/* Default look: plain white header (inherits card border from variant="outlined") */
 .section-box--default .ant-card-head {
   background: #fff;
 }
 
-/* 问题区：淡蓝头部、轻边线 */
+/* Question look: gentle blue header with a light divider */
 .section-box--question .ant-card-head {
   background: #f6f9ff;
   border-bottom: 1px solid rgba(22, 119, 255, 0.15);
 }
+/* Optional footer separator under the body content */
 .section-box__footer {
   margin-top: 12px;
   padding-top: 12px;

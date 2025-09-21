@@ -13,7 +13,7 @@ import SkillLevelCard from "../../components/ui/SkillLevelCard/SkillLevelCard.js
 import TrainingGuidanceCard from "../../components/ui/TrainingGuidanceCard/TrainingGuidanceCard.jsx";
 import { INDUSTRY_OPTIONS } from "../../lib/constants/industries";
 
-// ✅ use cache.js instead of roadmapStore
+//  use cache.js instead of roadmapStore
 import { getCache, delCache } from "../../utils/cache";
 
 /** Fallback mock advice (from your screenshot) when nothing is provided */
@@ -74,7 +74,7 @@ export default function Profile() {
 
   // Load roadmap + prev summary + training session data
   useEffect(() => {
-    // ✅ read roadmap from cache (key 'roadmap' → stored under 'sb_roadmap')
+    //  read roadmap from cache (key 'roadmap' → stored under 'sb_roadmap')
     const cached = getCache("roadmap");
     const loadedSteps = Array.isArray(cached)
       ? cached
@@ -133,7 +133,7 @@ export default function Profile() {
   };
 
   const onClear = () => {
-    // ✅ clear only roadmap key
+    //  clear only roadmap key
     delCache("roadmap");
     setSteps([]);
     message.success("Roadmap cleared.");
@@ -156,7 +156,7 @@ export default function Profile() {
 
   return (
     <div className="container" style={{ padding: 16 }}>
-      {/* --- Collapsible: Your info --- */}
+      {/*  Collapsible: Your info  */}
       <Collapse
         activeKey={infoOpen ? ["info"] : []}
         onChange={(keys) => setInfoOpen((keys || []).includes("info"))}
@@ -180,7 +180,7 @@ export default function Profile() {
         ]}
       />
 
-      {/* --- Collapsible Roadmap Card --- */}
+      {/* Collapsible Roadmap Card */}
       <Card
         title="My Learning Roadmap"
         extra={
@@ -249,7 +249,7 @@ export default function Profile() {
         )}
       </Card>
 
-      {/* --- NEW: Two SectionBoxes (each wrapped with its own Collapse) --- */}
+      {/* Two SectionBoxes */}
       <div style={{ marginTop: 16 }}>
         <Collapse
           activeKey={skillBoxOpen ? ["skill"] : []}
@@ -299,7 +299,6 @@ export default function Profile() {
         width={820}
         open={open}
         onClose={() => onEditorClose()}
-        destroyOnHidden   
       >
         <RoadmapEditor initial={steps} onClose={onEditorClose} />
       </Drawer>

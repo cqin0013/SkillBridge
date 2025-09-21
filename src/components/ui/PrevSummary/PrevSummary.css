@@ -1,11 +1,12 @@
-/* 在左栏列内铺满；通过 max-width 控上限（不挤中列） */
+/* Make the card fill the left column while honoring a max width if needed */
 .prev-summary-card {
   width: 100%;
   /* max-width: 900px; */
+    /* Uncomment to cap width if the column is very wide */
   box-sizing: border-box;
 }
 
-/* 正确换行 */
+/* Ensure long strings/arrays wrap correctly inside description items */
 .prev-summary-card .ant-descriptions-item-content,
 .prev-wrap {
   min-width: 0;
@@ -14,5 +15,7 @@
   hyphens: auto;
 }
 
-/* 标签换行友好 */
-.prev-summary-card .ant-tag { margin-bottom: 4px; }
+/* Friendly wrapping for Ant Design tags inside the card */
+.prev-summary-card .ant-tag {
+  margin-bottom: 4px;
+}

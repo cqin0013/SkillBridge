@@ -1,3 +1,4 @@
+// /src/pages/analyzer/AnalyzerWizard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Modal } from "antd";
@@ -14,7 +15,8 @@ import SkillGap from "./SkillGap/SkillGap";
 import TrainingGuidance from "./TrainingGuidance/TrainingGuidance";
 
 import { INDUSTRY_OPTIONS } from "../../lib/constants/industries";
-import { saveRoadmap } from "../../utils/roadmapStore";
+// ⬇️ replace roadmapStore with cache.js
+import { setCache } from "../../utils/cache";
 
 const TOTAL_STEPS = 6;
 const clamp = (n) => Math.max(0, Math.min(TOTAL_STEPS - 1, Number.isFinite(n) ? n : 0));
@@ -172,7 +174,10 @@ export default function AnalyzerWizard() {
       onOk: () => {
         const gaps = readUnmatched();
         const steps = buildRoadmapStepsFromGaps(gaps); // Only unmatched abilities
-        saveRoadmap(steps);                            // saveRoadmap expects array
+
+        // ⬇️ save to cache under key "roadmap" (Profile.jsx reads the same key)
+        setCache("roadmap", { steps, updatedAt: Date.now() });
+
         Modal.success({ title: "Roadmap generated", content: "Saved to Profile." });
         goTo(0);
       },

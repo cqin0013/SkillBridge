@@ -1,18 +1,24 @@
+/* src/components/IndustrySelect/IndustrySelect.css */
 
-
+/* Root-level sizing tokens for consistent Select height & padding */
 :root {
   --isel-h: 40px;
+    /* desired input height */
     --isel-pad-x: 11px;
+    /* horizontal padding inside the selector */
 }
 
-
+/* Wrapper takes full width of its container */
 .industry-select-wrapper { width: 100%; }
+/* Base select element: grow to container width; allow shrink in flex layouts */
 .industry-select {
   width: 100%;
   min-width: 0;
+    /* prevents overflow in flex/grid columns */
 }
 
-/* Focus appearance */
+/* Remove glow/outline on focus to match the app’s minimalist focus style
+   (ensure you still provide visible focus styles elsewhere for a11y). */
 .industry-select.ant-select-focused .ant-select-selector,
 .industry-select .ant-select-selector:focus,
 .industry-select .ant-select-selector:focus-visible,
@@ -21,7 +27,8 @@
   outline: none !important;
 }
 
-/* SINGLE SELECT*/
+/* ----------------------------- SINGLE SELECT ----------------------------- */
+/* Make single selector vertically centered and with custom horizontal padding */
 .industry-select.ant-select-single .ant-select-selector {
   display: flex;
   align-items: center;
@@ -29,6 +36,7 @@
   height: auto;
   box-sizing: border-box;
 }
+/* Let text baseline flow naturally instead of forcing line-height equal to height */
 .industry-select.ant-select-single
   .ant-select-selector .ant-select-selection-item,
 .industry-select.ant-select-single
@@ -36,14 +44,18 @@
   line-height: normal;
 }
 
-/* MULTI SELECT（two modes）*/
-/* A) 默认：在选择框内渲染 tags → 自适应多行换行 */
+/* ----------------------------- MULTI SELECT ------------------------------ */
+/* Two display modes:
+ * A) Default (not .tagless): show tags inside the field; it wraps into multiple lines.
+ * B) Tagless (.tagless): hide internal tags and keep a fixed height. */
+
+/* A) Default tags-inside mode: multi-line wrap with comfortable paddings */
 .industry-select.ant-select-multiple:not(.tagless) .ant-select-selector {
   min-height: calc(var(--isel-h) - 2px);
   height: auto;
   display: flex;
   align-items: flex-start;
-    white-space: normal;
+  white-space: normal;
   padding: 4px var(--isel-pad-x);
   box-sizing: border-box;
 }
@@ -57,7 +69,7 @@
   min-height: calc(var(--isel-h) - 8px);
 }
 
-/* B) tagless：多选标签不在输入框内显示（你当前用法），则可固定高度 */
+/* B) Tagless mode: keep the field at a fixed height and hide internal tags */
 .industry-select.tagless .ant-select-selector {
   height: var(--isel-h);
   display: flex;
@@ -70,8 +82,8 @@
   height: calc(var(--isel-h) - 2px);
 }
 
-/* ---------- FIXED HEIGHT utility：h-40（与 Input/Button 完全等高） ---------- */
-/* 给 <Select> / <Input> / <Button> 同时加 class="h-40" 即可 */
+/* ------------------------ 40px fixed-height utilities -------------------- */
+/* Apply class="h-40" on <Select> / <Input> / <Button> to make them the same height. */
 .h-40.ant-input {
   height: 40px;
   line-height: 40px;
@@ -83,8 +95,7 @@
   justify-content: center;
   padding-inline: 16px;
 }
-
-/* Select 固定 40px 高（若走 38px 体系就把 40 改 38，并把 38 改 36） */
+/* Select (single & multiple) at 40px height */
 .h-40.ant-select .ant-select-selector {
   height: 40px;
   display: flex;
@@ -103,13 +114,24 @@
   height: 38px;
 }
 
-/* Dropdown contrast (optional) */
+/* --------------------------- Dropdown polish ----------------------------- */
+/* Selected option background & text contrast */
 .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
   background: #e6f4ff !important;
 }
 .ant-select-item-option-selected .ant-select-item-option-content {
   color: #1f2937 !important;
 }
+/* Hover/active option background */
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   background: #f5f5f5 !important;
+}
+
+/* --------------------- External chosen tags (tagless mode) ---------------- */
+/* When multiple+tagless, we render chosen tags below the field. */
+.industry-chosen-list {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }

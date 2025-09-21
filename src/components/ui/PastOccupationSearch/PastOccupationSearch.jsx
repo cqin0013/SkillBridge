@@ -1,3 +1,4 @@
+﻿// src/components/ui/PastOccupationSearch/PastOccupationSearch.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import {
   Form,
@@ -13,17 +14,21 @@ import {
   Space,
   Tag,
 } from "antd";
+import useResponsive from "../../../lib/hooks/useResponsive";
 import { MAX_SELECT } from "../../../lib/constants/app";
 import { INDUSTRY_OPTIONS } from "../../../lib/constants/industries";
-import { getApiBase } from "../../../lib/api/occupationsApi"; // ✅ centralized API base
 import "./PastOccupationSearch.css";
 
 const { Paragraph, Text } = Typography;
 
+// New ANZSCO search endpoint (absolute URL)
+const ANZSCO_SEARCH_URL =
+  "https://progressive-alysia-skillbridge-437200d9.koyeb.app/anzsco/search";
+
 /**
  * PastOccupationSearch
- * - Lets users select a past industry + search past job titles
- * - Shows a modal picker with results and supports add/remove up to MAX_SELECT
+ * - Select a past industry (ANZSCO major group 1–8) + search by keyword
+ * - Opens a modal with results and supports add/remove up to MAX_SELECT
  */
 export default function PastOccupationSearch({
   selected: selectedProp,
@@ -36,17 +41,28 @@ export default function PastOccupationSearch({
   const [industryId, setIndustryId] = useState();
   const [titleKw, setTitleKw] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [renderPickerModal, setRenderPickerModal] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [expandedCodes, setExpandedCodes] = useState(new Set());
   const [tipAfterAction, setTipAfterAction] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const { isMobile } = useResponsive();
+
+  // Resolve industry name for the current selection (used when mapping results)
+  const industryName = useMemo(() => {
+    if (industryId == null) return undefined;
+    const item = INDUSTRY_OPTIONS.find(
+      (opt) => String(opt.id) === String(industryId)
+    );
+    return item?.name;
+  }, [industryId]);
+
   // --------------------- Sync with parent via prop ---------------------
   const syncSelected = (next) => {
     setSelected(next);
     try {
-      // Persist selection in this session so a refresh doesn’t lose it
       sessionStorage.setItem("pos_selected", JSON.stringify(next));
     } catch {}
     onChangeSelectedProp?.(next);
@@ -56,63 +72,81 @@ export default function PastOccupationSearch({
     if (Array.isArray(selectedProp)) setSelected(selectedProp);
   }, [selectedProp]);
 
+  useEffect(() => {
+    if (pickerOpen) setRenderPickerModal(true);
+  }, [pickerOpen]);
+
   // Remaining selection slots
   const remain = Math.max(0, MAX_SELECT - selected.length);
 
+  const formGutter = isMobile ? [8, 8] : [12, 8];
+  const controlSize = isMobile ? "middle" : "large";
+  const modalWidth = isMobile ? undefined : 720;
+  const searchButton = (
+    <Button type="primary" {...(isMobile ? { block: true } : {})}>
+      Search
+    </Button>
+  );
+
   // Fast lookup set for already-selected occupation codes
   const selectedCodes = useMemo(
-    () => new Set(selected.map((x) => x.occupation_code)),
+    () => new Set(selected.map((item) => item.occupation_code)),
     [selected]
   );
 
   // --------------------- Search entry (validations) ---------------------
+  const handlePickerOpen = () => setPickerOpen(true);
+  const handlePickerClose = () => setPickerOpen(false);
+  const handleAfterPickerChange = (open) => {
+    if (!open) setRenderPickerModal(false);
+  };
+
   const handleSearch = async () => {
     const q = titleKw.trim();
     setErrorMsg("");
     setTipAfterAction("");
 
-    // Require industry selection to keep context consistent
     if (!industryId) {
       setErrorMsg("Please select a past industry before searching.");
       return;
     }
-    // Minimum 2 chars to avoid noisy queries
     if (q.length < 2) {
       setErrorMsg("Please enter at least 2 characters before searching.");
       return;
     }
-    setPickerOpen(true);
+
+    handlePickerOpen();
     await doSearch(q);
   };
 
-  // --------------------- Actual search request ---------------------
+  // --------------------- Actual search request (NEW ENDPOINT) ---------------------
   const doSearch = async (q) => {
     try {
       setSearchLoading(true);
       setResults([]);
 
-      // 1) Resolve API base (ensured to be https, no trailing slash, and no quotes)
-      const API_BASE = getApiBase();
+      // Build URL: first=<major group> & s=<keyword> & limit=12
+      const url =
+        `${ANZSCO_SEARCH_URL}?first=${encodeURIComponent(industryId)}` +
+        `&s=${encodeURIComponent(q)}&limit=12`;
 
-      // 2) Build the final URL (avoid adding quotes anywhere)
-      const url = `${API_BASE}/occupations/search-and-titles?s=${encodeURIComponent(
-        q
-      )}&include=title,description&limit=10`;
-
-      // 3) Fire the request
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Search failed: ${res.status}`);
 
-      // 4) Map response to the list we need in the modal
       const data = await res.json();
       const items = Array.isArray(data?.items) ? data.items : [];
-      const list = items.map((it) => ({
-        occupation_code: it.occupation_code,
-        occupation_title: it.occupation_title,
-        occupation_description: it.occupation_description,
-        occupation_industry: industryId, // keep currently chosen industry in each item
+
+      // Map API fields (anzsco_code/title) -> internal fields (occupation_*)
+      // NOTE: description removed for now; API does not return it.
+      const mapped = items.map((it) => ({
+        occupation_code:
+          it.anzsco_code ?? it.code ?? it.anzsco ?? String(it.id ?? ""),
+        occupation_title: it.anzsco_title ?? it.title ?? it.name ?? "(Untitled)",
+        // occupation_description: it.anzsco_description ?? it.description ?? "",
+        occupation_industry: industryName, // <-- use industry NAME (not code)
       }));
-      setResults(list);
+
+      setResults(mapped);
     } catch (err) {
       setResults([]);
       setErrorMsg(err?.message || "Search failed. Please try again.");
@@ -131,18 +165,17 @@ export default function PastOccupationSearch({
   };
 
   const addItem = (item) => {
-    if (selected.length >= MAX_SELECT) return;
     if (selectedCodes.has(item.occupation_code)) return;
-
+    if (remain <= 0) {
+      setTipAfterAction(
+        "You’ve reached the maximum of 5 occupations. Remove one to add a new entry."
+      );
+      return;
+    }
     const next = [...selected, item].slice(0, MAX_SELECT);
     syncSelected(next);
-
-    // Only show the tip if there’s still space for more
-    if (next.length < MAX_SELECT) {
-      setTipAfterAction("Added. You can search again or try another keyword.");
-    } else {
-      setTipAfterAction("");
-    }
+    setTipAfterAction("Added. You can continue searching or close the picker.");
+    setErrorMsg("");
   };
 
   const removeItem = (code) => {
@@ -154,20 +187,20 @@ export default function PastOccupationSearch({
   // --------------------- Render ---------------------
   return (
     <>
-      {/* Search form */}
       <Form layout="vertical" className="pos">
-        <Row gutter={[12, 8]} align="middle">
+        <Row gutter={formGutter} align="stretch">
           <Col xs={24} md={8}>
             <Form.Item label="Past industry" className="pos__field">
               <Select
+                size={controlSize}
                 value={industryId}
-                onChange={(v) => {
-                  setIndustryId(v);
+                onChange={(value) => {
+                  setIndustryId(value);
                   setTipAfterAction("");
                 }}
-                options={INDUSTRY_OPTIONS.map((o) => ({
-                  label: o.name,
-                  value: o.id,
+                options={INDUSTRY_OPTIONS.map((option) => ({
+                  label: option.name,
+                  value: option.id,
                 }))}
                 placeholder="Select past industry"
                 allowClear
@@ -177,32 +210,32 @@ export default function PastOccupationSearch({
           <Col xs={24} md={16}>
             <Form.Item label="Past job title" className="pos__field">
               <Input.Search
+                size={controlSize}
                 value={titleKw}
-                onChange={(e) => {
-                  setTitleKw(e.target.value);
+                onChange={(event) => {
+                  setTitleKw(event.target.value);
                   setErrorMsg("");
                   setTipAfterAction("");
                 }}
                 onSearch={handleSearch}
-                placeholder="Type your past job title (e.g., Data Analyst)…"
+                placeholder="Type your past job title (e.g., Data Analyst)"
                 allowClear
                 loading={searchLoading}
-                enterButton="Search"
+                enterButton={searchButton}
               />
             </Form.Item>
           </Col>
         </Row>
       </Form>
 
-      {/* Selected chips */}
       {selected.length > 0 && (
         <Space size={[8, 8]} wrap style={{ marginTop: 8 }}>
           {selected.map((c) => (
             <Tag
               key={c.occupation_code}
               closable
-              onClose={(e) => {
-                e.preventDefault();
+              onClose={(event) => {
+                event.preventDefault();
                 removeItem(c.occupation_code);
               }}
             >
@@ -215,7 +248,6 @@ export default function PastOccupationSearch({
         </Space>
       )}
 
-      {/* Inline tips */}
       {errorMsg && (
         <Alert type="warning" showIcon style={{ marginTop: 8 }} message={errorMsg} />
       )}
@@ -223,102 +255,100 @@ export default function PastOccupationSearch({
         <Alert type="info" showIcon style={{ marginTop: 8 }} message={tipAfterAction} />
       )}
 
-      {/* Results picker modal */}
-      <Modal
-        open={pickerOpen}
-        title={
-          <div>
-            Add past occupations{" "}
-            <Text type="secondary">(up to {remain} more)</Text>
-          </div>
-        }
-        onCancel={() => setPickerOpen(false)}
-        footer={null}
-        destroyOnHide
-        maskClosable={false}
-      >
-        {searchLoading ? (
-          <Alert type="info" showIcon message="Searching… Please wait." />
-        ) : results.length === 0 ? (
-          <Alert
-            type="info"
-            showIcon
-            message="No results found. Try another keyword."
-          />
-        ) : (
-          <List
-            dataSource={results}
-            renderItem={(item) => {
-              const code = item.occupation_code;
-              const isSelected = selectedCodes.has(code);
-              const disabledToAdd = !isSelected && remain <= 0;
-              const isOpen = expandedCodes.has(code);
+      {renderPickerModal && (
+        <Modal
+          open={pickerOpen}
+          title={
+            <div>
+              Add past occupations <Text type="secondary">(up to {remain} more)</Text>
+            </div>
+          }
+          onCancel={handlePickerClose}
+          afterOpenChange={handleAfterPickerChange}
+          footer={null}
+          maskClosable={false}
+          width={modalWidth}
+        >
+          {searchLoading ? (
+            <Alert type="info" showIcon message="Searching… Please wait." />
+          ) : results.length === 0 ? (
+            <Alert type="info" showIcon message="No results found. Try another keyword." />
+          ) : (
+            <List
+              dataSource={results}
+              renderItem={(item) => {
+                const code = item.occupation_code;
+                const isSelected = selectedCodes.has(code);
+                const disabledToAdd = !isSelected && remain <= 0;
+                const isOpen = expandedCodes.has(code);
 
-              return (
-                <List.Item className="pos__item" key={code}>
-                  {/* Main row */}
-                  <div className="pos__main">
-                    <div className="pos__title">
-                      <span>{item.occupation_title}</span>
-                      {isSelected && (
-                        <Text type="secondary" style={{ marginLeft: 8 }}>
-                          (selected)
-                        </Text>
-                      )}
-                    </div>
+                return (
+                  <List.Item className="pos__item" key={code}>
+                    <div className="pos__main">
+                      <div className="pos__title">
+                        <span>{item.occupation_title}</span>
+                        {isSelected && (
+                          <Text type="secondary" style={{ marginLeft: 8 }}>
+                            (selected)
+                          </Text>
+                        )}
+                      </div>
 
-                    {/* Actions */}
-                    <div className="pos__actions">
-                      {isSelected ? (
-                        <Button size="small" danger onClick={() => removeItem(code)}>
-                          Remove
-                        </Button>
-                      ) : (
+                      <div className="pos__actions">
+                        {isSelected ? (
+                          <Button
+                            size={isMobile ? "middle" : "small"}
+                            danger
+                            onClick={() => removeItem(code)}
+                          >
+                            Remove
+                          </Button>
+                        ) : (
+                          <Button
+                            size={isMobile ? "middle" : "small"}
+                            type="primary"
+                            onClick={() => addItem(item)}
+                            disabled={disabledToAdd}
+                          >
+                            Add
+                          </Button>
+                        )}
                         <Button
-                          size="small"
-                          type="primary"
-                          onClick={() => addItem(item)}
-                          disabled={disabledToAdd}
+                          size={isMobile ? "middle" : "small"}
+                          type="text"
+                          className="pos__show"
+                          onClick={() => toggleDetails(code)}
                         >
-                          Add
+                          {isOpen ? "Hide details" : "Show details"}
                         </Button>
-                      )}
-                      <Button
-                        size="small"
-                        type="text"
-                        className="pos__show"
-                        onClick={() => toggleDetails(code)}
-                      >
-                        {isOpen ? "Hide details" : "Show details"}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Details section */}
-                  {isOpen && (
-                    <div className="pos__details">
-                      {item.occupation_description ? (
-                        <Paragraph style={{ marginBottom: 8 }}>
-                          {item.occupation_description}
-                        </Paragraph>
-                      ) : (
-                        <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                          No description available.
-                        </Paragraph>
-                      )}
-
-                      <div className="pos__meta">
-                        <Text type="secondary">Industry:</Text>&nbsp;
-                        {String(item.occupation_industry ?? "undefined")}
                       </div>
                     </div>
-                  )}
-                </List.Item>
-              );
-            }}
-          />
-        )}
-      </Modal>
+
+                    {isOpen && (
+                      <div className="pos__details">
+                        {/* Description disabled for now: API doesn't return it */}
+                        {/* {item.occupation_description ? (
+                          <Paragraph style={{ marginBottom: 8 }}>
+                            {item.occupation_description}
+                          </Paragraph>
+                        ) : (
+                          <Paragraph type="secondary" style={{ marginBottom: 8 }}>
+                            No description available.
+                          </Paragraph>
+                        )} */}
+                        <div className="pos__meta">
+                          <Text type="secondary">Industry:</Text>&nbsp;
+                          {String(item.occupation_industry ?? "—")}
+                        </div>
+                      </div>
+                    )}
+                  </List.Item>
+                );
+              }}
+            />
+          )}
+        </Modal>
+      )}
     </>
   );
 }
