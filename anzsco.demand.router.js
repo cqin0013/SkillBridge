@@ -1,132 +1,162 @@
 // anzsco.demand.router.js
 import express from 'express';
 
-// 州名缩写 ↔ 全称的宽松兼容
-const STATE_ALIASES = new Map([
-  ['nsw','New South Wales'],
-  ['vic','Victoria'],
-  ['qld','Queensland'],
-  ['sa','South Australia'],
-  ['wa','Western Australia'],
-  ['tas','Tasmania'],
-  ['act','Australian Capital Territory'],
-  ['nt','Northern Territory'],
-]);
+/**
+ * 本路由读取 shortage_list（蛇形命名字段）
+ * 字段（根据你给的ERD）：
+ *  - anzsco_code (PK)
+ *  - national_shortage_rating
+ *  - new_south_wales_shortage_rating
+ *  - victoria_shortage_rating
+ *  - queensland_shortage_rating
+ *  - south_australia_shortage_rating
+ *  - western_australia_shortage_rating
+ *  - tasmania_shortage_rating
+ *  - northern_territory_shortage_rating
+ *  - Fieldaustralian_capital_territory_shortage_rating   <-- 注意这个名字
+ *  - skill_level
+ */
 
-function normalizeState(input) {
-  if (!input) return null;
-  const s = String(input).trim();
-  const key = s.toLowerCase();
-  // 传缩写就映射全称；传全称就原样回传
-  return STATE_ALIASES.get(key) || s;
-}
+const STATE_COLUMN_MAP = {
+  NSW: 'new_south_wales_shortage_rating',
+  VIC: 'victoria_shortage_rating',
+  QLD: 'queensland_shortage_rating',
+  SA:  'south_australia_shortage_rating',
+  WA:  'western_australia_shortage_rating',
+  TAS: 'tasmania_shortage_rating',
+  NT:  'northern_territory_shortage_rating',
+  ACT: 'Fieldaustralian_capital_territory_shortage_rating', // 按你图里的列名
+};
+
+const STATE_FULL_NAME = {
+  NSW: 'New South Wales',
+  VIC: 'Victoria',
+  QLD: 'Queensland',
+  SA:  'South Australia',
+  WA:  'Western Australia',
+  TAS: 'Tasmania',
+  NT:  'Northern Territory',
+  ACT: 'Australian Capital Territory',
+};
 
 export default function initAnzscoDemandRoutes(pool) {
   const router = express.Router();
 
+  // 读 anzsco 标题（若 shortage_list 不含标题，就从这里补）
+  async function getAnzscoMeta(conn, code) {
+    const [rows] = await conn.query(
+      `SELECT anzsco_code, anzsco_title
+         FROM anzsco_data
+        WHERE anzsco_code = ?`,
+      [code]
+    );
+    return rows?.[0] || null;
+  }
+
+  // 读 shortage_list 一行
+  async function getShortageRow(conn, code) {
+    const [rows] = await conn.query(
+      `SELECT
+          anzsco_code,
+          national_shortage_rating,
+          new_south_wales_shortage_rating,
+          victoria_shortage_rating,
+          queensland_shortage_rating,
+          south_australia_shortage_rating,
+          western_australia_shortage_rating,
+          tasmania_shortage_rating,
+          northern_territory_shortage_rating,
+          Fieldaustralian_capital_territory_shortage_rating,
+          skill_level
+        FROM shortage_list
+       WHERE anzsco_code = ?`,
+      [code]
+    );
+    return rows?.[0] || null;
+  }
+
+  // 统一拼装“所有州”的返回体
+  function shapeAll(meta, row) {
+    return {
+      anzsco: {
+        anzsco_code: row?.anzsco_code ?? meta?.anzsco_code ?? null,
+        anzsco_title: meta?.anzsco_title ?? null,
+      },
+      skill_level: row?.skill_level ?? null,
+      ratings: {
+        national: row?.national_shortage_rating ?? null,
+        NSW: row?.new_south_wales_shortage_rating ?? null,
+        VIC: row?.victoria_shortage_rating ?? null,
+        QLD: row?.queensland_shortage_rating ?? null,
+        SA:  row?.south_australia_shortage_rating ?? null,
+        WA:  row?.western_australia_shortage_rating ?? null,
+        TAS: row?.tasmania_shortage_rating ?? null,
+        NT:  row?.northern_territory_shortage_rating ?? null,
+        ACT: row?.Fieldaustralian_capital_territory_shortage_rating ?? null,
+      },
+    };
+  }
+
   /**
-   * GET /api/anzsco/:code/demand?state=VIC&latest=true
-   * 数据源：temp_nero_extract（不依赖正式表）
-   * 返回：
-   * {
-   *   anzsco: { anzsco_code, anzsco_title },
-   *   state, date,
-   *   summary: { state_total },
-   *   sa4: [{ sa4_code, sa4_name, nsc_emp, demand_index }]
-   * }
+   * GET /api/anzsco/:code/demand
+   *  - ?state=VIC 可选；不传则返回全国 + 全州评级
+   *
+   * 示例：
+   *  - /api/anzsco/261313/demand
+   *  - /api/anzsco/261313/demand?state=VIC
    */
   router.get('/:code/demand', async (req, res) => {
-    const code   = req.params.code?.trim();
-    const stateQ = req.query.state?.trim();
-    const latest = (req.query.latest ?? 'true') !== 'false';
-    if (!code || !stateQ) {
-      return res.status(400).json({ error: 'anzsco_code and state required' });
-    }
+    const code = String(req.params.code || '').trim();
+    const state = String(req.query.state || '').trim().toUpperCase(); // NSW / VIC / ...
 
-    const state = normalizeState(stateQ);
+    if (!code) return res.status(400).json({ error: 'anzsco code required' });
 
     const conn = await pool.getConnection();
     try {
-      // 1) 取职业名称（若没有也不报错，仅返回 code）
-      const [[anz]] = await conn.query(
-        `SELECT anzsco_code, anzsco_title FROM anzsco_data WHERE anzsco_code = ?`,
-        [code]
-      );
-      const anzscoMeta = anz || { anzsco_code: code, anzsco_title: null };
+      const [meta, row] = await Promise.all([
+        getAnzscoMeta(conn, code),
+        getShortageRow(conn, code),
+      ]);
 
-      // 2) latest=true 时先拿最新日期（从 temp_nero_extract）
-      let targetDate = null;
-      if (latest) {
-        const [[row]] = await conn.query(
-          `SELECT MAX(date) AS latest_date
-             FROM temp_nero_extract
-            WHERE anzsco_code = ?
-              AND (state_name = ? OR LOWER(state_name) = LOWER(?))`,
-          [code, state, state]
-        );
-        targetDate = row?.latest_date || null;
-      }
-
-      const params = latest
-        ? [code, state, state, targetDate]
-        : [code, state, state];
-
-      const dateFilter = latest ? ' AND ne.date = ?' : '';
-
-      // 3) 读取该 code+state(+date) 的 SA4 明细
-      const [rows] = await conn.query(
-        `SELECT ne.sa4_code,
-                s.sa4_name,
-                ne.date,
-                ne.nsc_emp
-           FROM temp_nero_extract ne
-      LEFT JOIN sa4_data s ON s.sa4_code = ne.sa4_code
-          WHERE ne.anzsco_code = ?
-            AND (ne.state_name = ? OR LOWER(ne.state_name) = LOWER(?)) ${dateFilter}
-       ORDER BY ne.date DESC, ne.sa4_code`,
-        params
-      );
-
-      // 无数据时返回空集合
-      if (!rows.length) {
+      // shortage_list 里没这条
+      if (!row) {
         return res.json({
-          anzsco: anzscoMeta,
-          state,
-          date: latest ? targetDate : null,
-          summary: { state_total: 0 },
-          sa4: []
+          anzsco: meta || { anzsco_code: code, anzsco_title: null },
+          skill_level: null,
+          ...(state
+            ? {
+                state: STATE_FULL_NAME[state] || state,
+                state_code: state,
+                state_rating: null,
+                national_rating: null,
+              }
+            : { ratings: {} }
+          ),
         });
       }
 
-      // 若 latest=false，date 取第一条（已按 date desc 排好了）
-      const date = latest ? targetDate : rows[0].date;
+      // 不带 state：返回所有州
+      if (!state) {
+        return res.json(shapeAll(meta, row));
+      }
 
-      // 汇总、归一化 demand_index
-      const vals = rows.map(r => r.nsc_emp ?? 0);
-      const min = Math.min(...vals);
-      const max = Math.max(...vals);
-
-      const sa4 = rows
-        .filter(r => !date || String(r.date) === String(date)) // latest=false 时只回该日期的
-        .map(r => ({
-          sa4_code: r.sa4_code,
-          sa4_name: r.sa4_name,
-          nsc_emp: r.nsc_emp,
-          demand_index: max === min ? 0 : (r.nsc_emp - min) / (max - min)
-        }));
-
-      const state_total = sa4.reduce((a, b) => a + (b.nsc_emp || 0), 0);
+      // 带 state：只返回该州
+      const stateCol = STATE_COLUMN_MAP[state];
+      if (!stateCol) {
+        return res.status(400).json({ error: 'invalid state code' });
+      }
 
       return res.json({
-        anzsco: anzscoMeta,
-        state,
-        date,
-        summary: { state_total },
-        sa4
+        anzsco: meta || { anzsco_code: row.anzsco_code, anzsco_title: null },
+        skill_level: row.skill_level ?? null,
+        national_rating: row.national_shortage_rating ?? null,
+        state: STATE_FULL_NAME[state] || state,
+        state_code: state,
+        state_rating: row[stateCol] ?? null,
       });
     } catch (e) {
-      console.error('temp-demand error:', e);
-      return res.status(500).json({ error: 'internal_error' });
+      console.error('[anzsco/demand] error:', e);
+      res.status(500).json({ error: 'internal_error' });
     } finally {
       conn.release();
     }
