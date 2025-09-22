@@ -43,14 +43,39 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 // ===================== Security =====================
+// ---- 代理与基础设置 ----
 app.set('trust proxy', 1);
 
-const allowlist = String(process.env.CORS_ALLOWLIST || '')
-  .split(',').map(s => s.trim()).filter(Boolean);
+// ---- 解析 CORS 白名单（支持正则）----
+const rawAllowlist = String(process.env.CORS_ALLOWLIST || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
+// 把 CORS_ALLOWLIST 中以 "re:" 开头的项当作正则，其它当作精确匹配
+// 例如：CORS_ALLOWLIST="http://localhost:5173,https://foo.example.com,re:/^https:\/\/.+\.koyeb\.app$/"
+const allowPatterns = [
+  // 默认内置几个常用来源（保留你原来的本地端口）
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:8080',
+  // ✅ 内置 Koyeb 子域通配
+  /.+\.koyeb\.app$/,
+  // 来自环境变量的条目
+  ...rawAllowlist.map(x => (x.startsWith('re:') ? new RegExp(x.slice(3)) : x)),
+];
+
+// 帮助函数：判断 Origin 是否匹配白名单（字符串或正则）
+function isOriginAllowed(origin) {
+  return allowPatterns.some(p => (p instanceof RegExp ? p.test(origin) : p === origin));
+}
+
+// ---- CORS ----
 app.use(cors({
   origin(origin, cb) {
-    if (!origin || allowlist.includes(origin)) return cb(null, true);
+    // 无 Origin（如 curl/postman/同源导航）时直接放行
+    if (!origin) return cb(null, true);
+    if (isOriginAllowed(origin)) return cb(null, true);
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -59,20 +84,34 @@ app.use(cors({
   maxAge: 600,
 }));
 
+// ---- Helmet / CSP ----
 app.disable('x-powered-by');
+
+// 这里只保留你启用的跨源资源策略
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// 细化 CSP：允许 Koyeb 域与白名单发起 XHR/fetch
 app.use(helmet.contentSecurityPolicy({
   useDefaults: true,
   directives: {
     "default-src": ["'self'"],
-    "connect-src": ["'self'"].concat(allowlist),
+    // ✅ 关键：允许同源 + http/https + *.koyeb.app + 环境变量白名单
+    "connect-src": [
+      "'self'",
+      "http:",
+      "https:",
+      "*.koyeb.app",
+      // 把精确字符串白名单也纳入 CSP（正则无法直接放 CSP，这里仅加入字符串项）
+      ...allowPatterns.filter(x => typeof x === 'string'),
+    ],
     "img-src": ["'self'", "data:"],
-    "script-src": ["'self'"],
+    "script-src": ["'self'"],          // 如果你用 swagger-ui-express 且需要内联脚本，改为 "'self'", "'unsafe-inline'"
     "style-src": ["'self'", "'unsafe-inline'"],
     "frame-ancestors": ["'none'"],
   },
 }));
 
+// ---- Session & Redis ----
 const sameSiteFromEnv = String(process.env.SESSION_SAMESITE || 'lax').toLowerCase();
 const sameSite = ['lax', 'strict', 'none'].includes(sameSiteFromEnv) ? sameSiteFromEnv : 'lax';
 
@@ -101,8 +140,10 @@ app.use(session({
   rolling: true,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // SameSite=None 需要 secure=true
     sameSite,
+    // 提醒：在 Koyeb 的二级域名环境一般不要显式设置 cookie domain
+    // 否则跨子域可能失效。没有强需求就保持 undefined。
     domain: process.env.COOKIE_DOMAIN || undefined,
     maxAge: 1000 * 60 * 60 * 8,
   },
