@@ -12,7 +12,7 @@ const API_BASE =
   (typeof import.meta !== "undefined" &&
     import.meta.env &&
     import.meta.env.VITE_API_BASE) ||
-  "https://skillbridge-hnxm.onrender.com";
+  "https://progressive-alysia-skillbridge-437200d9.koyeb.app";
 
 const DEFAULT_TIMEOUT = 10000; // 10s
 

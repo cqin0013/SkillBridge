@@ -1,12 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Button, Modal } from "antd";
+// src/pages/Insight/Insight.jsx
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, Button, Modal, Spin, Card, List, Typography } from "antd";
 import AUSChoropleth from "../../components/AUSChoropleth";
 import AUS_TOPO from "../../assets/australia_states.topo.json";
 import useResponsive from "../../lib/hooks/useResponsive";
 import StageBox from "../../components/ui/StageBox/StageBox";
 import PastOccupationSearch from "../../components/ui/PastOccupationSearch/PastOccupationSearch";
 import Citation from "../../components/ui/Citation/Citation";
+import { getAnzscoShortageMap, EMPTY_SHORTAGE_COUNTS } from "../../lib/api/AnzscoShortageApi";
+import { getTrainingAdvice } from "../../lib/api/TrainingAdviceApi";
 import "./Insight.css";
+
+const { Text } = Typography;
 
 /** Safe sessionStorage getter (SSR-safe). */
 function getSessionString(key, fallback = "") {
@@ -34,40 +39,33 @@ const STATE_NAME = {
 export default function Insight() {
   const { isMobile } = useResponsive();
 
-  // Page header title (kept in sessionStorage by previous steps)
-  const [jobTitle, setJobTitle] = useState(() =>
-    getSessionString("sb_targetJobTitle", "Selected Job")
-  );
+  /** Map counts state (and helpers) */
+  const createEmptyCounts = useCallback(() => ({ ...EMPTY_SHORTAGE_COUNTS }), []);
+  const [mapCounts, setMapCounts] = useState(createEmptyCounts);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState("");
+  const [nationalTotal, setNationalTotal] = useState(null);
+
+  /** Selected occupation (code + title) */
+  const [jobCode, setJobCode] = useState(() => getSessionString("sb_targetJobCode", ""));
+  const [jobTitle, setJobTitle] = useState(() => getSessionString("sb_targetJobTitle", "Selected Job"));
+
+  // Keep code/title in sync with sessionStorage changes (e.g., selected in another step/tab)
   useEffect(() => {
-    const handler = () =>
+    const handler = () => {
       setJobTitle(getSessionString("sb_targetJobTitle", "Selected Job"));
+      setJobCode(getSessionString("sb_targetJobCode", ""));
+    };
     window.addEventListener("storage", handler);
     return () => window.removeEventListener("storage", handler);
   }, []);
 
-  // Demo counts; replace with API data if/when available
-  const counts = useMemo(
-    () => ({
-      NSW: 14545,
-      VIC: 11827,
-      QLD: 13768,
-      SA: 9620,
-      WA: 12992,
-      TAS: 5710,
-      NT: 2520,
-      ACT: 4650,
-    }),
-    []
-  );
-
-  // Map selection; "ALL" means no label overlays
+  /** Map selection; "ALL" means no label overlays */
   const [selected, setSelected] = useState("ALL");
-  const selectedName =
-    selected && selected !== "ALL" ? STATE_NAME[selected] : "";
-  const selectedCount =
-    selected && selected !== "ALL" ? counts[selected] ?? 0 : 0;
+  const selectedName = selected && selected !== "ALL" ? STATE_NAME[selected] : "";
+  const selectedCount = selected && selected !== "ALL" ? mapCounts[selected] ?? 0 : nationalTotal ?? 0;
 
-  // Single-select job picker (modal)
+  /** Single-select job picker (modal) */
   const [pickerOpen, setPickerOpen] = useState(false);
   const [renderModal, setRenderModal] = useState(false);
   const [singleSel, setSingleSel] = useState(() => {
@@ -79,42 +77,155 @@ export default function Insight() {
       return [];
     }
   });
-
   useEffect(() => {
-    if (pickerOpen) {
-      setRenderModal(true);
-    }
+    if (pickerOpen) setRenderModal(true);
   }, [pickerOpen]);
 
   const handleModalClose = () => setPickerOpen(false);
-
   const handleOpenModal = () => {
     setRenderModal(true);
     setPickerOpen(true);
   };
+  const handleAfterOpenChange = (opened) => !opened && setRenderModal(false);
 
-  const handleAfterOpenChange = (opened) => {
-    if (!opened) {
-      setRenderModal(false);
-    }
-  };
-
-  /** Enforce single selection and update title immediately. */
+  /** Enforce single selection and update (title + code) immediately. */
   const handleChangeSingle = (arr) => {
     const first = Array.isArray(arr) && arr.length > 0 ? arr[0] : null;
     const next = first ? [first] : [];
     setSingleSel(next);
+
     const nextTitle = first?.occupation_title || "Selected Job";
+    const nextCode =
+      first?.occupation_code || first?.anzsco_code || first?.code || "";
+    const normalizedCode = nextCode ? String(nextCode).trim() : "";
+
     setJobTitle(nextTitle);
+    setJobCode(normalizedCode);
     try {
       window.sessionStorage.setItem("sb_targetJobTitle", nextTitle);
+      window.sessionStorage.setItem("sb_targetJobCode", normalizedCode);
       window.sessionStorage.setItem("pos_selected", JSON.stringify(next));
     } catch {}
     if (first) handleModalClose();
   };
+
+  /* =========================
+   * A) Load shortage map data
+   * ========================= */
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    const resetCounts = (message) => {
+      setMapCounts(createEmptyCounts());
+      setNationalTotal(null);
+      setMapError(message || "");
+    };
+
+    const run = async () => {
+      const trimmedCode = String(jobCode || "").trim();
+      if (!trimmedCode) {
+        resetCounts("Select a job to view state shortage data.");
+        setMapLoading(false);
+        return;
+      }
+
+      setMapLoading(true);
+      setMapError("");
+
+      try {
+        const result = await getAnzscoShortageMap({
+          anzscoCode: trimmedCode,
+          signal: controller.signal,
+        });
+        if (cancelled) return;
+
+        const merged = createEmptyCounts();
+        const incomingCounts = result?.counts || {};
+        let hasData = false;
+        Object.entries(incomingCounts).forEach(([region, value]) => {
+          const key = String(region || "").toUpperCase();
+          const num = Number(value);
+          if (!Number.isFinite(num)) return;
+          if (Object.prototype.hasOwnProperty.call(merged, key)) {
+            merged[key] = num;
+            if (num !== 0) hasData = true;
+          }
+        });
+
+        setMapCounts(merged);
+        const national = Number(result?.metadata?.national);
+        setNationalTotal(Number.isFinite(national) ? national : null);
+        if (!hasData) setMapError("No regional shortage data returned for this occupation.");
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        resetCounts(error?.message || "Failed to load ANZSCO shortage data.");
+      } finally {
+        if (!cancelled) setMapLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [jobCode, createEmptyCounts]);
+
+  /* ====================================
+   * B) Load training advice (VET courses)
+   * ==================================== */
+  const [trainingLoading, setTrainingLoading] = useState(false);
+  const [trainingError, setTrainingError] = useState("");
+  const [trainingCourses, setTrainingCourses] = useState([]); // [{code,name}]
+  const [trainingTotal, setTrainingTotal] = useState(null);
+
+  useEffect(() => {
+    let aborted = false;
+    const ctrl = new AbortController();
+
+    const run = async () => {
+      const code = String(jobCode || "").trim();
+      if (!code) {
+        setTrainingCourses([]);
+        setTrainingTotal(null);
+        setTrainingError("Pick an occupation to view training advice.");
+        return;
+      }
+      setTrainingLoading(true);
+      setTrainingError("");
+      try {
+        const res = await getTrainingAdvice({
+          anzscoCode: code,
+          limit: 10,
+          signal: ctrl.signal,
+        });
+        if (aborted) return;
+        setTrainingCourses(res.courses || []);
+        setTrainingTotal(res.total ?? (res.courses || []).length);
+      } catch (e) {
+        if (ctrl.signal.aborted) return;
+        setTrainingCourses([]);
+        setTrainingTotal(null);
+        setTrainingError(e?.message || "Failed to load training advice.");
+      } finally {
+        if (!aborted) setTrainingLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      aborted = true;
+      ctrl.abort();
+    };
+  }, [jobCode]);
+
+  /* =================
+   * Render
+   * ================= */
   return (
     <main className={`insight-screen${isMobile ? " is-mobile" : ""}`}>
-      {/* Header section (StageBox) */}
+      {/* Header (StageBox) */}
       <div className="insight-stage">
         <StageBox
           step="Insights"
@@ -136,7 +247,7 @@ export default function Insight() {
             <ul style={{ margin: 0, paddingLeft: 18 }}>
               <li>Select a state on the map to focus and label it.</li>
               <li>On mobile, the legend is hidden; use the bottom sheet for details.</li>
-              <li>Select “ALL” from your controller to reset the view.</li>
+              <li>Select "ALL" from your controller to reset the view.</li>
             </ul>
           }
         />
@@ -144,10 +255,25 @@ export default function Insight() {
 
       {/* Map section */}
       <div className={`insight-map-wrap${isMobile ? " is-mobile" : ""}`}>
-        {/* The map viewport keeps a stable height; page may grow naturally */}
-        <div className="map-viewport">
+        <div className="map-viewport" style={{ position: "relative" }}>
+          {mapLoading && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255,255,255,0.64)",
+                zIndex: 2,
+              }}
+            >
+              <Spin tip="Loading ANZSCO shortage data..." size="large" />
+            </div>
+          )}
+
           <AUSChoropleth
-            counts={counts}
+            counts={mapCounts}
             geoUrl={AUS_TOPO}
             title=""
             showLegend={!isMobile}
@@ -157,9 +283,18 @@ export default function Insight() {
           />
         </div>
 
-        {/* Data citation stuck to bottom-left of the map */}
+        {mapError && (
+          <Alert type="warning" showIcon message={mapError} style={{ marginTop: 12 }} />
+        )}
+
+        {nationalTotal != null && (
+          <div style={{ marginTop: 12, color: "#4b5563" }}>
+            Estimated national openings: <strong>{nationalTotal.toLocaleString()}</strong>
+          </div>
+        )}
+
         <Citation
-          source="Jobs and Skills Australia – NERO"
+          source="Jobs and Skills Australia - NERO"
           url="https://www.jobsandskills.gov.au/data/nero"
           year={2025}
           className="insight-citation"
@@ -172,12 +307,8 @@ export default function Insight() {
           <div className="state-sheet__content">
             <div className="state-sheet__header">
               <h3 className="state-sheet__title">{selectedName}</h3>
-              <button
-                className="state-sheet__close"
-                aria-label="Close"
-                onClick={() => setSelected("ALL")}
-              >
-                ✕
+              <button className="state-sheet__close" aria-label="Close" onClick={() => setSelected("ALL")}>
+                ×
               </button>
             </div>
             <div className="state-sheet__body">
@@ -185,14 +316,49 @@ export default function Insight() {
                 Estimated openings: <strong>{selectedCount.toLocaleString()}</strong>
               </p>
               <p className="state-sheet__hint">
-                {isMobile
-                  ? "Tap another state on the map to update."
-                  : "Click another state on the map to update."}
+                {isMobile ? "Tap another state on the map to update." : "Click another state on the map to update."}
               </p>
             </div>
           </div>
         </div>
       )}
+
+      {/* Training advice panel (ANZSCO → VET courses) */}
+      <Card
+        title="Recommended training (VET)"
+        style={{ marginTop: 16 }}
+        extra={
+          <Text type="secondary">
+            {jobCode ? `ANZSCO ${jobCode}` : "No occupation selected"}
+          </Text>
+        }
+      >
+        {trainingLoading && <Spin />}
+        {!trainingLoading && trainingError && (
+          <Alert type="warning" showIcon message={trainingError} />
+        )}
+        {!trainingLoading && !trainingError && (
+          <>
+            <List
+              dataSource={trainingCourses}
+              locale={{ emptyText: "No courses returned." }}
+              renderItem={(c) => (
+                <List.Item>
+                  <List.Item.Meta
+                    title={c.name}
+                    description={c.code ? `Course code: ${c.code}` : null}
+                  />
+                </List.Item>
+              )}
+            />
+            {Number.isFinite(trainingTotal) && (
+              <div style={{ marginTop: 8, color: "#6b7280" }}>
+                Total courses: {trainingTotal}
+              </div>
+            )}
+          </>
+        )}
+      </Card>
 
       {/* Floating action button (bottom-right) */}
       <div className="insight-fab">
@@ -219,10 +385,7 @@ export default function Insight() {
           footer={null}
           maskClosable={false}
         >
-          <PastOccupationSearch
-            selected={singleSel}
-            onChangeSelected={handleChangeSingle}
-          />
+          <PastOccupationSearch selected={singleSel} onChangeSelected={handleChangeSingle} />
           <div style={{ marginTop: 8, fontSize: 12, color: "#6b7280" }}>
             Only one job can be selected here. Picking a job will update the page header.
           </div>

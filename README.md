@@ -20,3 +20,5 @@ npm run build
 npm run preview
 ```
 
+## API Layer Documentation
+See `src/lib/api/README.md` for module responsibilities, environment overrides, and sample usage.

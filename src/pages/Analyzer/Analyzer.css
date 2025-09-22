@@ -10,12 +10,12 @@
     /* breathing room at the bottom */
 }
 
-/* 让进度条真正全宽（越过容器左右 padding，贴到页面边缘） */
+/* 让进度条真正全宽（越过容器左�?padding，贴到页面边缘） */
 .anlz-progress--fullbleed {
     width: 100vw;
     /* 占满视口宽度 */
     margin-left: 50%;
-    /* 从容器中“拉出” */
+    /* 从容器中“拉出�?*/
     transform: translateX(-50%);
     /* 居中纠偏 */
     padding: 10px 0 6px;
@@ -60,20 +60,20 @@ max-width: 1360px;
    Center lane is ALWAYS geometrically centered. */
 .anlz-shell {
     --center-max: 980px;
-    /* 中间区域最大宽度 */
+    /* 中间区域最大宽�?*/
     --gap-min: 24px;
-    /* 左右间距最小 */
+    /* 左右间距最�?*/
     --gap-flex: 5vw;
-    /* 宽屏时扩展间距 */
+    /* 宽屏时扩展间�?*/
 
     display: grid;
     grid-template-columns:
         1fr
-        /* 左边栏区域 */
+        /* 左边栏区�?*/
         minmax(var(--gap-min), var(--gap-flex)) minmax(0, var(--center-max))
         /* 中间区域 */
         minmax(var(--gap-min), var(--gap-flex)) 1fr;
-    /* 右对称占位 */
+    /* 右对称占�?*/
     align-items: start;
     margin-top: 16px;
 }
@@ -92,7 +92,7 @@ max-width: 1360px;
     /* 👈 靠左对齐 */
     width: 100%;
     max-width: 320px;
-    /* 限制最大宽度 */
+    /* 限制最大宽�?*/
     padding-left: 16px;
 }
 
@@ -142,3 +142,47 @@ margin: .25rem 0 .5rem;
 
 /* ===== Responsive: hide left summary on small screens for a clean single column */
 
+@media (max-width: 1024px) {
+    .anlz-shell {
+        --center-max: 100%;
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 16px;
+    }
+
+    .anlz-left {
+        display: none;
+    }
+
+    .anlz-center {
+        grid-column: 1;
+        padding: 0 12px;
+    }
+
+    .anlz-progress--fullbleed {
+        width: 100%;
+        margin-left: 0;
+        transform: none;
+    }
+
+    .anlz-actions-end {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .anlz-center {
+        padding: 0 8px;
+    }
+
+    .anlz-progress {
+        padding: 8px 0 4px;
+    }
+
+    .anlz-stack>*+* {
+        margin-top: 12px;
+    }
+
+    .anlz-stack-body>*+* {
+        margin-top: 12px;
+    }
+}

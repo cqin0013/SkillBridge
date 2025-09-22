@@ -1,87 +1,114 @@
-/* ========== JobCard ========== */
+/* src/pages/Analyzer/JobSuggestion/components/JobCard/JobCard.css */
+/* Purpose: Styling for a single job suggestion card. Comments in English. */
 
-/* Wrapper */
 .job-card {
-  cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-.job-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #fff;
 }
 
-/* Selected state */
-.job-card--selected {
-  border: 2px solid var(--color-primary, #1677ff);
-  border-radius: 8px;
-  box-shadow: 0 0 0 3px rgba(22,119,255,.2);
+.job-card+.job-card {
+  margin-top: 12px;
 }
 
-/* Title row: name + selected icon */
-.jobcard-title {
+.job-card__header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
 }
 
-
-.jobcard-title-name {
+.job-card__title {
   font-weight: 600;
-  font-size: 1rem;
-  line-height: 1.25rem;
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: normal;
-    overflow-wrap: anywhere;
-  word-break: break-word;
+  font-size: 16px;
 }
 
-/* Skills wrap */
-.jobcard-skillwrap {
+.job-card__score {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.job-card__summary {
+  color: #444;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.job-card__skills {
+  margin-top: 8px;
+}
+
+.job-card__subttl {
+  font-weight: 600;
+  margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.job-card__skillchips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.job-card__anzsco {
+  margin-top: 10px;
+  border-top: 1px dashed var(--color-border, #eee);
+  padding-top: 8px;
+}
+
+.job-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.job-card__anzsco-detail {
+  margin-top: 10px;
+}
+.job-card__anzsco-title {
+  font-weight: 600;
   margin-bottom: 4px;
 }
 
-/* Industry tag 微调 */
-.jobcard-industry-tag {
-  background: #fafafa;
-  border-color: #f0f0f0;
-  color: #595959;
+.job-card__anzsco-desc {
+  color: #444;
+  margin: 0;
+  white-space: pre-wrap;
 }
 
-/* “Show more / less” link */
-.jobcard-morelink {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: .875rem;
-  color: var(--color-primary, #1677ff);
-  cursor: pointer;
-}
-.jobcard-morelink:hover { text-decoration: underline; }
-
-/* Collapse tweaks */
-.job-card .ant-collapse > .ant-collapse-item > .ant-collapse-header {
-  padding: 8px 0;
-  font-size: .9rem;
-}
-.job-card .ant-collapse-content-box {
-  padding: 0 0 8px 0;
+.job-card__anzsco-shortage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
 }
 
-.jobcard-industry-tag {
-  display: inline-block;
-  max-width: 100%;
-  white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    line-height: 1.4;
+/* src/pages/Analyzer/JobSuggestion/components/JobCard/JobCard.css */
+.job-card__anzsco-industry {
+  color: #555;
+  margin: 0 0 4px 0;
+  font-style: italic;
 }
 
+.job-card__anzsco-shortage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
 
-.job-card .industry-paragraph {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+/* src/pages/Analyzer/JobSuggestion/components/JobCard/JobCard.css */
+.job-card__anzsco-industry {
+  color: #555;
+  margin: 0 0 4px 0;
+  font-style: italic;
+}
+
+.job-card__anzsco-shortage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
 }

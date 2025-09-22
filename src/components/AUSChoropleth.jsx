@@ -1,3 +1,4 @@
+// src/components/AUSChoropleth.jsx
 import React, { useMemo, useRef, useState, useLayoutEffect } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleQuantize } from "d3-scale";
@@ -5,8 +6,8 @@ import { schemeBlues } from "d3-scale-chromatic";
 import { geoCentroid } from "d3-geo";
 
 /**
- * Small hook to observe an element's size (no external deps).
- * Useful for deriving a responsive projection scale from the map container width.
+ * Observe a DOM element's size to derive a responsive projection scale.
+ * (Pure browser API; no external deps.)
  */
 function useElementSize() {
   const ref = useRef(null);
@@ -27,16 +28,16 @@ function useElementSize() {
 }
 
 /**
- * Choropleth map of Australian states/territories (responsive scale).
+ * Choropleth of Australian states/territories.
  *
  * Props:
- * - counts: Record<stateCode, number>   e.g., { VIC: 120, NSW: 85, ... }
- * - geoUrl: TopoJSON/GeoJSON object or URL compatible with react-simple-maps
+ * - counts: Record<code, number> (e.g., { VIC:120, NSW:85, ... })
+ * - geoUrl: TopoJSON/GeoJSON object or URL
  * - onRegionClick?: (code: string) => void
  * - title?: string
- * - legendPosition?: "right" | "bottom" (default: "right")
- * - showLegend?: boolean (default: true)
- * - selected?: "ALL" | string | string[]  (default: "ALL")
+ * - legendPosition?: "right" | "bottom" (default "right")
+ * - showLegend?: boolean (default true)
+ * - selected?: "ALL" | string | string[] (dim non-selected if array/string)
  */
 function AUSChoropleth({
   counts = {},
@@ -47,14 +48,14 @@ function AUSChoropleth({
   showLegend = true,
   selected = "ALL",
 }) {
-  /** Normalize selection prop into a Set for quick checks (or null = show all) */
+  /** Normalize selected -> Set for quick lookup (null = no filtering) */
   const selectedSet = useMemo(() => {
     if (selected === "ALL" || selected == null) return null;
     if (Array.isArray(selected)) return new Set(selected.filter(Boolean));
     return new Set([selected]);
   }, [selected]);
 
-  /** Mapping display name -> state code for different GeoJSON schemas */
+  /** State name → code mapping (in case GeoJSON varies) */
   const NAME_TO_CODE = {
     "New South Wales": "NSW",
     Victoria: "VIC",
@@ -64,60 +65,56 @@ function AUSChoropleth({
     Tasmania: "TAS",
     "Northern Territory": "NT",
     "Australian Capital Territory": "ACT",
-    "Australian Capital Teritory": "ACT", // common typo in some datasets
+    "Australian Capital Teritory": "ACT",
   };
 
-  /** Extract numeric values from counts (ignore NaN/undefined) */
+  /** Numeric values of counts (ignore invalid) */
   const values = useMemo(
     () => Object.values(counts).filter((v) => Number.isFinite(v)),
     [counts]
   );
 
-  /** Min/Max for color scale domain */
+  /** Domain for the quantized color scale */
   const [minV, maxV] = useMemo(() => {
     if (!values.length) return [0, 0];
     return [Math.min(...values), Math.max(...values)];
   }, [values]);
 
-  /** Total sum for percentage readout (detail line) */
-  const totalSum = useMemo(() => {
-    return values.reduce((a, b) => a + b, 0);
-  }, [values]);
+  /** Aggregate sum for percentage readout (hover detail) */
+  const totalSum = useMemo(() => values.reduce((a, b) => a + b, 0), [values]);
 
-  /** Color scale: quantize numeric range into 9 discrete blues */
+  /** Quantized color scale (9 discrete blues) */
   const colorScale = useMemo(
     () => scaleQuantize().domain([minV, maxV]).range(schemeBlues[9]),
     [minV, maxV]
   );
 
-  /** Number formatters */
+  /** Formatters */
   const nf = useMemo(() => new Intl.NumberFormat("en-US"), []);
   const pf = useMemo(
     () => new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }),
     []
   );
 
-  /** Hover state for detail readout */
+  /** Hover detail */
   const [hover, setHover] = useState({ name: "", code: "", value: undefined });
   const setHoverIfChanged = (next) => {
     if (
       hover.code === next.code &&
       hover.name === next.name &&
       hover.value === next.value
-    ) return;
+    )
+      return;
     setHover(next);
   };
 
   /**
-   * Build legend buckets (NO percentages here).
-   * If all values are equal, show a single bucket with that flat value.
+   * Legend buckets based on color scale inverse extents.
+   * If all values equal → single bucket.
    */
   const legend = useMemo(() => {
     if (!values.length) return [];
-    if (minV === maxV) {
-      // Edge case: flat data (all same value)
-      return [{ color: schemeBlues[9][4], from: minV, to: maxV }];
-    }
+    if (minV === maxV) return [{ color: schemeBlues[9][4], from: minV, to: maxV }];
     const range = colorScale.range();
     const stops = range.map((c) => colorScale.invertExtent(c));
     return stops.map(([a, b], i) => ({
@@ -127,7 +124,7 @@ function AUSChoropleth({
     }));
   }, [colorScale, minV, maxV, values]);
 
-  /** Helpers to extract code/name from a feature across different schemas */
+  /** Extractors per feature */
   const getCodeFromFeature = (feature) => {
     const p = feature?.properties || {};
     const abbr = p.STE_ABBR || p.STATE_ABBR;
@@ -141,33 +138,48 @@ function AUSChoropleth({
     return p.STE_NAME21 || p.STATE_NAME || p.STE_NAME16 || p.name || p.NAME || "Unknown";
   };
 
-  /** Fill color logic: if no data or flat domain, use a neutral gray */
+  /** Color for a region; flat domain → neutral gray */
   const getFill = (code) => {
     const v = counts[code];
-    if (!Number.isFinite(v) || minV === maxV) return "#e5e7eb"; // tailwind gray-200
+    if (!Number.isFinite(v) || minV === maxV) return "#e5e7eb";
     return colorScale(v);
   };
 
-  /** Layout grid: map + legend either on the right or bottom */
+  /** Layout: right legend (column) or bottom legend (row) */
   const outerStyle = useMemo(() => {
     if (showLegend && legendPosition === "bottom") {
-      return { display: "grid", gridTemplateRows: "1fr auto", rowGap: 12, width: "100%", height: "100%" };
+      return {
+        display: "grid",
+        gridTemplateRows: "1fr auto",
+        rowGap: 12,
+        width: "100%",
+        height: "100%",
+      };
     }
-    return { display: "grid", gridTemplateColumns: showLegend ? "1fr auto" : "1fr", gap: 16, width: "100%", height: "100%" };
+    return {
+      display: "grid",
+      gridTemplateColumns: showLegend ? "1fr auto" : "1fr",
+      gap: 16,
+      width: "100%",
+      height: "100%",
+    };
   }, [showLegend, legendPosition]);
 
-  /** Pointer hint: coarse pointer (touch) vs fine pointer (mouse) */
+  /** Pointer hint */
   const isCoarsePointer = useMemo(() => {
     if (typeof window === "undefined") return false;
-    try { return window.matchMedia?.("(pointer: coarse)")?.matches || false; } catch { return false; }
+    try {
+      return window.matchMedia?.("(pointer: coarse)")?.matches || false;
+    } catch {
+      return false;
+    }
   }, []);
   const hintText = isCoarsePointer ? "Tap a state" : "Hover a state";
 
-  /** Responsive projection scale derived from measured container width */
+  /** Responsive projection scale from container width */
   const { ref: mapAreaRef, width: mapW } = useElementSize();
   const projScale = useMemo(() => {
-    const w = mapW || 1200; // desktop-ish fallback
-    // Empirically nice: scale ~ 0.75 * width, clamped
+    const w = mapW || 1200;
     return Math.min(900, Math.max(420, Math.round(w * 0.75)));
   }, [mapW]);
 
@@ -190,7 +202,7 @@ function AUSChoropleth({
           height: "100%",
           display: "grid",
           gridTemplateRows: title ? "auto 1fr auto" : "1fr auto",
-          overflow: "visible", // avoid clipping labels/legend
+          overflow: "visible",
         }}
       >
         {title ? (
@@ -199,7 +211,7 @@ function AUSChoropleth({
           </h3>
         ) : null}
 
-        {/* Measured area: SVG fills this; projection scale derives from its width */}
+        {/* Measured area (SVG fills this) */}
         <div ref={mapAreaRef} style={{ width: "100%", height: "100%" }}>
           <ComposableMap
             projection="geoMercator"
@@ -208,7 +220,6 @@ function AUSChoropleth({
           >
             <Geographies geography={geoUrl}>
               {({ geographies }) => {
-                // Track label positions per selected region to avoid duplicates
                 const labelByCode = new Map(); // code -> {x,y}
 
                 const polygons = geographies.map((geo) => {
@@ -218,17 +229,17 @@ function AUSChoropleth({
                   const fill = getFill(code);
                   const isSelected = !selectedSet || selectedSet.has(code);
 
+                  // Prepare centroid label for selected regions
                   if (selectedSet && isSelected && code && !labelByCode.has(code)) {
                     try {
                       const [cx, cy] = geoCentroid(geo);
                       if (Number.isFinite(cx) && Number.isFinite(cy)) {
                         labelByCode.set(code, { x: cx, y: cy });
                       }
-                    } catch { /* ignore invalid geometries */ }
+                    } catch {}
                   }
 
                   const handleClick = () => code && onRegionClick?.(code);
-
                   const geoProps = isCoarsePointer
                     ? { onClick: handleClick, onTouchEnd: handleClick }
                     : {
@@ -265,26 +276,32 @@ function AUSChoropleth({
                   );
                 });
 
-                // Optional code labels at centroids for selected regions
+                // Optional code labels (centroids)
                 const labels = selectedSet
                   ? Array.from(labelByCode.entries()).map(([code, { x, y }]) => (
                       <g key={`label-${code}`} pointerEvents="none">
-                        {/* halo for legibility */}
                         <text
-                          x={x} y={y}
-                          textAnchor="middle" alignmentBaseline="middle"
+                          x={x}
+                          y={y}
+                          textAnchor="middle"
+                          alignmentBaseline="middle"
                           style={{
-                            fontSize: 12, fontWeight: 900,
-                            fill: "white", stroke: "white", strokeWidth: 3,
-                            paintOrder: "stroke", opacity: 0.9,
+                            fontSize: 12,
+                            fontWeight: 900,
+                            fill: "white",
+                            stroke: "white",
+                            strokeWidth: 3,
+                            paintOrder: "stroke",
+                            opacity: 0.9,
                           }}
                         >
                           {code}
                         </text>
-                        {/* foreground */}
                         <text
-                          x={x} y={y}
-                          textAnchor="middle" alignmentBaseline="middle"
+                          x={x}
+                          y={y}
+                          textAnchor="middle"
+                          alignmentBaseline="middle"
                           style={{ fontSize: 12, fontWeight: 900, fill: "#111827" }}
                         >
                           {code}
@@ -304,16 +321,18 @@ function AUSChoropleth({
           </ComposableMap>
         </div>
 
-        {/* === Detail line (now includes PERCENTAGE) === */}
-        <div
-          style={{ marginTop: 8, fontSize: 12, color: "#374151", minHeight: 18 }}
-          aria-live="polite"
-        >
+        {/* Hover detail line (with percentage) */}
+        <div style={{ marginTop: 8, fontSize: 12, color: "#374151", minHeight: 18 }} aria-live="polite">
           {hover.code ? (
             <span>
-              <b>{hover.name} ({hover.code})</b>:{" "}
+              <b>
+                {hover.name} ({hover.code})
+              </b>
+              :{" "}
               {Number.isFinite(hover.value)
-                ? `${nf.format(hover.value)} (${totalSum > 0 ? pf.format((hover.value / totalSum) * 100) : 0}%)`
+                ? `${nf.format(hover.value)} (${totalSum > 0 ? pf.format(
+                    (hover.value / totalSum) * 100
+                  ) : 0}%)`
                 : "no data"}
             </span>
           ) : (
@@ -322,7 +341,7 @@ function AUSChoropleth({
         </div>
       </div>
 
-      {/* === Legend (NO percentage here; only numeric ranges + color swatches) === */}
+      {/* Legend (numeric bins only; no percentages) */}
       {showLegend && (
         <div
           style={{
@@ -356,15 +375,11 @@ function AUSChoropleth({
                 }}
               />
               <div style={{ fontSize: 12 }}>
-                {minV === maxV
-                  ? nf.format(seg.from)
-                  : `${nf.format(seg.from)} – ${nf.format(seg.to)}`}
+                {minV === maxV ? nf.format(seg.from) : `${nf.format(seg.from)} – ${nf.format(seg.to)}`}
               </div>
             </div>
           ))}
-          <div style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>
-            Darker = higher values
-          </div>
+          <div style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>Darker = higher values</div>
         </div>
       )}
     </div>

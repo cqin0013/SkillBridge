@@ -1,4 +1,12 @@
-import React, { useEffect, useState } from "react";
+// src/pages/Analyzer/GetInfo/GetInfo.jsx
+// Step 1: Collect past occupations, location, industries, and run ability analysis.
+//
+// This version delegates ability fetching to abilityApi.js:
+// - For each selected ANZSCO code, call /anzsco/{code}/skills
+// - Normalize + dedupe abilities
+// - Keep the rest of your UX (modal, alerts, etc.) unchanged
+
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Card, Select, Space, Typography, Alert, Modal } from "antd";
 import { TwoCardScaffold } from "../Analyzer";
 import SectionBox from "../../../components/ui/SectionBox/SectionBox";
@@ -9,6 +17,12 @@ import useResponsive from "../../../lib/hooks/useResponsive";
 import { MAX_SELECT } from "../../../lib/constants/app";
 import { AU_STATES } from "../../../lib/constants/geo";
 import { INDUSTRY_OPTIONS } from "../../../lib/constants/industries";
+
+import {
+  getAnzscoSkills,
+  mapAbilitiesToFlat,
+  dedupeAbilities,
+} from "../../../lib/api/AbilityApi";
 
 const { Title, Paragraph } = Typography;
 
@@ -23,6 +37,7 @@ export default function GetInfo({
   setSelectedIndustryIds,
   setAbilities,
   setRoles,
+  onChosenChange,
   onPrev,
   onNext,
 }) {
@@ -30,6 +45,19 @@ export default function GetInfo({
   const [helpOccOpen, setHelpOccOpen] = useState(false);
   const [helpWorkOpen, setHelpWorkOpen] = useState(false);
   const [helpIndustriesOpen, setHelpIndustriesOpen] = useState(false);
+  const lastChosenKeyRef = useRef("");
+
+  useEffect(() => {
+    if (typeof onChosenChange !== "function") return;
+    const codes = (chosen || [])
+      .map((item) => String(item?.occupation_code || item?.code || "").trim())
+      .filter(Boolean);
+    const key = codes.join("|");
+    if (lastChosenKeyRef.current === key) return;
+    lastChosenKeyRef.current = key;
+    onChosenChange(codes);
+  }, [chosen, onChosenChange]);
+
 
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisDone, setAnalysisDone] = useState(false);
@@ -37,79 +65,62 @@ export default function GetInfo({
   const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
   const [renderAnalysisModal, setRenderAnalysisModal] = useState(false);
 
-  const { isMobile, isTablet } = useResponsive();
+  const { isMobile } = useResponsive();
 
+  // Render modal only when needed (perf/cleanup)
   useEffect(() => {
-    if (analysisModalOpen) {
-      setRenderAnalysisModal(true);
-    }
+    if (analysisModalOpen) setRenderAnalysisModal(true);
   }, [analysisModalOpen]);
 
   const handleAnalysisModalClose = () => setAnalysisModalOpen(false);
-
   const handleAnalysisModalOk = () => {
     setAnalysisModalOpen(false);
     onNext();
   };
-
   const handleAnalysisAfterChange = (open) => {
-    if (!open) {
-      setRenderAnalysisModal(false);
-    }
+    if (!open) setRenderAnalysisModal(false);
   };
 
+  /**
+   * Run the ability analysis:
+   * 1) Take the selected 6-digit ANZSCO codes.
+   * 2) For each code, call /anzsco/{code}/skills.
+   * 3) Normalize + dedupe abilities and store them for Step 2.
+   */
   const runAnalyze = async () => {
     if (!chosen.length) return;
+
     try {
       setAnalyzing(true);
       setAnalysisDone(false);
       setAnalysisMsg("");
+
       const codes = chosen.map((c) => c.occupation_code);
+
+      // Fetch each code in parallel; tolerate partial failures.
       const settled = await Promise.allSettled(
-        codes.map(async (code) => {
-          const response = await fetch(
-            `https://skillbridge-hnxm.onrender.com/occupations/${encodeURIComponent(code)}/titles`
-          );
-          if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-          return response.json();
-        })
+        codes.map((code) => getAnzscoSkills(code))
       );
 
-      const okResults = settled
-        .filter((item) => item.status === "fulfilled")
-        .map((item) => item.value);
+      const okPayloads = settled
+        .filter((x) => x.status === "fulfilled")
+        .map((x) => x.value);
 
-      if (!okResults.length) {
+      if (!okPayloads.length) {
         setAnalysisMsg("Failed to analyze. Please try again.");
         setAnalysisDone(false);
         return;
       }
 
-      const abilities = [];
-      for (const data of okResults) {
-        const knowledge = Array.isArray(data?.knowledge_titles) ? data.knowledge_titles : [];
-        const skills = Array.isArray(data?.skill_titles) ? data.skill_titles : [];
-        const techs = Array.isArray(data?.tech_titles) ? data.tech_titles : [];
+      // Flatten -> normalize -> dedupe
+      const all = okPayloads.flatMap((payload) => mapAbilitiesToFlat(payload));
+      const unique = dedupeAbilities(all);
 
-        abilities.push(
-          ...knowledge.map((item) => ({ title: item.title, code: item.code, type: "knowledge" })),
-          ...skills.map((item) => ({ title: item.title, code: item.code, type: "skill" })),
-          ...techs.map((item) => ({ title: item.title, code: item.code, type: "tech" }))
-        );
-      }
-
-      const seen = new Set();
-      const unique = [];
-      for (const ability of abilities) {
-        const key = ability.code || `t:${ability.title}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          unique.push(ability);
-        }
-      }
-
+      // Pass to parent (Step 2)
       setAbilities(unique);
       setRoles(chosen.map((c) => c.occupation_title));
+
+      // UX feedback
       setAnalysisDone(true);
       setAnalysisMsg("Analysis complete.");
       setAnalysisModalOpen(true);
@@ -121,17 +132,19 @@ export default function GetInfo({
     }
   };
 
+  // Button guard + tooltip reason
   const nextDisabled = !analysisDone || analyzing || !chosen.length;
   const nextDisabledReason = !chosen.length
     ? "Please add at least one past occupation."
     : analyzing
-    ? "Analyzing…"
+    ? "Analyzing..."
     : !analysisDone
     ? "Please click Analyze first."
     : undefined;
 
   const stepPill = step > 0 ? `Step ${step}` : "Intro";
 
+  // Simple responsive inlines (avoid CSS just for tiny spacing toggles)
   const cardHeaderStyle = {
     display: "flex",
     flexDirection: isMobile ? "column" : "row",
@@ -139,13 +152,11 @@ export default function GetInfo({
     justifyContent: "space-between",
     gap: isMobile ? 8 : 12,
   };
-
   const actionListStyle = {
     paddingLeft: isMobile ? 18 : 20,
     margin: 0,
     lineHeight: isMobile ? 1.5 : 1.7,
   };
-
   const analyzeSpaceProps = {
     direction: isMobile ? "vertical" : "horizontal",
     size: isMobile ? 12 : 16,
@@ -153,7 +164,6 @@ export default function GetInfo({
     wrap: isMobile,
     style: { marginBottom: 12 },
   };
-
   const selectSize = isMobile ? "middle" : "large";
   const selectMarginTop = isMobile ? 12 : 8;
   const showAnalysisFeedback = Boolean(analysisMsg);
@@ -213,6 +223,7 @@ export default function GetInfo({
           selected={chosen}
           onChangeSelected={(next) => {
             setChosen(next);
+            // Every change invalidates previous analysis
             setAnalysisDone(false);
             setAnalysisMsg("");
           }}
@@ -285,6 +296,7 @@ export default function GetInfo({
           >
             Analyze your abilities
           </Button>
+
           {showAnalysisFeedback && (
             <Alert
               type={analysisAlertType}
