@@ -1,4 +1,7 @@
 // src/pages/Insight/Insight.jsx
+// Insight screen: choropleth by AU states using latest_by_state.nsc_emp from Shortage API.
+// English comments explain logic; UI text stays simple.
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Button, Modal, Spin, Card, List, Typography } from "antd";
 import AUSChoropleth from "../../components/AUSChoropleth";
@@ -7,7 +10,13 @@ import useResponsive from "../../lib/hooks/useResponsive";
 import StageBox from "../../components/ui/StageBox/StageBox";
 import PastOccupationSearch from "../../components/ui/PastOccupationSearch/PastOccupationSearch";
 import Citation from "../../components/ui/Citation/Citation";
-import { getAnzscoShortageMap, EMPTY_SHORTAGE_COUNTS } from "../../lib/api/AnzscoShortageApi";
+
+// ✅ NEW: import the latest-by-state employment API and empty counts
+import {
+  getLatestEmploymentByState,
+  EMPTY_SHORTAGE_COUNTS,
+} from "../../lib/api/AnzscoShortageApi";
+
 import { getTrainingAdvice } from "../../lib/api/TrainingAdviceApi";
 import "./Insight.css";
 
@@ -36,10 +45,22 @@ const STATE_NAME = {
   ACT: "Australian Capital Territory",
 };
 
+/** Map full state name → code; API returns full names in latest_by_state.state */
+const NAME_TO_CODE = {
+  "New South Wales": "NSW",
+  Victoria: "VIC",
+  Queensland: "QLD",
+  "South Australia": "SA",
+  "Western Australia": "WA",
+  Tasmania: "TAS",
+  "Northern Territory": "NT",
+  "Australian Capital Territory": "ACT",
+};
+
 export default function Insight() {
   const { isMobile } = useResponsive();
 
-  /** Map counts state (and helpers) */
+  /** Map counts (code → number) and helpers */
   const createEmptyCounts = useCallback(() => ({ ...EMPTY_SHORTAGE_COUNTS }), []);
   const [mapCounts, setMapCounts] = useState(createEmptyCounts);
   const [mapLoading, setMapLoading] = useState(false);
@@ -50,7 +71,7 @@ export default function Insight() {
   const [jobCode, setJobCode] = useState(() => getSessionString("sb_targetJobCode", ""));
   const [jobTitle, setJobTitle] = useState(() => getSessionString("sb_targetJobTitle", "Selected Job"));
 
-  // Keep code/title in sync with sessionStorage changes (e.g., selected in another step/tab)
+  // Keep code/title synced with sessionStorage
   useEffect(() => {
     const handler = () => {
       setJobTitle(getSessionString("sb_targetJobTitle", "Selected Job"));
@@ -110,7 +131,7 @@ export default function Insight() {
   };
 
   /* =========================
-   * A) Load shortage map data
+   * A) Load map data (nsc_emp)
    * ========================= */
   useEffect(() => {
     let cancelled = false;
@@ -125,7 +146,7 @@ export default function Insight() {
     const run = async () => {
       const trimmedCode = String(jobCode || "").trim();
       if (!trimmedCode) {
-        resetCounts("Select a job to view state shortage data.");
+        resetCounts("Select a job to view state employment snapshot.");
         setMapLoading(false);
         return;
       }
@@ -134,32 +155,32 @@ export default function Insight() {
       setMapError("");
 
       try {
-        const result = await getAnzscoShortageMap({
-          anzscoCode: trimmedCode,
+        // ✅ Call the new API: it will slice prefix4 internally
+        const rows = await getLatestEmploymentByState({
+          anzsco: trimmedCode,
           signal: controller.signal,
         });
         if (cancelled) return;
 
+        // Build counts object from [{state, nsc_emp}]
         const merged = createEmptyCounts();
-        const incomingCounts = result?.counts || {};
-        let hasData = false;
-        Object.entries(incomingCounts).forEach(([region, value]) => {
-          const key = String(region || "").toUpperCase();
-          const num = Number(value);
-          if (!Number.isFinite(num)) return;
-          if (Object.prototype.hasOwnProperty.call(merged, key)) {
-            merged[key] = num;
-            if (num !== 0) hasData = true;
+        let sum = 0;
+        (rows || []).forEach(({ state, nsc_emp }) => {
+          const code = NAME_TO_CODE[String(state || "").trim()] || "";
+          const num = Number(nsc_emp);
+          if (!code || !Number.isFinite(num)) return;
+          if (Object.prototype.hasOwnProperty.call(merged, code)) {
+            merged[code] = num;
+            sum += num;
           }
         });
 
         setMapCounts(merged);
-        const national = Number(result?.metadata?.national);
-        setNationalTotal(Number.isFinite(national) ? national : null);
-        if (!hasData) setMapError("No regional shortage data returned for this occupation.");
+        setNationalTotal(sum || null);
+        if (sum === 0) setMapError("No state-level employment snapshot returned for this occupation.");
       } catch (error) {
         if (controller.signal.aborted) return;
-        resetCounts(error?.message || "Failed to load ANZSCO shortage data.");
+        resetCounts(error?.message || "Failed to load state employment snapshot.");
       } finally {
         if (!cancelled) setMapLoading(false);
       }
@@ -237,8 +258,8 @@ export default function Insight() {
           introContent={
             <div>
               <p style={{ margin: 0 }}>
-                This page shows a choropleth map of Australian states/territories.
-                Tap/click a state to view estimated openings and highlight it on the map.
+                This map shows estimated openings by state/territory using the latest employment snapshot.
+                Tap/click a state to highlight it.
               </p>
             </div>
           }
@@ -268,7 +289,7 @@ export default function Insight() {
                 zIndex: 2,
               }}
             >
-              <Spin tip="Loading ANZSCO shortage data..." size="large" />
+              <Spin tip="Loading employment snapshot..." size="large" />
             </div>
           )}
 
@@ -313,7 +334,7 @@ export default function Insight() {
             </div>
             <div className="state-sheet__body">
               <p className="state-sheet__metric">
-                Estimated openings: <strong>{selectedCount.toLocaleString()}</strong>
+                Estimated openings: <strong>{(mapCounts[selected] ?? 0).toLocaleString()}</strong>
               </p>
               <p className="state-sheet__hint">
                 {isMobile ? "Tap another state on the map to update." : "Click another state on the map to update."}
@@ -322,7 +343,6 @@ export default function Insight() {
           </div>
         </div>
       )}
-
 
       {/* Floating action button (bottom-right) */}
       <div className="insight-fab">

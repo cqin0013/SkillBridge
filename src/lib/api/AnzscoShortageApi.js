@@ -3,7 +3,16 @@
 // This version extracts only state + nsc_emp from latest_by_state for charting.
 
 import { getCache, setCache } from "../../utils/cache";
-
+export const EMPTY_SHORTAGE_COUNTS = {
+  NSW: 0,
+  VIC: 0,
+  QLD: 0,
+  SA: 0,
+  WA: 0,
+  TAS: 0,
+  NT: 0,
+  ACT: 0,
+};
 /** Base host (override via .env: VITE_SHORTAGE_BASE or VITE_DEMAND_BASE) */
 export const SHORTAGE_BASE =
   (typeof import.meta !== "undefined" &&
