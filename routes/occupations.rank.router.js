@@ -99,8 +99,28 @@ export default function initRankRoutes(pool) {
  *               value:
  *                 selections:
  *                   - { "type": "knowledge", "code": "2.C.1.a" }
- *                   - { "type": "skill",     "code": "2.A.1.b" }
- *                   - { "type": "tech",      "code": "43233208" }
+ *                   - { "type": "skill", "code": "2.A.1.a" }
+ *                   - { "type": "skill", "code": "2.A.1.b" }
+ *                   - { "type": "skill", "code": "2.A.1.c" }
+ *                   - { "type": "skill", "code": "2.A.1.d" }
+ *                   - { "type": "skill", "code": "2.A.1.e" }
+ *                   - { "type": "skill", "code": "2.A.1.f" }
+ *                   - { "type": "skill", "code": "2.A.2.a" }
+ *                   - { "type": "skill", "code": "2.A.2.b" }
+ *                   - { "type": "skill", "code": "2.A.2.c" }
+ *                   - { "type": "skill", "code": "2.A.2.d" }
+ *                   - { "type": "skill", "code": "2.B.1.a" }
+ *                   - { "type": "skill", "code": "2.B.1.b" }
+ *                   - { "type": "skill", "code": "2.B.1.c" }
+ *                   - { "type": "skill", "code": "2.B.1.d" }
+ *                   - { "type": "skill", "code": "2.B.1.e" }
+ *                   - { "type": "skill", "code": "2.B.1.f" }
+ *                   - { "type": "skill", "code": "2.B.2.i" }
+ *                   - { "type": "skill", "code": "2.B.3.a" }
+ *                   - { "type": "skill", "code": "2.B.3.b" }
+ *                   - { "type": "skill", "code": "2.B.3.c" }
+ *                   - { "type": "tech",  "code": "43231507" }
+ *                   - { "type": "tech",  "code": "43232110" }
  *                 major_first: "2"
  *             arrays:
  *               summary: Separate arrays input
