@@ -1,11 +1,25 @@
 // swagger.i18n.js
 import swaggerJSDoc from 'swagger-jsdoc';
 
-// 你已有的两个服务器地址
-const servers = [
-  { url: 'http://localhost:8080', description: 'Local' },
-  { url: 'https://progressive-alysia-skillbridge-437200d9.koyeb.app', description: 'Koyeb' },
-];
+// ======== 仅调整这里：servers 生成策略 ========
+const isProd = process.env.NODE_ENV === 'production';
+const PUBLIC_BASE_URL =
+  process.env.PUBLIC_BASE_URL ||
+  'https://progressive-alysia-skillbridge-437200d9.koyeb.app';
+
+// 优先使用同域相对路径，确保在 Koyeb 上不再指向 localhost
+const servers = [{ url: '/api', description: 'same-origin' }];
+
+// 本地开发时保留 localhost（不改变开发习惯）
+if (!isProd) {
+  servers.push({ url: 'http://localhost:8080/api', description: 'Local' });
+}
+
+// 线上可选展示完整公网地址（不影响相对路径工作）
+if (PUBLIC_BASE_URL) {
+  servers.push({ url: `${PUBLIC_BASE_URL}/api`, description: 'Public' });
+}
+// ============================================
 
 // 生成“英文基础 spec”（用现有的英文 JSDoc 注释）
 function buildBaseSpec() {
@@ -232,7 +246,6 @@ function buildZhSpecFrom(baseSpec) {
 
   return spec;
 }
-
 
 const base = buildBaseSpec();
 export const swaggerSpecEn = base;
