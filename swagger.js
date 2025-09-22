@@ -1,10 +1,29 @@
 // swagger.js
 import swaggerJSDoc from 'swagger-jsdoc';
 
+const isProd = process.env.NODE_ENV === 'production';
+
+// 可选：在 Koyeb 的环境变量里设置 PUBLIC_BASE_URL = https://progressive-alysia-skillbridge-437200d9.koyeb.app
+// 若未设置，则使用你现在的 Koyeb 域名做为兜底（可留可删）
+const PUBLIC_BASE_URL =
+  process.env.PUBLIC_BASE_URL ||
+  'https://progressive-alysia-skillbridge-437200d9.koyeb.app';
+
+// —— 关键改动：优先使用“同域相对路径”，避免在线上出现 localhost ——
+// 这样 /docs 页与 /api 同域部署时，无论本地还是 Koyeb 都能正确请求
 const servers = [
-  { url: 'http://localhost:8080', description: 'Local' },
-  { url: 'https://progressive-alysia-skillbridge-437200d9.koyeb.app', description: 'Koyeb' },
+  { url: '/api', description: 'same-origin' },
 ];
+
+// 本地开发时，保留你原来的 localhost 行为（不改变使用习惯）
+if (!isProd) {
+  servers.push({ url: 'http://localhost:8080/api', description: 'Local' });
+}
+
+// 线上可选：显式展示公网完整地址（不影响相对路径工作）
+if (PUBLIC_BASE_URL) {
+  servers.push({ url: `${PUBLIC_BASE_URL}/api`, description: 'Public' });
+}
 
 export const swaggerSpec = swaggerJSDoc({
   definition: {
