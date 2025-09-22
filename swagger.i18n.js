@@ -1,5 +1,9 @@
 // swagger.i18n.js
 import swaggerJSDoc from 'swagger-jsdoc';
+import { fileURLToPath } from 'url';
+import path from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
 
 // ======== 仅调整这里：servers 生成策略 ========
 const isProd = process.env.NODE_ENV === 'production';
@@ -144,9 +148,12 @@ function buildBaseSpec() {
       }
     },
     apis: [
-      './index.js',
-      './anzsco.training.router.js',
-      './anzsco.demand.router.js',
+      // 用绝对路径，避免 cwd 不同时扫不到文件
+      path.join(__dirname, 'index.js'),
+      path.join(__dirname, '*.router.js'),
+      // 把 routes 目录也纳入（包括 map.data.fromtemp.js）
+      path.join(__dirname, 'routes/*.js'),
+      path.join(__dirname, 'routes/**/*.js'),
     ],
   });
 }
