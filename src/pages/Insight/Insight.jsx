@@ -323,42 +323,6 @@ export default function Insight() {
         </div>
       )}
 
-      {/* Training advice panel (ANZSCO → VET courses) */}
-      <Card
-        title="Recommended training (VET)"
-        style={{ marginTop: 16 }}
-        extra={
-          <Text type="secondary">
-            {jobCode ? `ANZSCO ${jobCode}` : "No occupation selected"}
-          </Text>
-        }
-      >
-        {trainingLoading && <Spin />}
-        {!trainingLoading && trainingError && (
-          <Alert type="warning" showIcon message={trainingError} />
-        )}
-        {!trainingLoading && !trainingError && (
-          <>
-            <List
-              dataSource={trainingCourses}
-              locale={{ emptyText: "No courses returned." }}
-              renderItem={(c) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={c.name}
-                    description={c.code ? `Course code: ${c.code}` : null}
-                  />
-                </List.Item>
-              )}
-            />
-            {Number.isFinite(trainingTotal) && (
-              <div style={{ marginTop: 8, color: "#6b7280" }}>
-                Total courses: {trainingTotal}
-              </div>
-            )}
-          </>
-        )}
-      </Card>
 
       {/* Floating action button (bottom-right) */}
       <div className="insight-fab">

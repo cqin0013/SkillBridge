@@ -9,42 +9,11 @@ import RoadmapEditor from "../../components/ui/RoadMap/RoadmapEditor";
 import StageBox from "../../components/ui/StageBox/StageBox";
 import PrevSummary from "../../components/ui/PrevSummary/PrevSummary";
 import SectionBox from "../../components/ui/SectionBox/SectionBox";
-import SkillLevelCard from "../../components/ui/SkillLevelCard/SkillLevelCard.jsx";
 import TrainingGuidanceCard from "../../components/ui/TrainingGuidanceCard/TrainingGuidanceCard.jsx";
 import { INDUSTRY_OPTIONS } from "../../lib/constants/industries";
 
-//  use cache.js instead of roadmapStore
+// use cache.js instead of roadmapStore
 import { getCache, delCache } from "../../utils/cache";
-
-/** Fallback mock advice (from your screenshot) when nothing is provided */
-const MOCK_ADVICE = {
-  anzsco: "411711",
-  found: 0,
-  items: [
-    {
-      tgaCode: "52909WA",
-      title: "Advanced Diploma of Indigenous Pastoral Ministry",
-      componentType: ["AccreditedCourse"],
-      advice: null,
-      link: "https://training.gov.au/Training/Details/52909WA",
-    },
-    {
-      tgaCode: "11076NAT",
-      title: "Diploma of Leadership in Disability Services",
-      componentType: ["AccreditedCourse"],
-      advice: null,
-      link: "https://training.gov.au/Training/Details/11076NAT",
-    },
-    {
-      tgaCode: "52908WA",
-      title: "Advanced Diploma of Indigenous Ministry and Lifestyle Health Promotion",
-      componentType: ["AccreditedCourse"],
-      advice: null,
-      link: "https://training.gov.au/Training/Details/52908WA",
-    },
-  ],
-  note: "No UsageRecommendations in TGA; returned top matches with detail links.",
-};
 
 export default function Profile() {
   const [steps, setSteps] = useState([]);
@@ -55,10 +24,9 @@ export default function Profile() {
   // Collapsibles
   const [infoOpen, setInfoOpen] = useState(true);
   const [roadmapCollapsed, setRoadmapCollapsed] = useState(false);
-  const [skillBoxOpen, setSkillBoxOpen] = useState(true);
   const [adviceBoxOpen, setAdviceBoxOpen] = useState(true);
 
-  // PrevSummary data
+  // PrevSummary data (loaded from session)
   const [prev, setPrev] = useState({
     roles: [],
     stateCode: "All",
@@ -68,13 +36,12 @@ export default function Profile() {
     abilitiesCount: 0,
   });
 
-  // Training bits for the two SectionBoxes
-  const [skillLevel, setSkillLevel] = useState(1); // default to 1
+  // Training guidance payload (no mock fallback)
   const [adviceData, setAdviceData] = useState(null);
 
   // Load roadmap + prev summary + training session data
   useEffect(() => {
-    //  read roadmap from cache (key 'roadmap' → stored under 'sb_roadmap')
+    // 1) read roadmap from cache (key 'roadmap' → stored under 'sb_roadmap')
     const cached = getCache("roadmap");
     const loadedSteps = Array.isArray(cached)
       ? cached
@@ -83,15 +50,18 @@ export default function Profile() {
       : [];
     setSteps(loadedSteps);
 
+    // 2) read profile snapshot for PrevSummary
     try {
       const raw = sessionStorage.getItem("sb_profile_prev");
       const base = raw ? JSON.parse(raw) : {};
+
       let abilitiesCount = base?.abilitiesCount ?? 0;
       if (!abilitiesCount) {
         const metaRaw = sessionStorage.getItem("sb_selections_meta");
         const meta = metaRaw ? JSON.parse(metaRaw) : null;
         abilitiesCount = meta?.counts?.total ?? 0;
-        }
+      }
+
       setPrev({
         roles: base?.roles || [],
         stateCode: base?.stateCode || "All",
@@ -101,19 +71,16 @@ export default function Profile() {
         abilitiesCount,
       });
 
-      // Training related from sessionStorage (with sensible defaults)
-      const slRaw = sessionStorage.getItem("sb_skill_level");
-      setSkillLevel(slRaw ? Number(slRaw) : 1);
-
+      // 3) read training advice (no mock; show empty if absent)
       const advRaw = sessionStorage.getItem("sb_training_advice");
-      setAdviceData(advRaw ? JSON.parse(advRaw) : MOCK_ADVICE);
+      setAdviceData(advRaw ? JSON.parse(advRaw) : null);
     } catch {
-      // On any parse error, still provide defaults
-      setSkillLevel(1);
-      setAdviceData(MOCK_ADVICE);
+      // On any parse error, still provide minimal defaults (no mock)
+      setAdviceData(null);
     }
   }, []);
 
+  // Map industry id -> name
   const industryNameMap = useMemo(() => {
     const m = new Map();
     (INDUSTRY_OPTIONS || []).forEach((o) => m.set(o.id, o.name));
@@ -133,7 +100,7 @@ export default function Profile() {
   };
 
   const onClear = () => {
-    //  clear only roadmap key
+    // clear only roadmap key
     delCache("roadmap");
     setSteps([]);
     message.success("Roadmap cleared.");
@@ -156,7 +123,7 @@ export default function Profile() {
 
   return (
     <div className="container" style={{ padding: 16 }}>
-      {/*  Collapsible: Your info  */}
+      {/* Collapsible: Your info */}
       <Collapse
         activeKey={infoOpen ? ["info"] : []}
         onChange={(keys) => setInfoOpen((keys || []).includes("info"))}
@@ -221,10 +188,6 @@ export default function Profile() {
                     Click <strong>Export PDF</strong> to download a snapshot of your current roadmap.
                     If your goals change, you can <strong>Clear</strong> and rebuild the plan anytime.
                   </p>
-                  <p style={{ color: "#b91c1c", fontWeight: 600 }}>
-                    Notice: If the Analyzer test was not completed or you didn’t select to
-                    generate a roadmap, nothing will be shown here automatically.
-                  </p>
                 </>
               }
               defaultTipOpen={true}
@@ -249,29 +212,8 @@ export default function Profile() {
         )}
       </Card>
 
-      {/* Two SectionBoxes */}
+      {/* Training guidance section (no mock; show empty if no data) */}
       <div style={{ marginTop: 16 }}>
-        <Collapse
-          activeKey={skillBoxOpen ? ["skill"] : []}
-          onChange={(keys) => setSkillBoxOpen((keys || []).includes("skill"))}
-          style={{ marginBottom: 12 }}
-          items={[
-            {
-              key: "skill",
-              label: `Required skill level — ${prev.targetJobTitle || prev.targetJobCode || "-"}`,
-              children: (
-                <SectionBox variant="question" title={null /* header handled by Collapse label */}>
-                  <SkillLevelCard
-                    skillLevel={skillLevel ?? 1}
-                    occupationTitle={prev.targetJobTitle}
-                    anzscoCodeLike={prev.targetJobCode}
-                  />
-                </SectionBox>
-              ),
-            },
-          ]}
-        />
-
         <Collapse
           activeKey={adviceBoxOpen ? ["advice"] : []}
           onChange={(keys) => setAdviceBoxOpen((keys || []).includes("advice"))}
@@ -281,12 +223,16 @@ export default function Profile() {
               label: "Training guidance",
               children: (
                 <SectionBox variant="question" title={null}>
-                  <TrainingGuidanceCard
-                    data={adviceData || MOCK_ADVICE}
-                    occupationTitle={prev.targetJobTitle}
-                    anzscoCodeLike={prev.targetJobCode}
-                    addressText={"Melbourne VIC 3000"}
-                  />
+                  {adviceData ? (
+                    <TrainingGuidanceCard
+                      data={adviceData}
+                      occupationTitle={prev.targetJobTitle}
+                      anzscoCodeLike={prev.targetJobCode}
+                      addressText={"Melbourne VIC 3000"}
+                    />
+                  ) : (
+                    <Empty description="No training guidance available." />
+                  )}
                 </SectionBox>
               ),
             },

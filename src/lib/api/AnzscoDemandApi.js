@@ -1,5 +1,7 @@
 // src/lib/api/AnzscoDemandApi.js
 // Regional/National shortage ratings by 6-digit ANZSCO code.
+// Uses native fetch (no http.js). Includes 6-hour in-memory cache via utils/cache.
+//
 // Example endpoint:
 //   GET /api/anzsco/261313/demand
 //
@@ -13,7 +15,6 @@
 //   }
 // }
 
-import { http } from "../../utils/http";
 import { getCache, setCache } from "../../utils/cache";
 
 /** Base host (override via .env: VITE_DEMAND_BASE) */
@@ -30,6 +31,34 @@ const buildUrl = (code) =>
   `${DEMAND_BASE.replace(/\/+$/, "")}/api/anzsco/${encodeURIComponent(
     String(code || "").trim()
   )}/demand`;
+
+/** GET JSON via fetch with optional AbortController timeout */
+async function getJson(url, { signal, timeout } = {}) {
+  // Support optional timeout when no external signal is provided
+  let controller = null;
+  if (!signal && typeof AbortController !== "undefined" && typeof timeout === "number" && timeout > 0) {
+    controller = new AbortController();
+    signal = controller.signal;
+    setTimeout(() => controller.abort(), timeout);
+  }
+
+  const res = await fetch(url, { method: "GET", signal });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // ignore JSON parse errors; keep data as null
+  }
+
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data ?? {};
+}
 
 /** Normalize different possible field names into a stable object. */
 export function normalizeDemandPayload(payload) {
@@ -73,7 +102,7 @@ export async function getDemandByCode({ anzscoCode, signal, timeout }) {
   if (cached) return cached;
 
   const url = buildUrl(code);
-  const res = await http.get(url, { signal, timeout });
+  const res = await getJson(url, { signal, timeout });
   const normalized = normalizeDemandPayload(res);
 
   setCache(cacheKey, normalized, SIX_HOURS);
@@ -112,16 +141,16 @@ export function regionShortage(demandItem, region) {
 }
 
 /**
- * 批量给“职位列表”补充紧缺度信息。
- * jobs: 形如 normalizeJobList(...) 后的数组（包含 occupationCode）
+ * Enrich job list with demand shortage.
+ * jobs: array with items containing occupationCode/code fields
  * options.region: "national" | "NSW" | "VIC" | "QLD" | "SA" | "WA" | "TAS" | "NT" | "ACT"
- * 返回：新的数组，每一项附加 { demand, shortage } 字段
+ * returns: a new array with { demand, shortage } merged into each item
  */
 export async function enrichJobsWithDemand(
   jobs = [],
   { region = "national", signal, timeout } = {}
 ) {
-  // 1) 收集唯一 code
+  // 1) collect unique codes
   const codes = [
     ...new Set(
       (jobs || [])
@@ -132,10 +161,10 @@ export async function enrichJobsWithDemand(
 
   if (codes.length === 0) return jobs.map((j) => ({ ...j, demand: null, shortage: null }));
 
-  // 2) 批量获取紧缺度
+  // 2) fetch demand map
   const demandMap = await fetchBatchDemand(codes, { signal, timeout }); // Map<code, normalizedDemand|null>
 
-  // 3) 合并回原列表
+  // 3) merge back
   return (jobs || []).map((j) => {
     const code = String(j.occupationCode || j.code || "").trim();
     const demand = demandMap.get(code) || null;
@@ -144,9 +173,9 @@ export async function enrichJobsWithDemand(
   });
 }
 
-// 兼容旧调用名：getAnzscoDemand
+// Back-compat alias
 export async function getAnzscoDemand(arg, opts) {
-  // 支持 getAnzscoDemand("261313") 或 getAnzscoDemand({ anzscoCode: "261313" })
+  // Supports getAnzscoDemand("261313") or getAnzscoDemand({ anzscoCode: "261313" })
   const anzscoCode =
     typeof arg === "string"
       ? arg
@@ -160,7 +189,7 @@ export function normalizeRegionPref(pref) {
   if (!pref) return "national";
   const v = String(pref).trim().toLowerCase();
   if (v === "all" || v === "any") return "national";
-  // Accept common state codes; the demand payload is case-insensitive in regionShortage()
+  // Accept common state codes; regionShortage() handles case-insensitive lookup
   return v.toUpperCase(); // e.g., "NSW" | "VIC" | ...
 }
 

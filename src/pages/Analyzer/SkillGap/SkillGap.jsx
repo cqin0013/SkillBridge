@@ -1,11 +1,13 @@
 // src/pages/Analyzer/SkillGap/SkillGap.jsx
-// Content-only body for Step 4. Used inside TwoCardScaffold from Analyzer.jsx.
+// Step 4: Show ability gaps (Not Met). Robustly normalizes data from props/session/API.
+// English comments explain logic; UI texts remain concise.
 
 import { useRef, useMemo, useState, useEffect } from "react";
 import HelpToggle from "../../../components/ui/HelpToggle/HelpToggle";
 import SectionBox from "../../../components/ui/SectionBox/SectionBox";
 import GapTable from "../../../components/ui/GapTable";
 import { Typography } from "antd";
+import { suggestJobs } from "../../../lib/api/JobSuggestionApi";
 
 const { Paragraph } = Typography;
 
@@ -28,43 +30,74 @@ export const pageIntro = {
   ),
 };
 
+/** Treat value as array; if object present, wrap; falsy => [] */
+const arr = (x) => (Array.isArray(x) ? x : x ? [x] : []);
+
+/** Normalize unmatched payload into a consistent grouped/flat shape (more tolerant). */
 function normalizeUnmatched(src) {
-  if (!src) {
+  if (!src || typeof src !== "object") {
     return { knowledge: [], skill: [], tech: [], unmatchedFlat: [] };
   }
-  const arr = (x) => (Array.isArray(x) ? x : x ? [x] : []);
-  const knowledge = arr(src.knowledge ?? src.knowledges ?? src.missingKnowledge);
-  const skill = arr(src.skill ?? src.skills ?? src.missingSkills);
-  const tech = arr(src.tech ?? src.techs ?? src.missingTech ?? src.technology);
 
+  // Accept more aliases commonly seen in payloads or caches
+  const knowledge = arr(
+    src.knowledge ?? src.knowledges ?? src.missingKnowledge ?? src.Knowledge
+  );
+  const skill = arr(
+    src.skill ?? src.skills ?? src.missingSkills ?? src.Skill ?? src.Skills
+  );
+  const tech = arr(
+    src.tech ?? src.techs ?? src.missingTech ?? src.technology ?? src.technologies ?? src.Tech
+  );
 
-  let unmatchedFlat = Array.isArray(src.unmatchedFlat) ? src.unmatchedFlat.slice() : [];
+  // Prefer a provided flat list, else try other common container keys, else rebuild from groups
+  let unmatchedFlat =
+    (Array.isArray(src.unmatchedFlat) && src.unmatchedFlat.slice()) ||
+    (Array.isArray(src.unmatched) && src.unmatched.slice()) ||
+    (Array.isArray(src.unmatched_items) && src.unmatched_items.slice()) ||
+    (Array.isArray(src.items) && src.items.slice()) ||
+    [];
+
   if (!unmatchedFlat.length) {
-    knowledge.forEach((x) => unmatchedFlat.push({ type: "Knowledge", title: x?.title || x?.name, code: x?.code }));
-    skill.forEach((x) => unmatchedFlat.push({ type: "Skill", title: x?.title || x?.name, code: x?.code }));
-    tech.forEach((x) => unmatchedFlat.push({ type: "Tech", title: x?.title || x?.name, code: x?.code }));
+    knowledge.forEach((x) =>
+      unmatchedFlat.push({ type: "Knowledge", title: x?.title || x?.name, code: x?.code })
+    );
+    skill.forEach((x) =>
+      unmatchedFlat.push({ type: "Skill", title: x?.title || x?.name, code: x?.code })
+    );
+    tech.forEach((x) =>
+      unmatchedFlat.push({ type: "Tech", title: x?.title || x?.name, code: x?.code })
+    );
   }
 
+  // Clean empties
+  unmatchedFlat = unmatchedFlat.filter(
+    (x) => (x?.title || x?.name || x?.code || "").toString().trim().length > 0
+  );
 
-  unmatchedFlat = unmatchedFlat.filter((x) => (x?.title || x?.code || "").toString().trim().length > 0);
+  // If items in flat list didn't carry `type`, try infer from code prefix or fallback "-"
+  unmatchedFlat = unmatchedFlat.map((x) => {
+    if (x.type) return x;
+    // weak heuristics can be added here; for now fallback
+    return { ...x, type: x.type || (x.category ?? "-") };
+  });
 
   return { knowledge, skill, tech, unmatchedFlat };
 }
 
 export default function SkillGap({
-  targetJobCode,
-  targetJobTitle,
-  unmatched,          // { unmatchedFlat?, knowledge?, skill?, tech?, ... }
+  targetJobCode,     // e.g. "15-2031.00"
+  targetJobTitle,    // optional display
+  unmatched,         // { unmatchedFlat?, knowledge?, skill?, tech?, ... }
   onPrev,
   onNext,
-  /** push actions state up to TwoCardScaffold so it can render PageActions */
-  setActionsProps,    // (optional) function(props) => void
+  setActionsProps,   // optional (control PageActions in scaffold)
 }) {
   const [showHelp, setShowHelp] = useState(false);
   const [localUnmatched, setLocalUnmatched] = useState(unmatched || null);
   const printRef = useRef(null);
 
-  
+  /* 1) Read session snapshot when local is empty */
   useEffect(() => {
     if (localUnmatched) return;
     try {
@@ -72,29 +105,94 @@ export default function SkillGap({
       if (cached) {
         setLocalUnmatched(JSON.parse(cached));
       }
-    } catch {
-      /* noop */
-    }
+    } catch {/* noop */}
   }, [localUnmatched]);
 
+  /* 2) If parent passes fresher unmatched later, adopt it */
   useEffect(() => {
     if (unmatched) setLocalUnmatched(unmatched);
   }, [unmatched]);
 
+  /* 3) Fallback: re-fetch suggestions and pick the same occupation's unmatched */
+  useEffect(() => {
+    if (localUnmatched) return; // we already have data
 
+    // Selected occupation (parent) saved by Step 3
+    let selectedJob = null;
+    try {
+      const raw = sessionStorage.getItem("sb_selected_job");
+      if (raw) selectedJob = JSON.parse(raw);
+    } catch {/* noop */}
+    if (!selectedJob) return;
+
+    // Selections from Step 2
+    let selections = [];
+    let majorFirst = null;
+    try {
+      const metaRaw = sessionStorage.getItem("sb_selections_meta");
+      if (metaRaw) {
+        const meta = JSON.parse(metaRaw);
+        if (Array.isArray(meta?.selections)) selections = meta.selections;
+        const mf = meta?.majorFirst ?? meta?.major_first;
+        if (mf != null) majorFirst = String(mf).trim() || null;
+      }
+    } catch {/* noop */}
+    if (!selections.length) return;
+
+    const isSameOccupation = (item) => {
+      const a = (item?.raw?.occupation_code ?? item?.raw?.code ?? "").toString().trim();
+      const b = (selectedJob?.raw?.occupation_code ?? selectedJob?.raw?.code ?? "").toString().trim();
+      if (a && b && a === b) return true;
+
+      const ta = (item?.raw?.occupation_title ?? item?.title ?? "").toString().trim().toLowerCase();
+      const tb = (selectedJob?.raw?.occupation_title ?? selectedJob?.title ?? "").toString().trim().toLowerCase();
+      return !!ta && !!tb && ta === tb;
+    };
+
+    (async () => {
+      try {
+        const list = await suggestJobs({ selections, majorFirst });
+        const found = (list || []).find(isSameOccupation);
+        const unmatchedFromApi =
+          found?.raw?.unmatched ??
+          found?.unmatched ?? // tolerate if backend placed it top-level
+          null;
+
+        if (unmatchedFromApi) {
+          setLocalUnmatched(unmatchedFromApi);
+          try {
+            sessionStorage.setItem("sb_unmatched", JSON.stringify(unmatchedFromApi));
+          } catch {/* noop */}
+        }
+      } catch (e) {
+        console.error("[SkillGap] fallback fetch unmatched failed:", e);
+      }
+    })();
+  }, [localUnmatched]);
+
+  /* 4) Normalize and build rows */
   const normalized = useMemo(() => normalizeUnmatched(localUnmatched), [localUnmatched]);
 
   const rows = useMemo(
     () =>
       (normalized.unmatchedFlat || []).map((x) => ({
-        name: x?.title || x?.code || "-",
+        name: x?.title || x?.name || x?.code || "-",
         type: x?.type || "-",
         status: "miss",
       })),
     [normalized.unmatchedFlat]
   );
 
+  // Visible debug (comment out in production)
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      "[SkillGap] counts",
+      { knowledge: normalized.knowledge.length, skill: normalized.skill.length, tech: normalized.tech.length, flat: rows.length }
+    );
+  }, [normalized.knowledge.length, normalized.skill.length, normalized.tech.length, rows.length]);
 
+  /* 5) Persist snapshot for downstream (Step 5) */
   useEffect(() => {
     try {
       sessionStorage.setItem(
@@ -107,31 +205,28 @@ export default function SkillGap({
           updatedAt: Date.now(),
         })
       );
-   
       window.dispatchEvent(
         new CustomEvent("sb:unmatched:update", { detail: { unmatched: normalized } })
       );
-    } catch {
-      /* noop */
-    }
+    } catch {/* noop */}
   }, [normalized.knowledge, normalized.skill, normalized.tech, normalized.unmatchedFlat]);
 
-  const displayOccupation = targetJobTitle || targetJobCode || "-";
-
+  /* 6) Wire PageActions */
   useEffect(() => {
     if (typeof setActionsProps === "function") {
       setActionsProps({
         onPrev,
         onNext,
         nextText: "Next",
-  
+        // Uncomment if you want to block Next when no gaps:
         // nextDisabled: rows.length === 0,
         // nextDisabledReason: rows.length === 0 ? "No gaps to plan for." : undefined,
       });
     }
   }, [setActionsProps, onPrev, onNext, rows.length]);
 
-  // UI
+  const displayOccupation = targetJobTitle || targetJobCode || "-";
+
   return (
     <>
       <SectionBox

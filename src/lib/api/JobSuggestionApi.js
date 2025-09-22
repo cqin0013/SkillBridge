@@ -1,8 +1,7 @@
 // src/api/JobSuggestionApi.js
 // Purpose: API helper for suggesting jobs from user's selections.
-// Comments are in English to explain logic and design decisions.
+// This version uses native fetch (no http.js). All comments are in English.
 
-import { http } from "../../utils/http";
 import { INDUSTRY_OPTIONS } from "../../lib/constants/industries";
 
 /** Base URL: from env or fallback to Koyeb host */
@@ -18,6 +17,41 @@ export const JOBS_SUGGEST_PATH = "/occupations/rank-by-codes";
 /** Compose absolute URL safely (strip trailing slashes from base) */
 function buildUrl(path) {
   return `${JOBS_BASE.replace(/\/+$/, "")}${path}`;
+}
+
+/** Tiny helper: JSON POST via fetch with sane defaults */
+async function postJson(url, body, { signal, timeout } = {}) {
+  // Optional timeout controller
+  let controller = null;
+  if (!signal && typeof AbortController !== "undefined" && typeof timeout === "number" && timeout > 0) {
+    controller = new AbortController();
+    signal = controller.signal;
+    setTimeout(() => controller.abort(), timeout);
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+    signal,
+  });
+
+  // Try to parse JSON even on non-2xx for better error surfaces
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // ignore parse errors; keep data as null
+  }
+
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  // Align with prior code that read res?.data ?? res
+  return data ?? {};
 }
 
 /**
@@ -43,8 +77,7 @@ export async function suggestJobs({ selections = [], majorFirst = null } = {}) {
   console.log("[JobSuggest] POST", url, JSON.stringify(body, null, 2));
 
   try {
-    const res = await http.post(url, body);
-    const data = res?.data ?? res;
+    const data = await postJson(url, body);
 
     const totalSelected = Number(data?.total_selected ?? 0);
     const list = Array.isArray(data?.items) ? data.items : [];
@@ -57,8 +90,7 @@ export async function suggestJobs({ selections = [], majorFirst = null } = {}) {
       .slice(0, 10);
   } catch (err) {
     // Print backend error details to console for easier debugging
-    const serverMsg =
-      err?.response?.data ?? err?.data ?? err?.message ?? "(no server message)";
+    const serverMsg = err?.data ?? err?.message ?? "(no server message)";
     console.error("[JobSuggest] 400 payload:", body);
     console.error("[JobSuggest] server says:", serverMsg);
     throw err; // rethrow so page can show error
@@ -108,18 +140,18 @@ function normalizeJobItem(it, totalSelected = 0) {
     key: `${title}|${occCode}` || cryptoLikeId(),
     title,
     score,
-    summary: "", // no summary field in schema yet
+    summary: "", // not provided by server yet
     source: "server",
-    anzscoOptions, // array of { code, title, description, industry }
-    skills: [], // not provided in schema
-    missingSkills: [], // not provided either
-    raw: it, // keep raw payload for debugging
+    anzscoOptions, // array of { code, title, description, industry (name) }
+    skills: [],
+    missingSkills: [],
+    raw: it,
   };
 }
 
 /**
  * Normalize ANZSCO item into { code, title, description, industryName, unitGroup... }
- * Industry: map first digit of code to INDUSTRY_OPTIONS name
+ * Industry: map first digit of code to INDUSTRY_OPTIONS name.
  */
 function normalizeAnzscoItem(it) {
   const codeRaw = it?.code ?? it?.anzsco_code ?? it?.id ?? "";
@@ -131,7 +163,7 @@ function normalizeAnzscoItem(it) {
 
   if (!code) return { code: "", title: name, description, industry: null };
 
-  // First digit maps to industry option
+  // First digit maps to industry option name
   const industryDigit = code.length > 0 ? code[0] : null;
   const industry =
     INDUSTRY_OPTIONS.find((opt) => opt.id === industryDigit)?.name || null;
@@ -140,7 +172,7 @@ function normalizeAnzscoItem(it) {
     code,
     title: name,
     description,
-    industry,
+    industry, // human-readable industry name, not the digit id
     unitGroup: code.slice(0, 4),
     minorGroup: code.slice(0, 3),
     subMajor: code.slice(0, 2),

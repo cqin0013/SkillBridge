@@ -1,8 +1,7 @@
 // src/lib/api/AbilityApi.js
-// ANZSCO: search by first-industry + keyword, and fetch abilities (knowledge/skills/tech) by 6-digit code.
-// Includes lightweight caching via utils/cache and rich normalizers for flexible payloads.
+// ANZSCO: search by first-industry + keyword, and fetch abilities by 6-digit code.
+// Uses native fetch (no http.js). Includes lightweight caching and robust normalizers.
 
-import { http } from "../../utils/http";
 import { getCache, setCache } from "../../utils/cache";
 
 /** Base host (override via .env: VITE_ABILITY_BASE or VITE_JOBS_BASE) */
@@ -17,8 +16,34 @@ const ONE_DAY = 24 * 60 * 60 * 1000;
 const SEVEN_DAYS = 7 * ONE_DAY;
 
 const buildUrl = (path) => `${ABILITY_BASE.replace(/\/+$/, "")}${path}`;
-
 const arrify = (x) => (Array.isArray(x) ? x : x ? [x] : []);
+
+/** GET JSON via fetch with optional timeout */
+async function getJson(url, { signal, timeout } = {}) {
+  // Optional timeout using AbortController if no external signal is provided
+  let controller = null;
+  if (!signal && typeof AbortController !== "undefined" && typeof timeout === "number" && timeout > 0) {
+    controller = new AbortController();
+    signal = controller.signal;
+    setTimeout(() => controller.abort(), timeout);
+  }
+
+  const res = await fetch(url, { method: "GET", signal });
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // ignore parse errors; leave data as null
+  }
+
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data ?? {};
+}
 
 /**
  * Normalize a list of raw ability items to the unified shape:
@@ -65,7 +90,7 @@ export function dedupeAbilities(list = []) {
  * Search 6-digit ANZSCO by "first industry + keyword".
  * GET /anzsco/search?first=2&s=engineer&limit=12
  *
- * Cache TTL: 1 day (search result changes slowly).
+ * Cache TTL: 1 day (search results change slowly).
  */
 export async function searchAnzscoByFirstAndKeyword({
   first,
@@ -86,7 +111,7 @@ export async function searchAnzscoByFirstAndKeyword({
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const data = await http.get(url, { signal, timeout });
+  const data = await getJson(url, { signal, timeout });
   setCache(cacheKey, data, ONE_DAY);
   return data;
 }
@@ -107,12 +132,12 @@ export async function getAbilitiesByAnzscoCode({ anzscoCode, signal, timeout }) 
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const data = await http.get(url, { signal, timeout });
+  const data = await getJson(url, { signal, timeout });
   setCache(cacheKey, data, SEVEN_DAYS);
   return data;
 }
 
-/* -------------------------- Payload â†?abilities mapper -------------------------- */
+/* -------------------------- Payload â†’ abilities mapper -------------------------- */
 /**
  * Map various server payload shapes into normalized ability arrays.
  * Supports keys:
@@ -159,9 +184,7 @@ export function mapAbilitiesPayload(payload) {
   return { knowledge, skill, tech, flat };
 }
 
-/**
- * Convenience helper when only the flat list is needed.
- */
+/** Convenience helper when only the flat list is needed. */
 export function mapAbilitiesToFlat(payload) {
   return mapAbilitiesPayload(payload).flat;
 }

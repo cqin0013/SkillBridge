@@ -1,10 +1,9 @@
 // src/lib/api/TrainingAdviceApi.js
 // Fetch training recommendations (VET courses) by 6-digit ANZSCO code.
+// Uses native fetch instead of http.js.
 //
 // Endpoint:
 //   GET /api/anzsco/{anzscoCode}/training-advice?limit=10
-
-import { http } from "../../utils/http";
 
 /** Base host (override via .env: VITE_TRAINING_BASE) */
 export const TRAINING_BASE =
@@ -19,6 +18,33 @@ function buildTrainingAdviceUrl(anzscoCode, limit) {
   const code = encodeURIComponent(String(anzscoCode || "").trim());
   const qs = typeof limit === "number" ? `?limit=${Math.max(1, limit)}` : "";
   return `${base}/api/anzsco/${code}/training-advice${qs}`;
+}
+
+/** GET JSON via fetch with optional AbortController timeout */
+async function getJson(url, { signal, timeout } = {}) {
+  let controller = null;
+  if (!signal && typeof AbortController !== "undefined" && typeof timeout === "number" && timeout > 0) {
+    controller = new AbortController();
+    signal = controller.signal;
+    setTimeout(() => controller.abort(), timeout);
+  }
+
+  const res = await fetch(url, { method: "GET", signal });
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // fallback: return empty object if JSON parse fails
+    data = {};
+  }
+
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
 }
 
 /**
@@ -88,6 +114,6 @@ export async function getTrainingAdvice({ anzscoCode, limit = 10, signal, timeou
   }
 
   const url = buildTrainingAdviceUrl(anzscoCode, limit);
-  const res = await http.get(url, { signal, timeout });
+  const res = await getJson(url, { signal, timeout });
   return normalizeTrainingAdvice(res);
 }
