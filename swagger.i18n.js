@@ -7,18 +7,17 @@ const PUBLIC_BASE_URL =
   process.env.PUBLIC_BASE_URL ||
   'https://progressive-alysia-skillbridge-437200d9.koyeb.app';
 
-// 优先使用同域相对路径，确保在 Koyeb 上不再指向 localhost
-const servers = [{ url: '/api', description: 'same-origin' }];
+// ✅ 关键：用根路径，不要带 /api
+const servers = [{ url: '/', description: 'same-origin' }];
 
-// 本地开发时保留 localhost（不改变开发习惯）
 if (!isProd) {
-  servers.push({ url: 'http://localhost:8080/api', description: 'Local' });
+  servers.push({ url: 'http://localhost:8080', description: 'Local' });
 }
 
-// 线上可选展示完整公网地址（不影响相对路径工作）
 if (PUBLIC_BASE_URL) {
-  servers.push({ url: `${PUBLIC_BASE_URL}/api`, description: 'Public' });
+  servers.push({ url: `${PUBLIC_BASE_URL}`, description: 'Public' });
 }
+
 // ============================================
 
 // 生成“英文基础 spec”（用现有的英文 JSDoc 注释）
