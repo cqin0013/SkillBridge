@@ -177,9 +177,7 @@ Cookies honor SESSION_SAMESITE and set secure=true automatically in production w
 
 # Project Layout
 backend/
-
 ├─ routes/
-
 │  ├─ map.data.fromtemp.js         
 │  ├─ occupations.rank.router.js   
 │  ├─ ...                          
