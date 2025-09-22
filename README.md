@@ -1,4 +1,4 @@
-SkillBridge API
+# SkillBridge API Quick Check
 
 https://progressive-alysia-skillbridge-437200d9.koyeb.app/docs/
 Swagger doc
@@ -21,10 +21,11 @@ Designated states (e.g. VIC):
 https://progressive-alysia-skillbridge-437200d9.koyeb.app/api/anzsco/261313/demand?state=VIC
 
 -----------------------------------------
+# SkillBridge API
 
 ANZSCO search, ability mapping (to SOC), training advice, and shortage metrics for Australia.
 
-Highlights
+## Highlights
 
 ANZSCO search by major group (first digit) + keyword
 
@@ -38,7 +39,7 @@ English/Chinese Swagger UI with switchable specs at /docs (served same-origin)
 
 swagger.i18n
 
-Quick start
+## Quick start
 Prerequisites
 
 Node.js 18+
@@ -51,38 +52,38 @@ Environment
 
 Create .env at project root:
 
-# Server
+### Server
 PORT=8080
 NODE_ENV=development
 
-# MySQL
+### MySQL
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=skillbridge
 
-# Redis
+### Redis
 REDIS_URL=redis://localhost:6379
 
-# Sessions
+### Sessions
 SESSION_SECRET=replace-me
 SESSION_NAME=sbridg.sid
 SESSION_SAMESITE=lax
 COOKIE_DOMAIN=
 
-# CORS (optional: comma-separated list; supports regex via "re:/^...$/")
+### CORS (optional: comma-separated list; supports regex via "re:/^...$/")
 CORS_ALLOWLIST=http://localhost:5173,http://localhost:3000
 
-# Public base URL (optional; useful for Swagger server list)
+### Public base URL (optional; useful for Swagger server list)
 PUBLIC_BASE_URL=https://<your-app>.koyeb.app
 
-Install & run
+## Install & run
 npm install
 node index.js
 
 
-Visit:
+## Visit:
 
 Swagger UI: http://localhost:8080/docs
 (The UI loads same-origin OpenAPI docs; the server list also includes local & public URLs when present. 
@@ -93,13 +94,13 @@ swagger.i18n
 
 Health check: GET /health → { ok: true }
 
-API Overview
+# API Overview
 
-Full, up-to-date schema, models, and examples are in Swagger UI (/docs). The UI exposes two OpenAPI documents (English / 中文) via the dropdown selector. 
+Full, up-to-date schema, models, and examples are in Swagger UI (/docs). The UI exposes two OpenAPI documents (English / Chinese中文) via the dropdown selector. 
 
 swagger.i18n
 
-ANZSCO
+## ANZSCO
 
 GET /anzsco/search?first=2&s=engineer&limit=12
 Search 6-digit ANZSCO codes by major group (1..8) and optional title keyword.
@@ -107,17 +108,17 @@ Search 6-digit ANZSCO codes by major group (1..8) and optional title keyword.
 GET /anzsco/{code}/skills
 Given an ANZSCO 6-digit code, traverse ANZSCO → OSCA → ISCO → SOC and return distinct knowledge / skill / tech titles for the mapped SOC occupations.
 
-Training advice
+## Training advice
 
 GET /api/anzsco/{code}/training-advice?limit=10
 List VET courses linked to the ANZSCO code.
 
-Shortage (ratings)
+## Shortage (ratings)
 
 GET /api/anzsco/{code}/demand[?state=VIC]
 National rating + per-state rating map; optional single-state view.
 
-Shortage (metrics by 4-digit prefix)
+## Shortage (metrics by 4-digit prefix)
 
 POST /api/shortage/by-anzsco
 Body: { "anzsco_code": "261313" } (4–6 digits; server matches by first 4)
@@ -129,13 +130,13 @@ stats_by_state: sample size, min/max, average, stddev per state
 
 yearly_trend: average nsc_emp per state per year
 
-SOC ranking (reverse lookup by abilities)
+## SOC ranking (reverse lookup by abilities)
 
 POST /occupations/rank-by-codes[?major_first=2]
 Rank SOC occupations by matches to the selected knowledge / skill / tech codes.
 The result also includes unmatched codes per item and an anzsco_codes array per SOC (mapped back through SOC→ISCO→OSCA→ANZSCO). If major_first (1..8) is provided (either query or body), the anzsco_codes list is filtered to codes starting with that digit, and items with no remaining codes are removed.
 
-Accepted bodies
+### Accepted bodies
 
 {
   "selections": [
@@ -156,7 +157,7 @@ Or, equivalently:
   "major_first": "2"
 }
 
-Swagger / OpenAPI
+# Swagger / OpenAPI
 
 The multi-locale Swagger UI mounts at /docs, populated by two OpenAPI specs (EN/中文). The generator searches route files in ./ and ./routes/** to build the docs, and the server list favors same-origin URLs to avoid “localhost” leaks in production. 
 
@@ -166,7 +167,7 @@ A simpler single-spec variant (with /api base path in the server list) is also p
 
 swagger
 
-CORS & Security
+# CORS & Security
 
 CORS allowlist supports exact origins and regex entries (re:/^...$/) via CORS_ALLOWLIST.
 
@@ -174,24 +175,24 @@ helmet enables a conservative CSP; connect-redis stores session data in Redis.
 
 Cookies honor SESSION_SAMESITE and set secure=true automatically in production when needed.
 
-Project Layout
+# Project Layout
 backend/
 ├─ routes/
-│  ├─ map.data.fromtemp.js         # Shortage metrics by ANZSCO prefix (POST /api/shortage/by-anzsco)
-│  ├─ occupations.rank.router.js   # SOC ranking + ANZSCO back-mapping
-│  ├─ ...                          # other route modules
-├─ anzsco.training.router.js       # Training advice endpoints
-├─ anzsco.demand.router.js         # Shortage ratings endpoints
-├─ swagger.i18n.js                 # EN/中文 Swagger build & servers list (same-origin first)  ⟶ /docs  :contentReference[oaicite:5]{index=5}
-├─ swagger.js                      # Single-spec Swagger build (basePath `/api`)               :contentReference[oaicite:6]{index=6}
-├─ index.js                        # App bootstrap, middleware, route mounting
+│  ├─ map.data.fromtemp.js         
+│  ├─ occupations.rank.router.js   
+│  ├─ ...                          
+├─ anzsco.training.router.js       
+├─ anzsco.demand.router.js         
+├─ swagger.i18n.js                 
+├─ swagger.js                                   
+├─ index.js        
 └─ ...
 
-Database
+# Database
 
 The API expects the schema shown in the ERD (ANZSCO, OSCA, ISCO, SOC, VET, and NERO/extract tables). 
 
-Deployment notes
+# Deployment notes
 
 Same-origin docs: In production, the Swagger UI prefers relative servers so the UI works behind any reverse proxy or custom domain without leaking localhost. You can still add your public URL via PUBLIC_BASE_URL to display it in the server dropdown. 
 
@@ -199,7 +200,7 @@ swagger.i18n
 
 Set secure session cookies (SESSION_SAMESITE=none + NODE_ENV=production) only when serving over HTTPS.
 
-Troubleshooting
+# Troubleshooting
 
 No results / slow queries: verify data presence and indexes on mapping tables; confirm the 6-digit ANZSCO exists in mapping chains.
 
@@ -209,6 +210,6 @@ Swagger missing routes: check that your route files live under project root or r
 
 swagger.i18n
 
-License
+# License
 
 MIT (or your project’s chosen license).
