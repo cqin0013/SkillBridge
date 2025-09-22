@@ -176,18 +176,17 @@ helmet enables a conservative CSP; connect-redis stores session data in Redis.
 Cookies honor SESSION_SAMESITE and set secure=true automatically in production when needed.
 
 # Project Layout
-
-backend/
-├─ routes/
-│  ├─ map.data.fromtemp.js
-│  ├─ occupations.rank.router.js
-│  └─ …
-├─ anzsco.training.router.js
-├─ anzsco.demand.router.js
-├─ swagger.i18n.js
-├─ swagger.js
-└─ index.js
-
+backend/       
+ ├─ routes/       
+│  ├─ map.data.fromtemp.js         
+│  ├─ occupations.rank.router.js   
+│  ├─ ...                          
+├─ anzsco.training.router.js       
+├─ anzsco.demand.router.js         
+├─ swagger.i18n.js                 
+├─ swagger.js                                   
+├─ index.js        
+└─ ...
 
 # Database
 
@@ -213,4 +212,4 @@ swagger.i18n
 
 # License
 
-MIT (or your project’s chosen license).
+MIT.
