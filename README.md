@@ -100,6 +100,16 @@ Full, up-to-date schema, models, and examples are in Swagger UI (/docs). The UI 
 
 swagger.i18n
 
+## Redis caching
+
+This project uses Redis as a bypass cache for read-only interfaces, significantly reducing the latency of aggregation queries (for example, /occupations/rank-by-codes from ~4 seconds to milliseconds).
+
+### Environment variable
+REDIS_URL=rediss://default:AVljAAIncDFhMWJkZjdjZGMwMmQ0YTZhOGQ1MzllYjcyYjdlZmM1ZnAxMjI4ODM@keen-osprey-22883.upstash.io:6379
+
+### Hit ID
+Response JSON: cached: true | false
+
 ## ANZSCO
 
 GET /anzsco/search?first=2&s=engineer&limit=12

@@ -1,5 +1,7 @@
 import express from 'express';
 
+import { json, withSingleFlight, stableHashSelections } from '../cache.js';
+
 export default function initRankRoutes(pool) {
   const router = express.Router();
 
@@ -248,6 +250,20 @@ export default function initRankRoutes(pool) {
     const majorFirstRaw = qMajor || bMajor;
     const majorFirst = /^[1-8]$/.test(majorFirstRaw) ? majorFirstRaw : null;
 
+    // [cache] ------- 生成缓存 key + 处理 refresh ----------
+    const scope = majorFirst ? majorFirst : 'all';
+    const selHash = stableHashSelections(selections);
+    const cacheKey = `sbridg:cache:v1:soc:rank:${scope}:${selHash}`;
+    const bypass = req.query?.refresh === '1';
+
+    if (!bypass) {
+      const hit = await json.get(cacheKey);
+      if (hit) {
+        return res.json({ cached: true, ...hit });
+      }
+    }
+    // [cache] -----------------------------------------------
+
     const conn = await pool.getConnection();
     try {
       // code -> title
@@ -410,7 +426,22 @@ export default function initRankRoutes(pool) {
         : itemsWithAnzsco;
 
       // return
-      res.json({ total_selected: selections.length, items: finalItems });
+      const responsePayload = { total_selected: selections.length, items: finalItems };
+
+      // [cache] ------- 写入缓存（空结果短 TTL） ----------------
+      try {
+        if (responsePayload.items?.length) {
+          await json.set(cacheKey, responsePayload, 60 * 60 * 18); // 18h
+        } else {
+          await json.set(cacheKey, responsePayload, 120); // 2min 防穿透
+        }
+      } catch (e) {
+        // 写缓存失败不影响主流程
+        console.warn('[cache] set failed:', e?.message || e);
+      }
+      // [cache] -----------------------------------------------
+
+      res.json({ cached: false, ...responsePayload });
     } catch (e) {
       console.error('rank-by-codes error:', e);
       res.status(500).json({ error: 'server error' });

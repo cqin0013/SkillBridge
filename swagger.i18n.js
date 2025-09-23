@@ -11,7 +11,7 @@ const PUBLIC_BASE_URL =
   process.env.PUBLIC_BASE_URL ||
   'https://progressive-alysia-skillbridge-437200d9.koyeb.app';
 
-// ✅ 关键：用根路径，不要带 /api
+//  关键：用根路径，不要带 /api
 const servers = [{ url: '/', description: 'same-origin' }];
 
 if (!isProd) {
