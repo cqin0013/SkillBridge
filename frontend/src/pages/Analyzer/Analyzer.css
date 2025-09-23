@@ -1,0 +1,169 @@
+
+:root {
+    --site-header-height: 64px;
+}
+
+.anlz-page {
+    padding-top: calc(var(--site-header-height) - 65px);
+    padding-bottom: 56px;
+
+}
+.anlz-progress--fullbleed {
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 0 6px;
+    background: #fff;
+
+}
+
+
+.anlz-progress {
+    position: relative;
+    z-index: 101;
+    /* higher than the left affix */
+    background: #fff;
+    padding: 10px 0 6px;
+}
+
+/* ===== Container width presets */
+.anlz-page .container {
+max-width: 1360px;
+    margin: 0 auto;
+    padding: 0 16px;
+--anlz-container-max: 1360px;
+}
+
+.container--wide {
+    max-width: 1180px;
+    --anlz-container-max: 1180px;
+}
+
+.container--xl {
+    max-width: 1360px;
+    --anlz-container-max: 1360px;
+}
+
+.container--full {
+    max-width: none;
+    --anlz-container-max: 1360px;
+}
+
+
+.anlz-shell {
+    --center-max: 980px;
+    --gap-min: 24px;
+    --gap-flex: 5vw;
+
+    display: grid;
+    grid-template-columns:
+        1fr
+        minmax(var(--gap-min), var(--gap-flex)) minmax(0, var(--center-max))
+        minmax(var(--gap-min), var(--gap-flex)) 1fr;
+    align-items: start;
+    margin-top: 16px;
+}
+
+.anlz-center {
+    grid-column: 3;
+    min-width: 0;
+}
+
+.anlz-left {
+    grid-column: 1;
+    justify-self: start;
+    width: 100%;
+    max-width: 320px;
+    padding-left: 16px;
+}
+
+/* Affixed container should fill its lane width */
+.prev-affix-wrap {
+    width: 100%;
+}
+
+/* Vertical stacks inside the center lane */
+.anlz-stack>*+* {
+    margin-top: 16px;
+}
+
+.anlz-stack-body>*+* {
+    margin-top: 16px;
+}
+
+/*  Optional question card just under StageBox */
+.anlz-maincard {
+    width: 100%;
+    margin: 0 auto;
+}
+.question-row {
+display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.question-title {
+margin: .25rem 0 .5rem;
+    font-size: clamp(1rem, 2.5vw, 1.125rem);
+    line-height: 1.35;
+}
+
+/* Bottom actions row (right-aligned at the end of the center lane) */
+.anlz-actions-end {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/*  Ensure the affixed sidebar never overlays the progress bar */
+.anlz-left .ant-affix {
+    z-index: 9;
+}
+
+/*  Responsive: hide left summary on small screens for a clean single column */
+
+@media (max-width: 1024px) {
+    .anlz-shell {
+        --center-max: 100%;
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 16px;
+    }
+
+    .anlz-left {
+        display: none;
+    }
+
+    .anlz-center {
+        grid-column: 1;
+        padding: 0 12px;
+    }
+
+    .anlz-progress--fullbleed {
+        width: 100%;
+        margin-left: 0;
+        transform: none;
+    }
+
+    .anlz-actions-end {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .anlz-center {
+        padding: 0 8px;
+    }
+
+    .anlz-progress {
+        padding: 8px 0 4px;
+    }
+
+    .anlz-stack>*+* {
+        margin-top: 12px;
+    }
+
+    .anlz-stack-body>*+* {
+        margin-top: 12px;
+    }
+}

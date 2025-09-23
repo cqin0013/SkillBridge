@@ -1,0 +1,18 @@
+/* Compact footer: centered, unobtrusive, always visible */
+.footer-mini.ant-layout-footer {
+
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+        background: #fff;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    text-align: center;
+}
+
+/* Team name text */
+.footer-mini .ant-typography {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1;
+}

@@ -1,0 +1,136 @@
+
+
+/* Root-level sizing tokens for consistent Select height & padding */
+:root {
+  --isel-h: 40px;
+    /* desired input height */
+    --isel-pad-x: 11px;
+    /* horizontal padding inside the selector */
+}
+
+/* Wrapper takes full width of its container */
+.industry-select-wrapper { width: 100%; }
+/* Base select element: grow to container width; allow shrink in flex layouts */
+.industry-select {
+  width: 100%;
+  min-width: 0;
+    /* prevents overflow in flex/grid columns */
+}
+
+/* Remove glow/outline on focus to match the app’s minimalist focus style */
+.industry-select.ant-select-focused .ant-select-selector,
+.industry-select .ant-select-selector:focus,
+.industry-select .ant-select-selector:focus-visible,
+.industry-select .ant-select-selection-search-input:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* SINGLE SELECT */
+/* Make single selector vertically centered and with custom horizontal padding */
+.industry-select.ant-select-single .ant-select-selector {
+  display: flex;
+  align-items: center;
+  padding-inline: var(--isel-pad-x);
+  height: auto;
+  box-sizing: border-box;
+}
+/* Let text baseline flow naturally instead of forcing line-height equal to height */
+.industry-select.ant-select-single
+  .ant-select-selector .ant-select-selection-item,
+.industry-select.ant-select-single
+  .ant-select-selector .ant-select-selection-placeholder {
+  line-height: normal;
+}
+
+/*  MULTI SELECT */
+/* Two display modes:
+ * A) Default (not .tagless): show tags inside the field; it wraps into multiple lines.
+ * B) Tagless (.tagless): hide internal tags and keep a fixed height. */
+
+/* A) Default tags-inside mode: multi-line wrap with comfortable paddings */
+.industry-select.ant-select-multiple:not(.tagless) .ant-select-selector {
+  min-height: calc(var(--isel-h) - 2px);
+  height: auto;
+  display: flex;
+  align-items: flex-start;
+  white-space: normal;
+  padding: 4px var(--isel-pad-x);
+  box-sizing: border-box;
+}
+.industry-select.ant-select-multiple:not(.tagless)
+  .ant-select-selection-overflow {
+  flex-wrap: wrap;
+}
+.industry-select .ant-select-selection-item { margin-bottom: 4px; }
+.industry-select .ant-select-selection-search-input {
+  height: auto !important;
+  min-height: calc(var(--isel-h) - 8px);
+}
+
+/* B) Tagless mode: keep the field at a fixed height and hide internal tags */
+.industry-select.tagless .ant-select-selector {
+  height: var(--isel-h);
+  display: flex;
+  align-items: center;
+  padding-inline: var(--isel-pad-x);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.industry-select.tagless .ant-select-selection-search-input {
+  height: calc(var(--isel-h) - 2px);
+}
+
+/*  40px fixed-height utilities */
+/* Apply class="h-40" on <Select> / <Input> / <Button> to make them the same height. */
+.h-40.ant-input {
+  height: 40px;
+  line-height: 40px;
+}
+.h-40.ant-btn {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 16px;
+}
+/* Select (single & multiple) at 40px height */
+.h-40.ant-select .ant-select-selector {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--isel-pad-x);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.h-40.ant-select-single .ant-select-selector
+  .ant-select-selection-item,
+.h-40.ant-select-single .ant-select-selector
+  .ant-select-selection-placeholder {
+  line-height: 38px;
+}
+.h-40.ant-select-multiple .ant-select-selection-search-input {
+  height: 38px;
+}
+
+/*  Dropdown polish */
+/* Selected option background & text contrast */
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background: #e6f4ff !important;
+}
+.ant-select-item-option-selected .ant-select-item-option-content {
+  color: #1f2937 !important;
+}
+/* Hover/active option background */
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: #f5f5f5 !important;
+}
+
+/*  External chosen tags (tagless mode) */
+/* When multiple+tagless, we render chosen tags below the field. */
+.industry-chosen-list {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
