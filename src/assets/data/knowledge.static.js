@@ -1,18 +1,5 @@
 // src/assets/data/knowledge.static.js
 
-/**
- * 静态知识库
- * - management: 管理/行政/经济/销售/客户/人力/运输
- * - production: 生产/食品
- * - technical: 计算机/工程/设计/建筑/机械
- * - science: 数学/物理/化学/生物/心理/社会/地理
- * - health: 医疗/治疗
- * - education: 教育
- * - culture: 语言/艺术/历史/哲学
- * - public: 公共安全/法律/政府
- * - communication: 通信/传媒
- */
-
 export const knowledgeCategories = {
   management: [
     { code: "2.C.1.a", name: "Administration and Management" },
