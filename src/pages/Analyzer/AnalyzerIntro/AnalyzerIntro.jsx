@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Row, Col, Typography, Button, Space } from "antd";
 import introImg from "../../../assets/images/AnalyzerIntro.png";
 import "./AnalyzerIntro.css";

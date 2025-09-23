@@ -16,10 +16,6 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 
-
-/**
- * Logical storage key. The actual localStorage key will be "sb_roadmap".
- */
 const LS_KEY = "sb_roadmap";
 
 /**
@@ -259,7 +255,6 @@ export default function RoadmapEditor({
         date: null,
       }));
 
-    // De-duplication key: "title__type"
     const existKey = new Set(steps.map((s) => `${s.title}__${s.type || s.desc}`));
     const merged = [...steps];
     let added = 0;

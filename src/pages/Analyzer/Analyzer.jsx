@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Affix, Card } from "antd";
 import StageBox from "../../components/ui/StageBox/StageBox";
 import HelpToggle from "../../components/ui/HelpToggle/HelpToggle";
@@ -17,8 +17,8 @@ import AnalyzerWizard from "./AnalyzerWizard.jsx";
 export function TwoCardScaffold({
   progressBar = null,
 
-  // StageBox header meta (center lane)
-  stepPill,                 // e.g. "Step 1"
+  // StageBox header 
+  stepPill,                
   title,
   introTitle = "Page introduction",
   introContent = null,

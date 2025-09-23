@@ -2,7 +2,7 @@
 // Insight screen: choropleth by AU states using latest_by_state.nsc_emp from Shortage API.
 
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Button, Modal, Spin, Card, List, Typography } from "antd";
 import AUSChoropleth from "../../components/AUSChoropleth";
 import AUS_TOPO from "../../assets/australia_states.topo.json";

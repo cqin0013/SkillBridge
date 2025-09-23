@@ -1,5 +1,4 @@
 // ANZSCO: search by first-industry + keyword, and fetch abilities by 6-digit code.
-// Uses native fetch (no http.js). Includes lightweight caching and robust normalizers.
 
 import { getCache, setCache } from "../../utils/cache";
 

@@ -4,10 +4,6 @@ import "./SkillLevelCard.css";
 
 const { Paragraph, Text, Title } = Typography;
 
-/**
- * Human-readable help text for ANZSCO-style Skill Levels (1–5).
- * We ONLY consume `skillLevel` prop (number 1–5).
- */
 const HELP = {
   1: {
     label: "Skill Level 1",

@@ -12,7 +12,6 @@ import useResponsive from "../../../lib/hooks/useResponsive";
 export default function Roadmap({ steps = [], className = "" }) {
   if (!steps.length) return null;
 
-  // Breakpoints → pick compact sizes for mobile, roomier sizes for larger screens.
   const { isMobile, isTablet } = useResponsive();
 
   const ui = isMobile

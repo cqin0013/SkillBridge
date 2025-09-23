@@ -1,7 +1,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Tabs, Input, Checkbox, Tag, Button } from "antd";
-import useResponsive from "../../lib/hooks/useResponsive"; // adjust path if needed
+import useResponsive from "../../lib/hooks/useResponsive"; 
 import "./SkillPicker.css";
 
 /**

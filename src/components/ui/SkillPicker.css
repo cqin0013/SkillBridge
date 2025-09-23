@@ -75,21 +75,3 @@ font-size: .9rem;
 color: var(--color-muted)
 }
 
-/* Small screen optimization: further reduce column width and tighten height */
-@media (max-width:520px) {
-.sp-grid {
-grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-max-height: 360px
-}
-
-.sp-item {
-padding: .55rem .65rem
-}
-}
-
-/* Extremely narrow screens: Single column to avoid crowding */
-@media (max-width:360px) {
-.sp-grid {
-grid-template-columns: 1fr
-}
-}

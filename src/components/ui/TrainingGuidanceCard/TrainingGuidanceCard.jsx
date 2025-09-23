@@ -26,8 +26,7 @@ export default function TrainingGuidanceCard({
       className="tg-card"
       title="Training Guidance"
       variant="outlined"
-      // Tighter padding on mobile
-      bodyStyle={{ padding: isMobile ? 12 : 16 }}
+      styles={{ body: { padding: isMobile ? 12 : 16 } }}
     >
       {/* Top tags (stack vertically on mobile for better wrapping) */}
       <div

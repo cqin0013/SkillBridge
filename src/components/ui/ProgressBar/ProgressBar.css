@@ -44,34 +44,4 @@
   font-size: 0.875rem;
 }
 
-/* Reduce motion */
-@media (prefers-reduced-motion: reduce) {
-  .wiz-progress .ant-progress-bg {
-    transition: none !important;
-  }
-}
 
-/* Small screen: reduce bar height */
-@media (max-width: 520px) {
-  .wiz-progress {
-    padding: 4px 0;
-  }
-  .wiz-progress .ant-progress-inner,
-  .wiz-progress .ant-progress-bg {
-    height: 8px !important;
-  }
-}
-
-@media (max-width: 360px) {
-  .wiz-progress .ant-progress-inner,
-  .wiz-progress .ant-progress-bg {
-    height: 7px !important;
-  }
-}
-
-/* Dark mode track */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --wiz-track: #1f2937;
-  }
-}

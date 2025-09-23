@@ -1,7 +1,7 @@
 // Purpose: Render a job suggestion; allow picking a sub-occupation (ANZSCO code).
 // Mobile fix: dropdown options wrap to multiple lines and are not width-limited by the trigger.
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Select, Tooltip, Typography, Tag } from "antd";
 import "./JobCard.css";
 import { getShortageByCodeAndRegion } from "../../../../../lib/api/AnzscoDemandApi";

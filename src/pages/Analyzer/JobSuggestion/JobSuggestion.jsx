@@ -1,6 +1,5 @@
 // Purpose: Load job suggestions; user must (1) choose a sub-occupation for a card
-// AND (2) click "Select" on that card. Only then the parent PageActions.Next is enabled.
-// This component itself renders no Back/Next buttons — parent controls PageActions.
+//  (2) click "Select" on that card. Only then the parent PageActions.Next is enabled.
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Empty, Spin, Typography } from "antd";

@@ -74,7 +74,6 @@ export function useAbilitiesAnalysis() {
       setMessage("Analysis complete.");
       return { ok: true, abilities: uniq };
     } catch  {
-      // unexpected top-level error; keep state clean
       setAbilities([]);
       setDone(false);
       setMessage("Failed to analyze. Please try again.");

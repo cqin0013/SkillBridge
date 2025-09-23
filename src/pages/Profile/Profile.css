@@ -1,10 +1,4 @@
-/* 
-   Purpose: Styling for the Profile (Roadmap) page.
-   - Constrains the page width to a readable line length
-   - Provides responsive typography for the header
-   - Adds a global "muted" helper color
-   - Includes small-screen tweaks for paddings and font sizes
-*/
+
 .profile-page {
     /* Limit content width and center it */
     width: min(1100px, 92%);

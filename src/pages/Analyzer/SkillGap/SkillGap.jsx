@@ -1,6 +1,5 @@
 
 // Step 4: Show ability gaps (Not Met). Robustly normalizes data from props/session/API.
-// Fast UX: no artificial delay; spinner shows only during real fallback fetching.
 
 
 import { useRef, useMemo, useState, useEffect } from "react";

@@ -3,7 +3,6 @@
 // - User enters a password
 // - We verify it against a SHA-256 hash (set in VITE_GATE_HASH)
 // - If correct, mark the session as unlocked and navigate to the target page
-// NOTE: This is front-end only and not secure for real production use.
 
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";

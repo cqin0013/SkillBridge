@@ -338,7 +338,7 @@ function AbilityAnalyzer(
           display: "grid",
           gridTemplateColumns: gridColumns,
           gap: 12,
-          minWidth: 0, // allow children to shrink and prevent horizontal overflow
+          minWidth: 0, 
         }}
       >
         {/* Knowledge */}
