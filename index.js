@@ -238,26 +238,38 @@ app.get('/health', async (_req, res) => {
  * /anzsco/search:
  *   get:
  *     tags: [ANZSCO]
+ *     operationId: searchANZSCO
  *     summary: Search ANZSCO by first-digit (major group) and keyword
  *     description: |
  *       Fuzzy search **ANZSCO 6-digit codes** by **major group** (first digit 1..8) and optional title keyword.
- *       Sorts results by a relevance score (exact/prefix/boundary/substring).
+ *       Sorting uses a relevance score: **exact > prefix > word-boundary > substring**.
+ *       - Input is trimmed; title matching is case-insensitive.
+ *       - If `s` is empty or omitted, the API filters **only** by major group.
  *     x-summary-zh: 按“首位行业 + 标题关键词”搜索 ANZSCO 六位职业
  *     x-description-zh: |
- *       依据 **首位行业（1..8）** 与**标题关键词**做模糊检索，返回符合条件的 **ANZSCO 六位 code**，按相关性排序（完全匹配 > 前缀 > 单词边界 > 子串）。
+ *       依据 **首位行业（1..8）** 与**标题关键词**做模糊检索，返回符合条件的 **ANZSCO 六位 code**，
+ *       排序遵循相关性：**完全匹配 > 前缀 > 单词边界 > 子串**。输入会自动去空格、不区分大小写；
+ *       若不传 `s`，仅按首位行业筛选。
  *     parameters:
  *       - in: query
  *         name: first
  *         required: true
  *         schema: { type: string, enum: ["1","2","3","4","5","6","7","8"] }
  *         description: Major group first digit (1..8).
+ *         examples:
+ *           professionals: { value: "2", summary: Professionals }
  *       - in: query
  *         name: s
- *         schema: { type: string }
+ *         schema: { type: string, minLength: 0 }
+ *         allowEmptyValue: true
  *         description: Optional title keyword; if empty, only filters by major group.
+ *         examples:
+ *           engineer: { value: "engineer", summary: title keyword }
+ *           empty:    { value: "", summary: no keyword (filter by major only) }
  *       - in: query
  *         name: limit
  *         schema: { type: integer, default: 12, minimum: 1, maximum: 50 }
+ *         description: Max number of results to return (1–50).
  *     responses:
  *       200:
  *         description: Search results
@@ -273,11 +285,24 @@ app.get('/health', async (_req, res) => {
  *                   items:
  *                     - { anzsco_code: "261313", anzsco_title: "Software Engineer" }
  *                     - { anzsco_code: "233311", anzsco_title: "Electrical Engineer" }
+ *               professionals_only:
+ *                 summary: Professionals only (no keyword)
+ *                 value:
+ *                   major: { first: "2", name: "Professionals" }
+ *                   items:
+ *                     - { anzsco_code: "234513", anzsco_title: "Biochemist" }
+ *                     - { anzsco_code: "221111", anzsco_title: "Accountant (General)" }
  *       400:
  *         description: Invalid parameters
  *         content:
  *           application/json:
- *             example: { error: "param \"first\" must be 1..8" }
+ *             examples:
+ *               bad_first:
+ *                 summary: first out of range
+ *                 value: { error: "param \"first\" must be 1..8" }
+ *               bad_limit:
+ *                 summary: limit out of range
+ *                 value: { error: "param \"limit\" must be between 1 and 50" }
  *       500:
  *         description: Server error
  */
@@ -291,33 +316,44 @@ app.get('/anzsco/search', async (req, res) => {
   }
 
   const s = sRaw.toLowerCase();
+  const strip = (x) => (x ?? '').replace(/[\r\n]/g, '');
 
   const conn = await pool.getConnection();
   try {
-    // 和 /occupations/search-and-titles 一样的评分表达式（只是列改为 anzsco_title）
-    const scoreExpr = `
-      (LOWER(a.anzsco_title) = LOWER(?)) * 100 +
-      (LOWER(a.anzsco_title) LIKE LOWER(CONCAT(?, '%'))) * 90 +
-      (LOWER(a.anzsco_title) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
-      (LOWER(a.anzsco_title) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
+    // ===== 打分：分别对 title / description 计算，再取最大值作为最终 score =====
+    const titleScore = `
+      (LOWER(COALESCE(a.anzsco_title,'')) = LOWER(?)) * 100 +
+      (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT(?, '%'))) * 90 +
+      (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
+      (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
     `;
-    const scoreParams = [s, s, s, s];
+    const descScore = `
+      (LOWER(COALESCE(a.anzsco_description,'')) = LOWER(?)) * 100 +
+      (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT(?, '%'))) * 90 +
+      (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
+      (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
+    `;
+    const scoreExpr = `GREATEST( ${titleScore} , ${descScore} )`;
+    const scoreParams = [s, s, s, s,  s, s, s, s]; // title(4) + desc(4)
 
-    // 过滤条件：首位行业 + （可选）标题模糊
+    // ===== WHERE：首位行业 + （可选）标题/描述模糊 =====
     const where = s
-      ? `a.anzsco_code LIKE ? AND LOWER(a.anzsco_title) LIKE CONCAT('%', ?, '%')`
+      ? `a.anzsco_code LIKE ? AND (
+           LOWER(COALESCE(a.anzsco_title,'')) LIKE CONCAT('%', ?, '%')
+           OR LOWER(COALESCE(a.anzsco_description,'')) LIKE CONCAT('%', ?, '%')
+         )`
       : `a.anzsco_code LIKE ?`;
-    const whereParams = s ? [`${first}%`, s] : [`${first}%`];
+    const whereParams = s ? [`${first}%`, s, s] : [`${first}%`];
 
     const sql = `
-      SELECT a.anzsco_code, a.anzsco_title
+      SELECT a.anzsco_code, a.anzsco_title, a.anzsco_description
       FROM anzsco_data a
       WHERE ${where}
-      ORDER BY ${scoreExpr} DESC, a.anzsco_title ASC
+      ORDER BY ${scoreExpr} DESC, a.anzsco_title ASC, a.anzsco_code ASC
       LIMIT ?
     `;
 
-    // ✅ 关键修正：参数顺序必须是 WHERE → ORDER BY(评分) → LIMIT
+    // 参数顺序：WHERE → ORDER BY(评分) → LIMIT
     const params = [...whereParams, ...scoreParams, limit];
 
     const [rows] = await conn.query(sql, params);
@@ -327,6 +363,8 @@ app.get('/anzsco/search', async (req, res) => {
       items: rows.map(r => ({
         anzsco_code: r.anzsco_code,
         anzsco_title: strip(r.anzsco_title),
+        // 若数据库为 NULL，直接返回 null；否则去掉换行
+        anzsco_description: r.anzsco_description == null ? null : strip(r.anzsco_description),
       })),
     });
   } catch (e) {
@@ -336,7 +374,6 @@ app.get('/anzsco/search', async (req, res) => {
     conn.release();
   }
 });
-
 /**
  * GET /anzsco/:code/skills
  * - 输入 ANZSCO 6 位；通过 ANZSCO→OSCA→ISCO→SOC 找到 SOC occupation(s)
