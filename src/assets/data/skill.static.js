@@ -1,14 +1,3 @@
-// src/assets/data/skill.static.js
-
-/**
- * 供 AbilityAnalyzer 使用的静态技能库
- * - content: 基础/通用认知与沟通技能（2.A.1.*）
- * - process: 学习/思维/社交过程技能（2.A.2.*、2.B.1.*、2.B.2.i、2.B.4.*）
- * - crossFunctional.resourceManagement: 资源管理（2.B.5.*）
- * - crossFunctional.technical: 技术/操作类（2.B.3.*）
- *
- * 注意：AbilityAnalyzer 中会用 .map(s => s.name)，因此必须包含 name 字段
- */
 
 export const skillCategories = {
   content: [
@@ -21,13 +10,13 @@ export const skillCategories = {
   ],
 
   process: [
-    // 学习/思维
+
     { code: "2.A.2.a", name: "Critical Thinking" },
     { code: "2.A.2.b", name: "Active Learning" },
     { code: "2.A.2.c", name: "Learning Strategies" },
     { code: "2.A.2.d", name: "Monitoring" },
 
-    // 社交/协作
+
     { code: "2.B.1.a", name: "Social Perceptiveness" },
     { code: "2.B.1.b", name: "Coordination" },
     { code: "2.B.1.c", name: "Persuasion" },
@@ -35,7 +24,7 @@ export const skillCategories = {
     { code: "2.B.1.e", name: "Instructing" },
     { code: "2.B.1.f", name: "Service Orientation" },
 
-    // 复杂问题与系统性思维
+ 
     { code: "2.B.2.i", name: "Complex Problem Solving" },
     { code: "2.B.4.e", name: "Judgment and Decision Making" },
     { code: "2.B.4.g", name: "Systems Analysis" },

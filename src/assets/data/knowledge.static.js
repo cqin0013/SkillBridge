@@ -1,4 +1,3 @@
-// src/assets/data/knowledge.static.js
 
 export const knowledgeCategories = {
   management: [

@@ -1,10 +1,4 @@
-// src/assets/data/techskill.static.js
 
-/**
- * 技术技能库
- * 分类大致分为：Business, Productivity, Development, Education, Industry, Network, Security, System, Communication, Management
- * 每一类有 [{ code, name }]
- */
 
 export const techSkillCategories = {
   business: [
@@ -163,7 +157,7 @@ export const techSkillCategories = {
 
   management: [
     { code: "43231511", name: "Expert system software" },
-    { code: "43231701", name: "Enterprise system management software" }, // 注意：原表格最后一行
+    { code: "43231701", name: "Enterprise system management software" }, 
   ],
 };
 
