@@ -53,15 +53,6 @@ async function postJson(url, body, { signal, timeout } = {}) {
   return data ?? {};
 }
 
-/**
- * Suggest jobs from user's selections.
- * Always POST to /occupations/rank-by-codes.
- *
- * @param {Object} params
- * @param {Array<{type:string, code:string}>} params.selections - ability/skill/tech codes
- * @param {string|number|null} params.majorFirst - ANZSCO major group digit (if null -> backend returns all industries)
- * @returns {Promise<Array>} - top 10 jobs with non-empty ANZSCO codes
- */
 export async function suggestJobs({ selections = [], majorFirst = null } = {}) {
   const url = buildUrl(JOBS_SUGGEST_PATH);
 
@@ -96,13 +87,7 @@ export async function suggestJobs({ selections = [], majorFirst = null } = {}) {
   }
 }
 
-/**
- * Normalize one job item into a consistent shape the UI can consume.
- * Supports multiple possible server shapes for ANZSCO:
- *   - "anzsco": array of {code,title,description}
- *   - "anzsco_codes": string[] or object[]
- *   - "anzsco_list": legacy key
- */
+
 function normalizeJobItem(it, totalSelected = 0) {
   const title = String(it?.occupation_title ?? it?.title ?? "").trim();
   const occCodeRaw = String(it?.occupation_code ?? it?.code ?? "");

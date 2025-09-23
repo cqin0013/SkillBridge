@@ -1,5 +1,5 @@
 
-//   GET /api/anzsco/{anzscoCode}/training-advice?limit=10
+//GET /api/anzsco/{anzscoCode}/training-advice?limit=10
 
 /** Base host (override via .env: VITE_TRAINING_BASE) */
 export const TRAINING_BASE =
@@ -43,26 +43,7 @@ async function getJson(url, { signal, timeout } = {}) {
   return data;
 }
 
-/**
- * Normalize server payload to a consistent shape.
- *
- * Server example:
- * {
- *   "anzsco": { "code": "531111", "title": "General Clerk" },
- *   "total": 39,
- *   "vet_courses": [
- *     { "vet_course_code": "BSB10112", "course_name": "Certificate I in Business" },
- *     ...
- *   ]
- * }
- *
- * Output:
- * {
- *   anzsco: { code: "531111", title: "General Clerk" },
- *   total: 39,
- *   courses: [{ code: "BSB10112", name: "Certificate I in Business" }, ...]
- * }
- */
+
 export function normalizeTrainingAdvice(payload) {
   const anzsco = {
     code:
@@ -93,17 +74,6 @@ export function normalizeTrainingAdvice(payload) {
   };
 }
 
-/**
- * Fetch training advice (VET courses) for a given ANZSCO code.
- *
- * @param {Object} params
- * @param {string|number} params.anzscoCode - 6-digit ANZSCO code (e.g. "261313")
- * @param {number} [params.limit=10]        - Max courses to return
- * @param {AbortSignal} [params.signal]     - Optional AbortController signal
- * @param {number} [params.timeout]         - Optional timeout override (ms)
- *
- * @returns {Promise<{ anzsco: {code,title}, total: number, courses: Array<{code,name,raw}> }>}
- */
 export async function getTrainingAdvice({ anzscoCode, limit = 10, signal, timeout } = {}) {
   if (!anzscoCode && anzscoCode !== 0) {
     throw new Error("getTrainingAdvice: 'anzscoCode' is required");

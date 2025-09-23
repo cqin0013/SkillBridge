@@ -1,31 +1,10 @@
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Tooltip } from "antd";
 import classNames from "classnames";
 import useResponsive from "../../../lib/hooks/useResponsive"; 
 import "./PageActions.css";
 
-/**
- * PageActions
- *
- * A bottom action bar with optional "sticky at bottom" behavior and an
- * optional "reveal only when user reaches near the page bottom" effect.
- *
- * Props:
- * - onPrev, onNext: handlers for Back / Next buttons
- * - prevDisabled?: boolean
- * - nextDisabled?: boolean
- * - prevDisabledReason?: string | null
- * - nextDisabledReason?: string | null
- * - disabledReason?: string | { prev?: string, next?: string }  // unified reason
- * - defaultDisabledReason?: string
- * - prevText?: string
- * - nextText?: string
- * - sticky?: boolean                    // if true, bar becomes sticky at bottom
- * - className?: string
- * - revealAtBottom?: boolean (default: true) // show only when near doc bottom
- * - bottomOffset?: number (default: 48)      // px from doc bottom to trigger reveal
- */
 export default function PageActions({
   onPrev,
   onNext,
@@ -42,10 +21,7 @@ export default function PageActions({
   revealAtBottom = true,
   bottomOffset = 48,
 }) {
-  // Use your responsive flags to adapt minor UI details.
   const { isMobile } = useResponsive();
-
-  // Slightly larger offset on mobile to account for OS UI / address bar changes.
   const effectiveOffset = isMobile ? bottomOffset + 16 : bottomOffset;
 
   // Whether the bar is visible (revealed). If revealAtBottom=false, show immediately.

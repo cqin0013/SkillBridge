@@ -14,7 +14,6 @@
 .industry-select {
   width: 100%;
   min-width: 0;
-    /* prevents overflow in flex/grid columns */
 }
 
 /* Remove glow/outline on focus to match the app’s minimalist focus style */

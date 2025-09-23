@@ -1,17 +1,8 @@
-
-import React from "react";
 import { Progress, Typography } from "antd";
 import "./ProgressBar.css";
 
 const { Text } = Typography;
 
-/**
- * Wizard progress bar
- *
- * @param {number} current - current step (0 means Intro)
- * @param {number} total   - total number of steps (including Intro)
- * @param {string}  label  - optional right-side label, e.g. "Step 1 of 5"
- */
 export default function ProgressBar({ current = 0, total = 1, label }) {
   // Business rule: Intro (step=0) not counted in percentage
   const steps = Math.max(1, total);

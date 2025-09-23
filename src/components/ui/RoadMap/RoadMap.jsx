@@ -3,8 +3,7 @@ import useResponsive from "../../../lib/hooks/useResponsive";
 
 /**
  * Read-only roadmap list.
- * - Pure presentational: receives `steps` and renders cards on a vertical timeline.
- * - Responsiveness is handled in JS via `useResponsive` (no CSS media queries needed).
+ * - Pure presentational: receives `steps` and renders card.
  *
  * Props:
  * - steps?: Array<{ id?: string, title: string, desc?: string, date?: string }>
@@ -16,7 +15,6 @@ export default function Roadmap({ steps = [], className = "" }) {
   // Breakpoints → pick compact sizes for mobile, roomier sizes for larger screens.
   const { isMobile, isTablet } = useResponsive();
 
-  // UI tokens controlled by JS instead of CSS media queries
   const ui = isMobile
     ? {
         containerPadLeft: 22,
@@ -88,7 +86,7 @@ export default function Roadmap({ steps = [], className = "" }) {
                 {step.date && (
                   <time
                     className="roadmap-card__date"
-                    dateTime={step.date /* Prefer ISO-8601 like 2025-09-21 */}
+                    dateTime={step.date}
                     style={{ fontSize: ui.dateSize }}
                   >
                     {step.date}

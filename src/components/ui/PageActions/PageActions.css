@@ -63,26 +63,12 @@ cursor: not-allowed;
 pointer-events: none;
 }
 
-/* In sticky mode, keep buttons flat (AntD buttons may have shadows) */
+/* In sticky mode, keep buttons flat  */
 .page-actions.is-sticky .ant-btn {
 box-shadow: none;
 }
 
-/* Small screens (styling only; logic handled via your hook) */
-@media (max-width:520px) {
-    .page-actions {
-        gap: .5rem;
-    margin-top: 1rem;
-    }
-  .page-actions__buttons {
-      gap: .5rem;
-    flex-wrap: wrap;
-    }
-}
 
-
-
-/* Ant Design Tooltip look & feel override (scoped by overlayClassName) */
 .pa-tooltip .ant-tooltip-inner {
     background: #111 !important;
     color: #fff !important;

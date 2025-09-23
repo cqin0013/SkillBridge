@@ -27,37 +27,36 @@ const ANZSCO_SEARCH_URL =
  * PastOccupationSearch
  * - Pick a past industry (ANZSCO major group 1–8) + search by keyword.
  * - Opens a modal with results and supports add/remove up to MAX_SELECT.
- * - Mobile layout stacks actions below the title so long titles never get cut off.
  */
 export default function PastOccupationSearch({
   selected: selectedProp,
   onChangeSelected: onChangeSelectedProp,
 }) {
-  /** Controlled selection state */
+  /*  selection state */
   const [selected, setSelected] = useState(
     Array.isArray(selectedProp) ? selectedProp : []
   );
 
-  /** Simple UI states */
+  /*  UI states */
   const [industryId, setIndustryId] = useState();
   const [titleKw, setTitleKw] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [renderPickerModal, setRenderPickerModal] = useState(false);
 
-  /** Data + feedback states */
+  /* Data + feedback states */
   const [searchLoading, setSearchLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [expandedCodes, setExpandedCodes] = useState(new Set());
   const [tipAfterAction, setTipAfterAction] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  /** Responsive helpers */
+  /*Responsive helpers */
   const { isMobile } = useResponsive();
   const formGutter = isMobile ? [8, 8] : [12, 8];
   const controlSize = isMobile ? "middle" : "large";
   const modalWidth = isMobile ? undefined : 720;
 
-  /** Resolve industry name for the current selection (mapped into result items) */
+  /* Resolve industry name for the current selection (mapped into result items) */
   const industryName = useMemo(() => {
     if (industryId == null) return undefined;
     const item = INDUSTRY_OPTIONS.find(
@@ -66,7 +65,7 @@ export default function PastOccupationSearch({
     return item?.name;
   }, [industryId]);
 
-  /** Keep parent in sync */
+  /* Keep parent in sync */
   const syncSelected = (next) => {
     setSelected(next);
     try {
@@ -83,10 +82,10 @@ export default function PastOccupationSearch({
     if (pickerOpen) setRenderPickerModal(true);
   }, [pickerOpen]);
 
-  /** Remaining selection slots */
+  /* Remaining selection slots */
   const remain = Math.max(0, MAX_SELECT - selected.length);
 
-  /** Fast lookup set for already-selected occupation codes */
+  /* Fast lookup set for already-selected occupation codes */
   const selectedCodes = useMemo(
     () => new Set(selected.map((item) => item.occupation_code)),
     [selected]
@@ -293,7 +292,6 @@ export default function PastOccupationSearch({
 
                 return (
                   <List.Item className="pos__item" key={code}>
-                    {/* Main row: stack on mobile so title gets full width */}
                     <div
                       className="pos__main"
                       style={{
@@ -301,11 +299,10 @@ export default function PastOccupationSearch({
                         gap: 8,
                         alignItems: isMobile ? "flex-start" : "center",
                         flexDirection: isMobile ? "column" : "row",
-                        minWidth: 0, // let children shrink inside flex
+                        minWidth: 0, 
                         width: "100%",
                       }}
                     >
-                      {/* Title block should be able to wrap on small screens */}
                       <div
                         className="pos__title"
                         style={{
