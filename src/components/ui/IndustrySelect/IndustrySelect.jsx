@@ -46,7 +46,7 @@ export default function IndustrySelect({
   wrapperClassName = "",
   size = "large",
   tagless = true,
-  popupMatchSelectWidth = true, // AntD v5 replacement for `dropdownMatchSelectWidth`
+  popupMatchSelectWidth = true, 
   fixedHeight = false,
 }) {
   // AntD "mode" prop: undefined (single) or "multiple"
@@ -111,7 +111,6 @@ export default function IndustrySelect({
         // Hide built-in tags inside the input when tagless=true (multiple mode only)
         tagRender={tagless ? () => null : undefined}
         maxTagCount={tagless ? 0 : "responsive"}
-        // AntD v5 prop (replaces deprecated dropdownMatchSelectWidth)
         popupMatchSelectWidth={popupMatchSelectWidth}
       />
 

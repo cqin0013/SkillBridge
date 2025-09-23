@@ -19,9 +19,6 @@ const { Title } = Typography;
  * - bodyStyle?: React.CSSProperties    // (legacy alias) extra body styles; merged into styles.body
  * - children: React.ReactNode
  *
- * Notes:
- * - AntD v5 deprecates `bordered`, `headStyle`, and `bodyStyle`.
- *   Use `variant="outlined"` and `styles={{ header, body }}` instead.
  */
 export default function SectionBox({
   title,

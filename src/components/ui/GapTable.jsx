@@ -1,5 +1,4 @@
-// src/components/ui/GapTable.jsx
-import React from "react";
+
 import "./GapTable.css";
 
 const STATUS_LABEL = {

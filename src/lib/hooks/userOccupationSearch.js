@@ -1,4 +1,4 @@
-// src/lib/hooks/useOccupationsSearch.js
+
 import { useState, useCallback, useRef } from "react";
 import { searchOccupations } from "../api/occupationsApi";
 import { SEARCH_MIN_LEN } from "../constants/app";
@@ -26,7 +26,6 @@ export function useOccupationsSearch() {
       return false;
     }
 
-    // cancel previous in-flight request
     if (abortRef.current) {
     abortRef.current.abort(); 
     }

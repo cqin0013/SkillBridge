@@ -1,5 +1,4 @@
-// src/lib/providers/ResponsiveProvider.jsx
-// Globally controls typography sizes via CSS variables using useResponsive().
+sx// Globally controls typography sizes via CSS variables using useResponsive().
 // Works without CSS media queries and affects Portals (e.g., AntD Modal) by
 // toggling a class on <html>. You can tweak the numbers to your taste.
 

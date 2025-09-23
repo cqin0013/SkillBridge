@@ -20,7 +20,6 @@ import "./PastOccupationSearch.css";
 
 const { Paragraph, Text } = Typography;
 
-// New ANZSCO search endpoint (absolute URL)
 const ANZSCO_SEARCH_URL =
   "https://progressive-alysia-skillbridge-437200d9.koyeb.app/anzsco/search";
 
@@ -93,7 +92,7 @@ export default function PastOccupationSearch({
     [selected]
   );
 
-  /* ----------------------- Search entry (validations) ----------------------- */
+  /*  Search entry (validations) */
   const handlePickerOpen = () => setPickerOpen(true);
   const handlePickerClose = () => setPickerOpen(false);
   const handleAfterPickerChange = (open) => {
@@ -118,7 +117,7 @@ export default function PastOccupationSearch({
     await doSearch(q);
   };
 
-  /* --------------------- Actual search request (endpoint) ------------------- */
+  /* Actual search request (endpoint)  */
   const doSearch = async (q) => {
     try {
       setSearchLoading(true);
@@ -155,7 +154,7 @@ export default function PastOccupationSearch({
     }
   };
 
-  /* --------------------------- Selection handlers -------------------------- */
+  /*  Selection handlers */
   const toggleDetails = (code) => {
     setExpandedCodes((prev) => {
       const next = new Set(prev);
@@ -184,7 +183,6 @@ export default function PastOccupationSearch({
     setTipAfterAction("Removed. You can search again or refine your keywords.");
   };
 
-  /* --------------------------------- Render -------------------------------- */
   return (
     <>
       <Form layout="vertical" className={`pos pos--${controlSize}`}>

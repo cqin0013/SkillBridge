@@ -1,4 +1,4 @@
-// src/components/ui/Home.jsx
+
 import "./Home.css";
 import IntroHero from "../../components/ui/Hero/Hero.jsx";
 import heroBg from "../../assets/images/bridge.png";

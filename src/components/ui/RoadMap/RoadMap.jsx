@@ -1,5 +1,3 @@
-// src/components/ui/RoadMap/RoadMap.jsx
-import React from "react";
 import "./RoadMap.css";
 import useResponsive from "../../../lib/hooks/useResponsive"; 
 
@@ -53,7 +51,6 @@ export default function Roadmap({ steps = [], className = "" }) {
     <section
       className={`roadmap-container ${className}`}
       aria-label="Roadmap"
-      // Override the default padding-left from CSS so the line/dots have room on all sizes
       style={{ paddingLeft: ui.containerPadLeft }}
     >
       <div className="roadmap-line" aria-hidden="true" />

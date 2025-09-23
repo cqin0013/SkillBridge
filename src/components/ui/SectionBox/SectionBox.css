@@ -1,5 +1,3 @@
-/* SectionBox variants
-   ------------------- */
 
 /* Default look: plain white header (inherits card border from variant="outlined") */
 .section-box--default .ant-card-head {

@@ -1,4 +1,4 @@
-/* Profile.css
+/* 
    Purpose: Styling for the Profile (Roadmap) page.
    - Constrains the page width to a readable line length
    - Provides responsive typography for the header
@@ -13,7 +13,7 @@
     padding: 1rem 0 2rem;
 }
 
-/* ---------- Header Area ---------- */
+
 /* Main profile title: responsive size, bold, tight line-height */
 .profile-header h1 {
     margin: 0;
@@ -30,13 +30,13 @@
     font-size: clamp(.9rem, 2.5vw, 1rem);
 }
 
-/* ---------- Global Helpers ---------- */
+
 /* Muted helper class that reuses the design token */
 .muted {
     color: var(--color-muted);
 }
 
-/* ---------- Small-Screen Tweaks ---------- */
+
 @media (max-width:520px) {
     .profile-page {
         /* Slightly tighter paddings on narrow devices */

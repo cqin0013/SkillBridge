@@ -1,8 +1,7 @@
-/* src/styles/responsive-typography.css */
 
 /* Base variables (desktop default) */
 :root {
-  /* Font scale you can tune */
+
   --fs-base: 16px;
   --fs-sm: 14px;
   --fs-md: 16px;

@@ -1,5 +1,5 @@
-// src/components/StageBox/StageBox.jsx
-import React, { useState, useCallback, useId } from "react";
+
+import  { useState, useCallback, useId } from "react";
 import { Card, Typography, Space, Button } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import useResponsive from "../../../lib/hooks/useResponsive"; // { isDesktop, isTablet, isMobile }

@@ -1,6 +1,5 @@
-// src/api/JobSuggestionApi.js
+
 // Purpose: API helper for suggesting jobs from user's selections.
-// This version uses native fetch (no http.js). All comments are in English.
 
 import { INDUSTRY_OPTIONS } from "../../lib/constants/industries";
 

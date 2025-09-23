@@ -1,4 +1,4 @@
-// src/components/AUSChoropleth.jsx
+
 import React, { useMemo, useRef, useState, useLayoutEffect } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleQuantize } from "d3-scale";

@@ -1,5 +1,5 @@
 // Backend base URL
-export const API_BASE = "https://skillbridge-hnxm.onrender.com";
+export const API_BASE = "progressive-alysia-skillbridge-437200d9.koyeb.app/";
 
 // Generic limits
 export const MAX_SELECT = 5;

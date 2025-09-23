@@ -1,8 +1,8 @@
-// src/components/PageActions/PageActions.jsx
+
 import React, { useEffect, useState } from "react";
 import { Button, Tooltip } from "antd";
 import classNames from "classnames";
-import useResponsive from "../../../lib/hooks/useResponsive"; // your hook: { isDesktop, isTablet, isMobile }
+import useResponsive from "../../../lib/hooks/useResponsive"; 
 import "./PageActions.css";
 
 /**
@@ -146,8 +146,8 @@ export default function PageActions({
         title={reason}
         placement="top"
         trigger={["hover", "focus"]}
-        overlayClassName="pa-tooltip"   // AntD v5: class for the popup
-        destroyTooltipOnHide            // unmount content when hidden
+        classNames={{ root: "pa-tooltip" }}   
+        destroyTooltipOnHid         
         mouseEnterDelay={0.05}
       >
         {trigger}

@@ -1,10 +1,4 @@
-/* ==============================
-   Home.css （仅首页生效）
-   将原 Hero.css 的“Home-only Global Tweaks”
-   改为 .app-shell.is-home 作用域，避免影响其他页面
-   ============================== */
 
-/* 页面基础高度，仅首页需要 */
 html,
 body,
 #root {
@@ -12,22 +6,19 @@ body,
   margin: 0;
 }
 
-/* 首页容器与主区域：可选的首屏不滚动策略 */
 .app-shell.is-home {
   height: 100%;
   overflow: hidden;
-  /* 如需滚动，删除这一行 */
   overscroll-behavior: none;
-  /* 减少 iOS 回弹 */
+
 }
 
 .app-shell.is-home .app-main {
   height: 100%;
   overflow: hidden;
-  /* 如需滚动，删除这一行 */
+
 }
 
-/* Header：仅首页透明且固定在顶部 */
 .app-shell.is-home .st-header {
   position: fixed;
   top: 0;
@@ -39,14 +30,12 @@ body,
   border-bottom-color: transparent;
 }
 
-/* 仅首页把 hero 背景“顶到” header 背后 */
 .app-shell.is-home .sb-hero {
   margin-top: calc(-1 * var(--header-h, 64px));
   height: calc(100dvh + var(--header-h, 64px));
   height: calc(100svh + var(--header-h, 64px));
 }
 
-/* Header 内容在深色首屏背景上“反色”处理，仅首页 */
 .app-shell.is-home .brand-name,
 .app-shell.is-home .st-link {
   color: #f8fafc;
@@ -85,7 +74,6 @@ body,
   opacity: .96;
 }
 
-/* Hero 内按钮组（维持首页一致间距） */
 .app-shell.is-home .sb-hero__actions {
   display: inline-flex;
   gap: 12px;

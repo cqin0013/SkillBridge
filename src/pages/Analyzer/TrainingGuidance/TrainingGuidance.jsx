@@ -1,4 +1,4 @@
-// Content-only body for the "Training recommendations (VET courses)" step.
+
 
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Spin, List, Typography, Space } from "antd";

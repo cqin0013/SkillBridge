@@ -1,4 +1,3 @@
-// src/lib/constants/geo.js
 
 export const AU_STATES = [
   { label: "All states", value: "All" },

@@ -1,4 +1,4 @@
-// src/lib/hooks/useAbilitiesAnalysis.js
+
 import { useState, useCallback } from "react";
 import { getOccupationTitles } from "../api/occupations";
 import { MOCK_TITLES_RESPONSE } from "../constants/mocks";

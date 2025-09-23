@@ -1,4 +1,4 @@
-// /components/ui/ProgressBar/ProgressBar.jsx
+
 import React from "react";
 import { Progress, Typography } from "antd";
 import "./ProgressBar.css";

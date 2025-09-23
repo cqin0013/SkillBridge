@@ -18,7 +18,7 @@ export const pageIntro = {
   title: "Skill Gaps",
   introContent: (
     <Paragraph style={{ margin: 0 }}>
-      Compare your abilities with the target job’s requirements. Below we show the abilities that were
+      Compare your abilities with the target job's requirements. Below we show the abilities that were
       <b> not matched</b> by your selected occupation.
     </Paragraph>
   ),

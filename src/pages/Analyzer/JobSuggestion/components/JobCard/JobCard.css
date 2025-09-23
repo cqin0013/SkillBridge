@@ -1,5 +1,3 @@
-/* src/pages/Analyzer/JobSuggestion/components/JobCard/JobCard.css */
-/* Purpose: Styling for a single job suggestion card. Comments in English. */
 
 .job-card {
   border: 1px solid var(--color-border, #e5e7eb);
@@ -99,7 +97,7 @@
   margin-top: 6px;
 }
 
-/* src/pages/Analyzer/JobSuggestion/components/JobCard/JobCard.css */
+
 .job-card__anzsco-industry {
   color: #555;
   margin: 0 0 4px 0;

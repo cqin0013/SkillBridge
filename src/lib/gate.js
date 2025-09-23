@@ -1,4 +1,4 @@
-// src/lib/gate.js
+
 export const GATE_FLAG = "gate_unlocked_v1";
 
 export function isGateUnlocked() {

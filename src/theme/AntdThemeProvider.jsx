@@ -1,4 +1,4 @@
-// src/theme/AntdThemeProvider.jsx
+
 import { useEffect } from "react";
 import { ConfigProvider, App as AntApp } from "antd";
 

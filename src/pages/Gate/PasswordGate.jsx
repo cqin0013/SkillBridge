@@ -1,4 +1,4 @@
-// src/pages/Gate/PasswordGate.jsx
+
 // A simple password gate page:
 // - User enters a password
 // - We verify it against a SHA-256 hash (set in VITE_GATE_HASH)

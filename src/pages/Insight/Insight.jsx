@@ -1,6 +1,6 @@
-// src/pages/Insight/Insight.jsx
+
 // Insight screen: choropleth by AU states using latest_by_state.nsc_emp from Shortage API.
-// English comments explain logic; UI text stays simple.
+
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Button, Modal, Spin, Card, List, Typography } from "antd";
@@ -11,7 +11,7 @@ import StageBox from "../../components/ui/StageBox/StageBox";
 import PastOccupationSearch from "../../components/ui/PastOccupationSearch/PastOccupationSearch";
 import Citation from "../../components/ui/Citation/Citation";
 
-// ✅ NEW: import the latest-by-state employment API and empty counts
+
 import {
   getLatestEmploymentByState,
   EMPTY_SHORTAGE_COUNTS,
@@ -155,7 +155,7 @@ export default function Insight() {
       setMapError("");
 
       try {
-        // ✅ Call the new API: it will slice prefix4 internally
+
         const rows = await getLatestEmploymentByState({
           anzsco: trimmedCode,
           signal: controller.signal,
@@ -193,9 +193,7 @@ export default function Insight() {
     };
   }, [jobCode, createEmptyCounts]);
 
-  /* ====================================
-   * B) Load training advice (VET courses)
-   * ==================================== */
+
   const [trainingLoading, setTrainingLoading] = useState(false);
   const [trainingError, setTrainingError] = useState("");
   const [trainingCourses, setTrainingCourses] = useState([]); // [{code,name}]
@@ -241,9 +239,7 @@ export default function Insight() {
     };
   }, [jobCode]);
 
-  /* =================
-   * Render
-   * ================= */
+
   return (
     <main className={`insight-screen${isMobile ? " is-mobile" : ""}`}>
       {/* Header (StageBox) */}

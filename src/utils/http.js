@@ -1,4 +1,3 @@
-// src/utils/http.js
 
 /**
  * Minimal HTTP client

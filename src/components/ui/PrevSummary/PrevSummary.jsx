@@ -1,4 +1,3 @@
-// src/components/PrevSummary/PrevSummary.jsx
 
 import { Card, Descriptions, Typography } from "antd";
 import useResponsive from "../../../lib/hooks/useResponsive";

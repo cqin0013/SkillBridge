@@ -1,7 +1,4 @@
-/* =========================================================
- * AntD visuals are controlled by ConfigProvider + BrandThemeProvider.
- * This file only sets up a few global resets and imports global.css.
- * ========================================================= */
+
 
 @import "./global.css";
 @import "./responsive-typography.css";

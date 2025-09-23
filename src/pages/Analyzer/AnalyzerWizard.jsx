@@ -1,4 +1,4 @@
-// /src/pages/analyzer/AnalyzerWizard.jsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Modal } from "antd";
@@ -24,11 +24,9 @@ const clamp = (n) =>
   Math.max(0, Math.min(TOTAL_STEPS - 1, Number.isFinite(n) ? n : 0));
 
 export default function AnalyzerWizard() {
-  /* ========== antd v5: useModal to avoid static method context warning ========== */
-  // `useModal` returns an instance (modal) and a context holder that must be rendered once.
   const [modal, modalContextHolder] = Modal.useModal();
 
-  /* ---------------- URL step sync ---------------- */
+  /*  URL step sync */
   const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState(0);
 
@@ -48,7 +46,7 @@ export default function AnalyzerWizard() {
     setSearchParams(next, { replace: true });
   };
 
-  /* ---------------- Cross-step states ---------------- */
+  /*  Cross-step states  */
   const [roles, setRoles] = useState([]); // Past roles
   const [excludedOccupationCodes, setExcludedOccupationCodes] = useState([]);
   const [stateCode, setStateCode] = useState("All"); // Preferred location (state)
@@ -58,7 +56,7 @@ export default function AnalyzerWizard() {
   const [targetJobTitle, setTargetJobTitle] = useState(""); // Chosen job title (Step 3)
   const [unmatched, setUnmatched] = useState(null); // Unmatched abilities from Step 3 (for Step 4)
 
-  /* ---------------- Helpers for industry names ---------------- */
+  /*  Helpers for industry names */
   const industryNameMap = useMemo(() => {
     const m = new Map();
     (INDUSTRY_OPTIONS || []).forEach((o) => m.set(o.id, o.name));
@@ -69,7 +67,7 @@ export default function AnalyzerWizard() {
     [selectedIndustryIds, industryNameMap]
   );
 
-  /* ---------------- Left sidebar + progress ---------------- */
+  /* Left sidebar + progress  */
   const leftSidebar =
     step !== 0 ? (
       <PrevSummary
@@ -87,7 +85,7 @@ export default function AnalyzerWizard() {
 
   const progress = <ProgressBar current={step} total={TOTAL_STEPS} debug={false} />;
 
-  /* ---------------- Persist a small profile snapshot for quick resume ---------------- */
+  /*  Persist a small profile snapshot for quick resume */
   useEffect(() => {
     const payload = {
       roles: (roles || []).map(
@@ -115,14 +113,14 @@ export default function AnalyzerWizard() {
     abilities.length,
   ]);
 
-  /* ---------------- Persist unmatched as a fallback for Step 5 ---------------- */
+  /*  Persist unmatched as a fallback for Step 5 - */
   useEffect(() => {
     try {
       if (unmatched) sessionStorage.setItem("sb_unmatched", JSON.stringify(unmatched));
     } catch {}
   }, [JSON.stringify(unmatched || {})]);
 
-  /* ---------------- Read unmatched helper ---------------- */
+  /*  Read unmatched helper  */
   const readUnmatched = () => {
     let g = unmatched;
     if (!g) {
@@ -134,7 +132,7 @@ export default function AnalyzerWizard() {
     return g || null;
   };
 
-  /* ---------------- Convert gaps -> roadmap steps (for Step 5) ---------------- */
+  /*  Convert gaps -> roadmap steps (for Step 5) */
   const buildRoadmapStepsFromGaps = (gapObj) => {
     if (!gapObj) return [];
 
@@ -186,7 +184,7 @@ export default function AnalyzerWizard() {
     return steps;
   };
 
-  /* ---------------- Step 5: confirm & generate roadmap ---------------- */
+  /*  Step 5: confirm & generate roadmap */
   const handleFinish = () => {
     // Use instance-based modal to respect context (theme/locale)
     modal.confirm({
@@ -209,7 +207,7 @@ export default function AnalyzerWizard() {
     });
   };
 
-  /* ---------------- Step 3: child controls Next disabled state ---------------- */
+  /*  Step 3: child controls Next disabled state */
   const [actionsStep3, setActionsStep3] = useState({
     onPrev: () => goTo(2),
     onNext: () => goTo(4),
@@ -217,10 +215,9 @@ export default function AnalyzerWizard() {
     nextDisabledReason: "Please select a job card to continue.",
   });
 
-  /* ---------------- Render steps ---------------- */
+  /*  Render steps  */
   return (
     <>
-      {/* antd v5 modal context holder (required when using `useModal`) */}
       {modalContextHolder}
 
       {/* Step 0: Intro */}

@@ -1,8 +1,6 @@
-// src/components/ui/TrainingGuidanceCard/TrainingGuidanceCard.jsx
-import React from "react";
+
 import { Card, Divider, Tag, List, Empty, Typography } from "antd";
 import "./TrainingGuidanceCard.css";
-// Import responsive hook (resolve path from this component folder)
 import useResponsive from "../../../lib/hooks/useResponsive";
 
 const { Text } = Typography;

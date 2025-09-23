@@ -1,5 +1,4 @@
-// src/pages/Analyzer/SkillGap/components/SkillLevelCard.jsx
-import React from "react";
+
 import { Card, Typography, Collapse, Tag, Alert } from "antd";
 import "./SkillLevelCard.css";
 

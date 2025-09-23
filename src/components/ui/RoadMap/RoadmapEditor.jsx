@@ -1,5 +1,5 @@
-// src/components/ui/RoadMap/RoadmapEditor.jsx
-import React, { useMemo, useState } from "react";
+
+import { useMemo, useState } from "react";
 import {
   Input,
   DatePicker,
@@ -16,7 +16,6 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 
-// ---------- Minimal persistence helpers (no external store) ----------
 
 /**
  * Logical storage key. The actual localStorage key will be "sb_roadmap".
@@ -68,8 +67,6 @@ const debounce = (fn, ms = 500) => {
     t = setTimeout(() => fn(...args), ms);
   };
 };
-
-// ---------- Editor internals ----------
 
 /**
  * Generate a stable id for list items.
@@ -193,9 +190,6 @@ export default function RoadmapEditor({
    */
   const [pick, setPick] = useState({ knowledge: [], skill: [], tech: [] });
 
-  // ----------------------
-  // Core list interactions
-  // ----------------------
 
   /** Move a step up/down by swapping with its neighbor. */
   const move = (i, dir) => {
@@ -240,9 +234,6 @@ export default function RoadmapEditor({
     onClose?.(cleaned);
   };
 
-  // -------------------------
-  // Add steps from libraries
-  // -------------------------
 
   /**
    * Add selected items from a specific library (knowledge/skill/tech).

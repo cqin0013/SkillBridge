@@ -1,4 +1,4 @@
-// src/utils/cache.js
+
 /**
  * Lightweight cache with:
  * - Namespace prefix (avoid key collisions)
@@ -16,7 +16,7 @@ const MEM =
     ? (window.__SB_MEM ||= new Map())
     : new Map();
 
-/* ------------------------ Storage capability probes ----------------------- */
+/*  Storage capability probes  */
 function hasLocal() {
   try {
     if (typeof window === "undefined") return false;
@@ -37,7 +37,7 @@ function hasSession() {
   } catch { return false; }
 }
 
-/* ----------------------------- JSON helpers ------------------------------ */
+/*  JSON helpers  */
 function safeStringify(value) {
   try { return JSON.stringify(value); } catch { return null; }
 }
@@ -48,7 +48,7 @@ function fullKey(key) {
   return NS + String(key);
 }
 
-/* ------------------------------ Notifier API ----------------------------- */
+/*  Notifier API */
 /**
  * Optional UI notifier. Register once in app entry:
  *
@@ -71,7 +71,7 @@ function notifyOnce(payload) {
   try { __notifier(payload); } catch {}
 }
 
-/* --------------------------------- SET ----------------------------------- */
+/* SET  */
 /**
  * Set a cache entry with multi-tier fallback.
  * @param {string} key   Logical key (without namespace)
@@ -116,7 +116,7 @@ export function setCache(key, value, ttlMs) {
   }
 }
 
-/* --------------------------------- GET ----------------------------------- */
+/* GET */
 /**
  * Get a cache entry. Returns null if missing or expired.
  * Multi-tier read: local → session → memory.
@@ -159,7 +159,7 @@ export function getCache(key) {
   return null;
 }
 
-/* --------------------------------- DEL ----------------------------------- */
+/* DEL */
 export function delCache(key) {
   const k = fullKey(key);
   try { window.localStorage?.removeItem(k); } catch {}

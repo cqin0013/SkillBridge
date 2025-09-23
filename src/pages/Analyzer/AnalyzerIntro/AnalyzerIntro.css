@@ -119,15 +119,3 @@ body.intro-mounted .intro-hero {
   opacity: 0.98;
 }
 
-/* Reduce motion for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .intro-hero {
-    transition: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-        .intro-image {
-          animation: none !important;
-  
-}
-}

@@ -1,4 +1,4 @@
-// src/components/ui/SkillPicker/SkillPicker.jsx
+
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Tabs, Input, Checkbox, Tag, Button } from "antd";
 import useResponsive from "../../lib/hooks/useResponsive"; // adjust path if needed
@@ -24,7 +24,7 @@ export default function SkillPicker({
   title = "Pick your skills",
   maxSelectable, // optional
 }) {
-  // Responsive flags (no CSS @media used)
+
   const { isDesktop, isTablet, isMobile } = useResponsive();
 
   // Decide modal width by device

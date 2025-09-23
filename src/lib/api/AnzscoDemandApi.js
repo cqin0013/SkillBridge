@@ -1,7 +1,4 @@
-// src/lib/api/AnzscoDemandApi.js
-// Regional/National shortage ratings by 6-digit ANZSCO code.
-// Uses native fetch (no http.js). Includes 6-hour in-memory cache via utils/cache.
-//
+
 // Example endpoint:
 //   GET /api/anzsco/261313/demand
 //
@@ -24,7 +21,7 @@ export const DEMAND_BASE =
     import.meta.env.VITE_DEMAND_BASE) ||
   "https://progressive-alysia-skillbridge-437200d9.koyeb.app";
 
-/* --------------------------------- helpers -------------------------------- */
+/* - helpers  */
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 
 const buildUrl = (code) =>

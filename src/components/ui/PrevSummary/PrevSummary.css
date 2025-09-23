@@ -1,8 +1,6 @@
 /* Make the card fill the left column while honoring a max width if needed */
 .prev-summary-card {
   width: 100%;
-  /* max-width: 900px; */
-    /* Uncomment to cap width if the column is very wide */
   box-sizing: border-box;
 }
 

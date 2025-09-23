@@ -1,6 +1,6 @@
-// src/lib/api/AnzscoShortageApi.js
+
 // Shortage data by ANZSCO (prefix4).
-// This version extracts only state + nsc_emp from latest_by_state for charting.
+
 
 import { getCache, setCache } from "../../utils/cache";
 export const EMPTY_SHORTAGE_COUNTS = {
@@ -66,7 +66,7 @@ async function postJson(url, body, { signal, timeout } = {}) {
   return data ?? {};
 }
 
-/* ---------------------------------- Core API ---------------------------------- */
+/* Core API */
 /**
  * Get shortage employment snapshot by ANZSCO prefix4.
  * We only keep: state + nsc_emp from latest_by_state.

@@ -1,8 +1,4 @@
-// src/lib/api/TrainingAdviceApi.js
-// Fetch training recommendations (VET courses) by 6-digit ANZSCO code.
-// Uses native fetch instead of http.js.
-//
-// Endpoint:
+
 //   GET /api/anzsco/{anzscoCode}/training-advice?limit=10
 
 /** Base host (override via .env: VITE_TRAINING_BASE) */

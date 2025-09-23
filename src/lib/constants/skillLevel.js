@@ -1,4 +1,3 @@
-// src/lib/constants/skillLevel.js
 
 export const SKILL_LEVEL_REQUIREMENTS = {
   1: {
