@@ -1,4 +1,3 @@
-// src/lib/api/AbilityApi.js
 // ANZSCO: search by first-industry + keyword, and fetch abilities by 6-digit code.
 // Uses native fetch (no http.js). Includes lightweight caching and robust normalizers.
 
@@ -11,7 +10,7 @@ export const ABILITY_BASE =
     (import.meta.env.VITE_ABILITY_BASE || import.meta.env.VITE_JOBS_BASE)) ||
   "https://progressive-alysia-skillbridge-437200d9.koyeb.app";
 
-/* --------------------------------- helpers -------------------------------- */
+/*  helpers  */
 const ONE_DAY = 24 * 60 * 60 * 1000;
 const SEVEN_DAYS = 7 * ONE_DAY;
 
@@ -85,7 +84,7 @@ export function dedupeAbilities(list = []) {
   return out;
 }
 
-/* ---------------------------- ANZSCO search (Step 1) ---------------------------- */
+/*  ANZSCO search (Step 1)  */
 /**
  * Search 6-digit ANZSCO by "first industry + keyword".
  * GET /anzsco/search?first=2&s=engineer&limit=12
@@ -116,7 +115,7 @@ export async function searchAnzscoByFirstAndKeyword({
   return data;
 }
 
-/* ------------------------ Abilities by ANZSCO code (Step 2) ----------------------- */
+/*  Abilities by ANZSCO code (Step 2)  */
 /**
  * Reverse search SOC capability set from 6-digit ANZSCO code.
  * GET /anzsco/{code}/skills
@@ -137,7 +136,7 @@ export async function getAbilitiesByAnzscoCode({ anzscoCode, signal, timeout }) 
   return data;
 }
 
-/* -------------------------- Payload → abilities mapper -------------------------- */
+/*  Payload → abilities mapper  */
 /**
  * Map various server payload shapes into normalized ability arrays.
  * Supports keys:
@@ -189,7 +188,7 @@ export function mapAbilitiesToFlat(payload) {
   return mapAbilitiesPayload(payload).flat;
 }
 
-/* ---------------------------- Compatibility wrapper ---------------------------- */
+/*  Compatibility wrapper */
 /**
  * Compatibility helper so older imports can keep calling getAnzscoSkills(code, opts).
  * Accepts either the new object signature or the legacy positional arguments.

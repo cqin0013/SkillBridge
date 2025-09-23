@@ -1,6 +1,4 @@
-/* =========================
-   Core variables & sizing
-   ========================= */
+/* Core variables & sizing */
 :root {
   --header-h: 64px;
   --hdr-bg: #fff;
@@ -11,9 +9,7 @@
   --brand-font-size: 1.25rem;
 }
 
-/* =========================
-   Header base layout
-   ========================= */
+/* Header base layout */
 .st-header {
   height: var(--header-h);
   position: sticky;
@@ -84,10 +80,7 @@
   border-radius: 2px;
 }
 
-/* =========================
-   Mode: Desktop (inline nav)
-   Expect .st-header.has class .is-desktop
-   ========================= */
+/*  Mode: Desktop  */
 .st-header.is-desktop .st-menu {
   display: none !important;
 }
@@ -106,13 +99,11 @@
   transform: none;
 }
 
-/* =========================
+/* 
    Mode: Touch (tablet + mobile)
    Dropdown panel, hidden by default; toggled via .is-open
-   Expect .st-header.has class .is-touch
-   ========================= */
+*/
 .st-header.is-touch .st-menu {
-  /* Override the base display:none */
   display: inline-block !important;
 }
 

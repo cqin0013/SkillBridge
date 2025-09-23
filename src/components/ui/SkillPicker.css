@@ -93,10 +93,3 @@ padding: .55rem .65rem
 grid-template-columns: 1fr
 }
 }
-
-/* Respect system reduced motion */
-@media (prefers-reduced-motion:reduce) {
-.sp-item {
-transition: none
-}
-}

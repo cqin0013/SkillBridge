@@ -1,4 +1,3 @@
-// src/layouts/MainLayout.jsx
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/Footer";

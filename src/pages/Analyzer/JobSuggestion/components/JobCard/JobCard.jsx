@@ -1,32 +1,41 @@
-// src/pages/Analyzer/JobSuggestion/components/JobCard/JobCard.jsx
-// Purpose: Render a job suggestion; allow picking a sub-occupation (ANZSCO code) provided by backend.
-// Also show region-based shortage for the selected code, and display industry = first digit of code.
-// Comments are written in English.
+// Purpose: Render a job suggestion; allow picking a sub-occupation (ANZSCO code).
+// Mobile fix: dropdown options wrap to multiple lines and are not width-limited by the trigger.
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, Select, Tooltip, Typography, Tag } from "antd";
 import "./JobCard.css";
 import { getShortageByCodeAndRegion } from "../../../../../lib/api/AnzscoDemandApi";
+import useResponsive from "../../../../../lib/hooks/useResponsive";
 
 const { Paragraph, Text } = Typography;
+
+/** Map API shortage text to normalized display text + color. */
+function mapShortageDisplay(raw) {
+  if (raw == null || String(raw).trim() === "") {
+    return { text: "not in the shortage list", color: undefined };
+  }
+  const val = String(raw).trim().toLowerCase().replace(/\s+/g, " ");
+  if (/\bno\s*shortage\b/.test(val) || /\bsurplus\b/.test(val)) {
+    return { text: "no shortage", color: "green" };
+  }
+  if (/\bshortage\b/.test(val)) {
+    return { text: "shortage", color: "red" };
+  }
+  return { text: String(raw), color: undefined };
+}
 
 /**
  * Props
  * - item: {
  *     title: string,
  *     score: number,
- *     anzscoOptions?: Array<{
- *       code: string,            // 6-digit code string
- *       title?: string,          // sub-occupation title
- *       description?: string,    // sub-occupation description
- *       industry?: string|null,  // first digit of code (filled by normalizer); may be absent
- *     }>
+ *     anzscoOptions?: Array<{ code: string, title?: string, description?: string, industry?: string|null }>
  *   }
- * - selected: boolean                 // whether this job card is currently selected
- * - pickedCode: string|null           // currently chosen sub-occupation code for this job
+ * - selected: boolean
+ * - pickedCode: string|null
  * - onPickAnzsco: (code: string)=>void
  * - onSelect: () => void
- * - regionPref: string                // user's region preference; "all" will map to "national"
+ * - regionPref: string
  */
 export default function JobCard({
   item,
@@ -36,27 +45,38 @@ export default function JobCard({
   onSelect,
   regionPref = "all",
 }) {
-  // Turn backend-provided sub-occupations into AntD options for the <Select>.
+  const { isMobile } = useResponsive();
+  const controlSize = isMobile ? "middle" : "large";
+  const actionBtnSize = isMobile ? "middle" : "large";
+
+  // Build a ReactNode label that can wrap on small screens.
+  const buildOptionLabel = (o) => (
+    <div className="jobcard-option">
+      <span className="jobcard-code">{o.code}</span>
+      <span className="jobcard-sep"> — </span>
+      <span className="jobcard-title">{o.title || "Untitled"}</span>
+    </div>
+  );
+
+  // Prepare Select options; provide a string field `search` for filtering.
   const antOptions = useMemo(
     () =>
       (item?.anzscoOptions || []).map((o) => ({
         value: o.code,
-        label: `${o.code} — ${o.title || "Untitled"}`,
+        label: buildOptionLabel(o),
+        search: `${o.code} ${o.title || ""}`.trim(),
       })),
     [item?.anzscoOptions]
   );
 
-  // Find the selected sub-occupation to display title/description/industry.
   const selectedOption = useMemo(
     () => (item?.anzscoOptions || []).find((o) => o.code === pickedCode) || null,
     [item?.anzscoOptions, pickedCode]
   );
 
-  // Region shortage state for the selected sub-occupation.
   const [shortage, setShortage] = useState(null);
   const [loadingShortage, setLoadingShortage] = useState(false);
 
-  // Fetch shortage whenever the chosen code or region preference changes.
   useEffect(() => {
     let ignore = false;
     async function run() {
@@ -66,11 +86,11 @@ export default function JobCard({
       }
       try {
         setLoadingShortage(true);
-        const { shortage } = await getShortageByCodeAndRegion({
+        const { shortage: s } = await getShortageByCodeAndRegion({
           anzscoCode: pickedCode,
           region: regionPref,
         });
-        if (!ignore) setShortage(shortage ?? null);
+        if (!ignore) setShortage(s ?? null);
       } catch {
         if (!ignore) setShortage(null);
       } finally {
@@ -83,18 +103,13 @@ export default function JobCard({
     };
   }, [pickedCode, regionPref]);
 
-  // Render a small tag based on shortage text.
   const shortageTag = useMemo(() => {
     if (!pickedCode) return null;
-    if (loadingShortage) return <Tag>Checking…</Tag>;
-    if (!shortage) return <Tag>Unknown</Tag>;
-    const val = String(shortage).toLowerCase();
-    if (val.includes("shortage")) return <Tag color="red">Shortage</Tag>;
-    if (val.includes("no") || val.includes("surplus")) return <Tag color="green">No shortage</Tag>;
-    return <Tag>{shortage}</Tag>;
+    if (loadingShortage) return <Tag>checking shortage status…</Tag>;
+    const { text, color } = mapShortageDisplay(shortage);
+    return <Tag color={color}>{text}</Tag>;
   }, [pickedCode, shortage, loadingShortage]);
 
-  // Derive industry from code if normalizer did not set it (fallback).
   const industry =
     selectedOption?.industry ??
     (pickedCode && pickedCode.length > 0 ? pickedCode[0] : null);
@@ -109,56 +124,58 @@ export default function JobCard({
       {/* Sub-occupation picker */}
       <div className="job-card__anzsco">
         <div className="job-card__subttl">Select sub-occupation for this role</div>
+
         <Select
+          className="job-card__select"
           placeholder="Choose sub-occupation"
           value={pickedCode || undefined}
           onChange={(v) => onPickAnzsco && onPickAnzsco(v)}
           style={{ width: "100%" }}
+          size={controlSize}
           options={antOptions}
+          showSearch
+          optionFilterProp="search"               // search against our custom string
+          dropdownMatchSelectWidth={false}        // dropdown can be wider than trigger
+          dropdownStyle={{
+            maxWidth: "92vw",
+            minWidth: isMobile ? "92vw" : 480,   // give room on phones
+          }}
+          listHeight={isMobile ? 320 : 360}       // a bit taller on phones
+          getPopupContainer={(t) => t.parentElement} // position within card to avoid viewport issues
         />
 
-        {/* Hint when no sub-occupations exist */}
         {(!item?.anzscoOptions || item.anzscoOptions.length === 0) && (
           <Paragraph type="secondary" style={{ marginTop: 8 }}>
             No sub-occupations available for this job.
           </Paragraph>
         )}
 
-        {/* Selected sub-occupation details */}
         {selectedOption && (
           <div className="job-card__anzsco-detail">
             <div className="job-card__anzsco-title">
               {selectedOption.code} — {selectedOption.title || "Untitled"}
             </div>
 
-            {/* Industry = first digit of code */}
             {industry && (
-              <Paragraph className="job-card__anzsco-industry">
-                Industry: {industry}
-              </Paragraph>
+              <Paragraph className="job-card__anzsco-industry">Industry: {industry}</Paragraph>
             )}
 
             {selectedOption.description && (
-              <Paragraph className="job-card__anzsco-desc">
-                {selectedOption.description}
-              </Paragraph>
+              <Paragraph className="job-card__anzsco-desc">{selectedOption.description}</Paragraph>
             )}
 
-            {/* Region-aware shortage indicator */}
             <div className="job-card__anzsco-shortage">
-              <Text type="secondary">
-                Region: {String(regionPref || "all").toUpperCase()} (ALL → NATIONAL)
-              </Text>
+              <Text type="secondary">Shortage status at your target location:</Text>
               <span style={{ marginLeft: 8 }}>{shortageTag}</span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Primary action: select this job */}
+      {/* Primary action */}
       <div className="job-card__actions">
         <Tooltip title="Choose this as your target job">
-          <Button type={selected ? "primary" : "default"} onClick={onSelect}>
+          <Button size={actionBtnSize} type={selected ? "primary" : "default"} onClick={onSelect}>
             {selected ? "Selected" : "Select this job"}
           </Button>
         </Tooltip>

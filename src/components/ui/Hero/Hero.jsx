@@ -1,5 +1,4 @@
 // src/components/IntroHero/IntroHero.jsx
-
 // UI: Ant Design components for button, typography, and spacing layout
 import { Button, Typography, Space } from "antd";
 
@@ -9,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 // Styles: this file is expected to set the background using the CSS var --hero-bg
 import "./Hero.css";
 
-// Pull out subcomponents so we can write <Title/> and <Paragraph/>
+// Pull out subcomponents
 const { Title, Paragraph } = Typography;
 
 /**

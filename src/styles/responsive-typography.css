@@ -1,0 +1,88 @@
+/* src/styles/responsive-typography.css */
+
+/* Base variables (desktop default) */
+:root {
+  /* Font scale you can tune */
+  --fs-base: 16px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 26px;
+  --fs-3xl: 32px;
+
+  --lh: 1.5;
+}
+
+/* Tablet overrides (set by ResponsiveProvider via <html> classes) */
+html.r-tablet {
+  --fs-base: 16px;
+  --fs-sm: 13.5px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 21px;
+  --fs-2xl: 24px;
+  --fs-3xl: 30px;
+}
+
+/* Mobile overrides */
+html.r-mobile {
+  --fs-base: 15px;
+  --fs-sm: 13px;
+  --fs-md: 14.5px;
+  --fs-lg: 16.5px;
+  --fs-xl: 20px;
+  --fs-2xl: 22px;
+  --fs-3xl: 26px;
+}
+
+/* Apply base typography globally */
+html, body, #root {
+  min-width: 0; /* prevents flex children from forcing horizontal scroll */
+}
+
+body {
+  font-size: var(--fs-base);
+  line-height: var(--lh);
+  /* Global auto-wrap:
+     - overflow-wrap:anywhere lets long tokens (e.g., URLs/IDs) break
+     - word-break:break-word keeps legacy engines reasonable
+  */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Headings mapped to the scale (you can modify freely) */
+h1 { font-size: var(--fs-3xl); line-height: calc(var(--lh) * 0.95); }
+h2 { font-size: var(--fs-2xl); line-height: calc(var(--lh) * 0.98); }
+h3 { font-size: var(--fs-xl); }
+h4 { font-size: var(--fs-lg); }
+h5 { font-size: var(--fs-md); }
+h6 { font-size: var(--fs-sm); }
+
+/* Helpful utilities — use on any element that might overflow */
+.text-wrap { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+
+/* One-line and multi-line ellipsis utilities (opt-in) */
+.text-ellipsis-1 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.text-ellipsis-2 {
+  display: -webkit-box;
+    -webkit-box-orient: vertical;
+  line-clamp: 2;     /* number of lines */
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Make common flex/grid containers safer by default (optional) */
+.flex-safe > * { min-width: 0; }
+.grid-safe > * { min-width: 0; }
+
+/* Ant Design: make typical text blocks follow our scale (optional, tweak as needed) */
+.ant-typography { font-size: var(--fs-md); line-height: var(--lh); }
+.ant-typography h1, .ant-typography .ant-typography h1 { font-size: var(--fs-3xl); }
+.ant-typography h2, .ant-typography .ant-typography h2 { font-size: var(--fs-2xl); }
+.ant-typography h3, .ant-typography .ant-typography h3 { font-size: var(--fs-xl); }

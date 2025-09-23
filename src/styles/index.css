@@ -4,7 +4,7 @@
  * ========================================================= */
 
 @import "./global.css";
-
+@import "./responsive-typography.css";
 /* Full-height root for app layout */
 html,
 body,

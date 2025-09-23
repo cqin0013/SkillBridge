@@ -5,9 +5,8 @@ import heroBg from "../../assets/images/bridge.png";
 
 export default function Home() {
   return (
-    // ✅ 在首页的顶层容器加 is-home（或你喜欢的命名）
+    // Top-level shell for the homepage
     <div className="app-shell is-home">
-      {/* 如果你有固定的 Header，这里正常渲染即可 */}
       {/* <Header className="st-header" /> */}
 
       <main className="app-main">
@@ -16,7 +15,7 @@ export default function Home() {
           subtitle="Analyze strengths. Match roles. Build your roadmap."
           bgImage={heroBg}
           ctaText="Open Skill Analyzer"
-          ctaHref="/Analyzer"
+          ctaHref="/analyzer?step=1 "
         />
       </main>
 

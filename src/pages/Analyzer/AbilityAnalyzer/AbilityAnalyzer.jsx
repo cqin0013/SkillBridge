@@ -1,13 +1,10 @@
-// src/pages/Analyzer/AbilityAnalyzer/AbilityAnalyzer.jsx
-// Step 2: Review & curate abilities.
-// - Imports abilities from ANZSCO code(s) on mount / when codes change
-// - Lets users add/remove abilities by category
-// - Persists a snapshot in sessionStorage for other steps
-// - Also writes a normalized "selections" array ({type, code}) into sb_selections_meta,
-//   optionally including "majorFirst" if available (so JobSuggestion can POST directly)
-// - Notifies the parent AFTER commit (via useEffect) to avoid React warnings.
 
-import React, {
+// Step 2: Review & curate abilities.
+
+// - Adds minWidth: 0 on key containers to avoid horizontal overflow in flex/grid
+
+
+import {
   useEffect,
   useMemo,
   useState,
@@ -24,6 +21,7 @@ import { knowledgeCategories } from "../../../assets/data/knowledge.static";
 import { techSkillCategories } from "../../../assets/data/techskill.static";
 
 import { getAnzscoSkills, mapAbilitiesToFlat } from "../../../lib/api/AbilityApi";
+import useResponsive from "../../../lib/hooks/useResponsive"; // ⭐ use JS responsive
 
 import "./AbilityAnalyzer.css";
 
@@ -33,7 +31,7 @@ const { Title, Paragraph, Text } = Typography;
 const SESSION_KEY = "sb_selections";
 const SESSION_META_KEY = "sb_selections_meta";
 
-/* ---------- Category builders for the shared picker ---------- */
+/*  Category builders for the shared picker  */
 const buildSkillCats = () => [
   { id: "content", label: "Content", skills: (skillCategories.content || []).map((s) => s.name) },
   { id: "process", label: "Process", skills: (skillCategories.process || []).map((s) => s.name) },
@@ -66,7 +64,6 @@ const buildTechSkillCats = () => [
 ];
 
 /* ---------- Normalization helpers ---------- */
-// Convert any incoming item shape into a consistent { name, code, aType } object.
 const normalizeOne = (a) => {
   if (typeof a === "string") return { name: a, aType: "skill" };
   const name = a.name || a.title || "";
@@ -74,39 +71,27 @@ const normalizeOne = (a) => {
   const aType = a.aType || a.type || "skill";
   return { name, code, aType };
 };
-// Unique identity used for de-duplication.
 const identityOf = (it) => `${it.aType || "skill"}|${it.code || it.name}`;
 
-/**
- * Props:
- * - occupationCodes?: string|string[]  // 6-digit ANZSCO code(s) to auto-import abilities
- * - abilities?: array                  // seed abilities from previous step
- * - majorFirst?: string|number|null    // OPTIONAL: ANZSCO major first digit ("1"–"8"); if omitted, we will not save it
- * - onNext(finalAbilities): void       // called when user clicks Next
- * - onGuardChange(disabled, reason?)   // report Next-button guard to parent
- * - onAbilitiesChange?(list)           // (optional) notify parent AFTER commit
- *
- * Ref (optional):
- * - commitAndNext()
- * - getGuard() -> { disabled, reason }
- */
 function AbilityAnalyzer(
   { occupationCodes, abilities = [], majorFirst = null, onNext, onGuardChange, onAbilitiesChange },
   ref
 ) {
-  /** localAbilities drives the UI; we *persist* and *notify* from effects */
+  const { isDesktop, isTablet, isMobile } = useResponsive();
+
+  
+  const gridColumns = isMobile ? "1fr" : isTablet ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))";
+
+  /** localAbilities drives the UI */
   const normalizedIncoming = (abilities || []).map(normalizeOne);
   const [localAbilities, setLocalAbilities] = useState(normalizedIncoming);
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
 
-  /** Resolve majorFirst from prop or from session (best-effort) */
+  /** Resolve majorFirst from prop or from session  */
   const resolveMajorFirst = () => {
-    // Prefer prop if provided
     const mfProp = String(majorFirst ?? "").trim();
     if (/^[1-8]$/.test(mfProp)) return mfProp;
-
-    // Fallback: try previous meta stored in session
     try {
       const raw = sessionStorage.getItem(SESSION_META_KEY);
       if (raw) {
@@ -115,34 +100,27 @@ function AbilityAnalyzer(
         if (/^[1-8]$/.test(mf)) return mf;
       }
     } catch {}
-    return null; // not chosen
+    return null;
   };
 
-  /** Persist current abilities (and optional majorFirst) to sessionStorage & broadcast an event */
+  /** Persist to session & broadcast */
   const writeSession = (list) => {
-    // 1) Build normalized "selections" for backend: [{ type, code }]
     const selections = list
       .map((x) => ({
         type: (x.aType || x.type || "skill").toLowerCase(),
-        code: x.code || x.name, // if no code was provided, fallback to name
+        code: x.code || x.name,
         name: x.name,
       }))
-      // keep only items that actually have a code/name
       .filter((x) => String(x.code || "").trim());
 
-    // 2) Human-friendly buckets for preview cards
     const knowledge = list.filter((x) => (x.aType || "skill") === "knowledge").map((x) => x.name);
     const tech = list.filter((x) => (x.aType || "skill") === "tech").map((x) => x.name);
     const skill = list.filter((x) => (x.aType || "skill") === "skill").map((x) => x.name);
 
-    // 3) Build meta for JobSuggestion and summary widgets
-    const mf = resolveMajorFirst(); // single digit or null
+    const mf = resolveMajorFirst();
     const meta = {
-      // ☑️ This "selections" array is what JobSuggestion expects and will POST to backend
       selections: selections.map((s) => ({ type: s.type, code: s.code })),
-      // Optional: only set when actually chosen; if null/empty -> JobSuggestion won't send major_first
       ...(mf ? { majorFirst: mf } : {}),
-      // Stats for UI
       counts: {
         knowledge: knowledge.length,
         tech: tech.length,
@@ -154,12 +132,8 @@ function AbilityAnalyzer(
     };
 
     try {
-      // Legacy compact key (other pages might still read this)
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(selections));
-      // Canonical key read by JobSuggestion
       sessionStorage.setItem(SESSION_META_KEY, JSON.stringify(meta));
-
-      // Notify in-tab listeners
       window.dispatchEvent(new CustomEvent("sb:selections:update", { detail: meta }));
     } catch {}
   };
@@ -178,7 +152,7 @@ function AbilityAnalyzer(
     }
   };
 
-  /* ---------- INIT: merge session + incoming abilities ---------- */
+  /* merge session + incoming abilities */
   useEffect(() => {
     const fromSession = readSessionSelections();
     const map = new Map();
@@ -189,10 +163,10 @@ function AbilityAnalyzer(
     const merged = [...map.values()];
     setLocalAbilities(merged);
     writeSession(merged);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
   }, []);
 
-  /* ---------- SYNC when parent updates abilities ---------- */
+  /*  SYNC when parent updates abilities  */
   useEffect(() => {
     if (!abilities) return;
     setLocalAbilities((prev) => {
@@ -208,7 +182,7 @@ function AbilityAnalyzer(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(abilities)]);
 
-  /* ---------- Auto-import abilities from ANZSCO code(s) ---------- */
+  /*  Auto-import abilities from ANZSCO code */
   useEffect(() => {
     const codes =
       typeof occupationCodes === "string"
@@ -246,16 +220,14 @@ function AbilityAnalyzer(
     };
 
     fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(occupationCodes)]);
 
-  /* ---------- Picker state & change helpers ---------- */
+  /*  Picker state & change helpers  */
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCats, setPickerCats] = useState([]);
   const [pickerTitle, setPickerTitle] = useState("Pick items");
   const [pickerType, setPickerType] = useState("skill");
 
-  // Add many abilities (dedup by type|code|name), then persist
   const addMany = (names, aType = "skill") => {
     setLocalAbilities((prev) => {
       const seen = new Set(prev.map(identityOf));
@@ -273,7 +245,6 @@ function AbilityAnalyzer(
     });
   };
 
-  // Remove one ability, then persist
   const removeOne = (name, aType) =>
     setLocalAbilities((xs) => {
       const next = xs.filter((x) => !(x.name === name && (x.aType || "skill") === aType));
@@ -281,7 +252,6 @@ function AbilityAnalyzer(
       return next;
     });
 
-  // Group abilities for display
   const groups = useMemo(() => {
     const knowledge = [];
     const skill = [];
@@ -295,12 +265,10 @@ function AbilityAnalyzer(
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // Expand/collapse
   const [openKeys, setOpenKeys] = useState(["knowledge", "tech", "skill"]);
   const toggleKey = (key) =>
     setOpenKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 
-  /* ---------- Next-button guard ---------- */
   const guard = useMemo(() => {
     const disabled = !localAbilities.length || loading;
     const reason = loading
@@ -311,17 +279,14 @@ function AbilityAnalyzer(
     return { disabled, reason };
   }, [localAbilities.length, loading]);
 
-  // Report guard up to the scaffold
   useEffect(() => {
     onGuardChange?.(guard.disabled, guard.reason || undefined);
   }, [guard, onGuardChange]);
 
-  /* ---------- Notify parent AFTER commit (fixes the React warning) ---------- */
   useEffect(() => {
     onAbilitiesChange?.(localAbilities);
   }, [onAbilitiesChange, JSON.stringify(localAbilities)]);
 
-  // Expose imperative API to parent
   useImperativeHandle(ref, () => ({
     commitAndNext: () => {
       writeSession(localAbilities);
@@ -330,7 +295,6 @@ function AbilityAnalyzer(
     getGuard: () => ({ ...guard }),
   }));
 
-  // Selected items in the current picker tab
   const selectedForCurrentType = useMemo(
     () => localAbilities.filter((x) => (x.aType || "skill") === pickerType).map((x) => x.name),
     [localAbilities, pickerType]
@@ -340,12 +304,12 @@ function AbilityAnalyzer(
     [pickerCats]
   );
 
-  /* ---------- UI ---------- */
+  /*  UI  */
   return (
     <>
       {/* Helper card */}
-      <Card className="abl-top-card" variant="outlined">
-        <div className="abl-top-card-row">
+      <Card className="abl-top-card" variant="outlined" style={{ minWidth: 0 }}>
+        <div className="abl-top-card-row" style={{ minWidth: 0 }}>
           <Title level={4} style={{ margin: 0 }}>Add abilities you already have</Title>
           <HelpToggle>
             <div style={{ maxWidth: 420 }}>
@@ -367,10 +331,18 @@ function AbilityAnalyzer(
         {loadErr && <Alert type="warning" showIcon style={{ marginTop: 8 }} message={loadErr} />}
       </Card>
 
-      {/* Groups */}
-      <div className="ability-groups-row">
+
+      <div
+        className="ability-groups-row"
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridColumns,
+          gap: 12,
+          minWidth: 0, // allow children to shrink and prevent horizontal overflow
+        }}
+      >
         {/* Knowledge */}
-        <Card className="ability-group-card" variant="outlined">
+        <Card className="ability-group-card" variant="outlined" style={{ minWidth: 0 }}>
           <div className="ability-group-header">
             <button type="button" className="group-toggle" onClick={() => toggleKey("knowledge")}>
               {openKeys.includes("knowledge") ? "-" : "+"}
@@ -378,14 +350,14 @@ function AbilityAnalyzer(
             <span>Knowledge</span> <Tag bordered={false}>{groups.knowledge.length}</Tag>
           </div>
           {openKeys.includes("knowledge") && (
-            <div className="ability-group-body">
+            <div className="ability-group-body" style={{ minWidth: 0 }}>
               <AbilityList items={groups.knowledge} tag="knowledge" onRemove={removeOne} />
             </div>
           )}
         </Card>
 
         {/* Tech */}
-        <Card className="ability-group-card" variant="outlined">
+        <Card className="ability-group-card" variant="outlined" style={{ minWidth: 0 }}>
           <div className="ability-group-header">
             <button type="button" className="group-toggle" onClick={() => toggleKey("tech")}>
               {openKeys.includes("tech") ? "-" : "+"}
@@ -393,14 +365,14 @@ function AbilityAnalyzer(
             <span>Tech Skills</span> <Tag bordered={false}>{groups.tech.length}</Tag>
           </div>
           {openKeys.includes("tech") && (
-            <div className="ability-group-body">
+            <div className="ability-group-body" style={{ minWidth: 0 }}>
               <AbilityList items={groups.tech} tag="tech" onRemove={removeOne} />
             </div>
           )}
         </Card>
 
         {/* Skills */}
-        <Card className="ability-group-card" variant="outlined">
+        <Card className="ability-group-card" variant="outlined" style={{ minWidth: 0 }}>
           <div className="ability-group-header">
             <button type="button" className="group-toggle" onClick={() => toggleKey("skill")}>
               {openKeys.includes("skill") ? "-" : "+"}
@@ -408,7 +380,7 @@ function AbilityAnalyzer(
             <span>Skills</span> <Tag bordered={false}>{groups.skill.length}</Tag>
           </div>
           {openKeys.includes("skill") && (
-            <div className="ability-group-body">
+            <div className="ability-group-body" style={{ minWidth: 0 }}>
               <AbilityList items={groups.skill} tag="skill" onRemove={removeOne} />
             </div>
           )}

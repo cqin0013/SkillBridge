@@ -17,7 +17,7 @@
   min-width: 0;
 }
 
-/* Optional polish: respect device bottom safe area on iOS */
+/*  respect device bottom safe area on iOS */
 .app-shell footer {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }

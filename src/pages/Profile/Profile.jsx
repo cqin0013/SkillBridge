@@ -1,4 +1,4 @@
-// /src/pages/profile/Profile.jsx
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, Empty, Button, Drawer, Space, Popconfirm, message, Collapse } from "antd";
 import dayjs from "dayjs";
@@ -11,9 +11,8 @@ import PrevSummary from "../../components/ui/PrevSummary/PrevSummary";
 import SectionBox from "../../components/ui/SectionBox/SectionBox";
 import TrainingGuidanceCard from "../../components/ui/TrainingGuidanceCard/TrainingGuidanceCard.jsx";
 import { INDUSTRY_OPTIONS } from "../../lib/constants/industries";
-
-// use cache.js instead of roadmapStore
 import { getCache, delCache } from "../../utils/cache";
+import useResponsive from "../../lib/hooks/useResponsive"; 
 
 export default function Profile() {
   const [steps, setSteps] = useState([]);
@@ -39,9 +38,11 @@ export default function Profile() {
   // Training guidance payload (no mock fallback)
   const [adviceData, setAdviceData] = useState(null);
 
+  // Responsive flags
+  const { isDesktop } = useResponsive();
+
   // Load roadmap + prev summary + training session data
   useEffect(() => {
-    // 1) read roadmap from cache (key 'roadmap' → stored under 'sb_roadmap')
     const cached = getCache("roadmap");
     const loadedSteps = Array.isArray(cached)
       ? cached
@@ -50,7 +51,6 @@ export default function Profile() {
       : [];
     setSteps(loadedSteps);
 
-    // 2) read profile snapshot for PrevSummary
     try {
       const raw = sessionStorage.getItem("sb_profile_prev");
       const base = raw ? JSON.parse(raw) : {};
@@ -71,11 +71,9 @@ export default function Profile() {
         abilitiesCount,
       });
 
-      // 3) read training advice (no mock; show empty if absent)
       const advRaw = sessionStorage.getItem("sb_training_advice");
       setAdviceData(advRaw ? JSON.parse(advRaw) : null);
     } catch {
-      // On any parse error, still provide minimal defaults (no mock)
       setAdviceData(null);
     }
   }, []);
@@ -93,14 +91,12 @@ export default function Profile() {
 
   const onEdit = () => setOpen(true);
 
-  // Editor closes; when user clicked Save, it passes updated steps
   const onEditorClose = (updated) => {
     if (updated) setSteps(updated);
     setOpen(false);
   };
 
   const onClear = () => {
-    // clear only roadmap key
     delCache("roadmap");
     setSteps([]);
     message.success("Roadmap cleared.");
@@ -123,29 +119,31 @@ export default function Profile() {
 
   return (
     <div className="container" style={{ padding: 16 }}>
-      {/* Collapsible: Your info */}
-      <Collapse
-        activeKey={infoOpen ? ["info"] : []}
-        onChange={(keys) => setInfoOpen((keys || []).includes("info"))}
-        style={{ marginBottom: 12 }}
-        items={[
-          {
-            key: "info",
-            label: "Your info",
-            children: (
-              <PrevSummary
-                pillText="Your info"
-                roles={prev.roles}
-                locationLabel={prev.stateCode}
-                industries={industryNames}
-                abilitiesCount={prev.abilitiesCount}
-                targetJobTitle={prev.targetJobTitle}
-                targetJobCode={prev.targetJobCode}
-              />
-            ),
-          },
-        ]}
-      />
+      {/* Collapsible: Your info (desktop only) */}
+      {isDesktop && (
+        <Collapse
+          activeKey={infoOpen ? ["info"] : []}
+          onChange={(keys) => setInfoOpen((keys || []).includes("info"))}
+          style={{ marginBottom: 12 }}
+          items={[
+            {
+              key: "info",
+              label: "Your info",
+              children: (
+                <PrevSummary
+                  pillText="Your info"
+                  roles={prev.roles}
+                  locationLabel={prev.stateCode}
+                  industries={industryNames}
+                  abilitiesCount={prev.abilitiesCount}
+                  targetJobTitle={prev.targetJobTitle}
+                  targetJobCode={prev.targetJobCode}
+                />
+              ),
+            },
+          ]}
+        />
+      )}
 
       {/* Collapsible Roadmap Card */}
       <Card
@@ -212,7 +210,7 @@ export default function Profile() {
         )}
       </Card>
 
-      {/* Training guidance section (no mock; show empty if no data) */}
+      {/* Training guidance section */}
       <div style={{ marginTop: 16 }}>
         <Collapse
           activeKey={adviceBoxOpen ? ["advice"] : []}
@@ -227,8 +225,6 @@ export default function Profile() {
                     <TrainingGuidanceCard
                       data={adviceData}
                       occupationTitle={prev.targetJobTitle}
-                      anzscoCodeLike={prev.targetJobCode}
-                      addressText={"Melbourne VIC 3000"}
                     />
                   ) : (
                     <Empty description="No training guidance available." />

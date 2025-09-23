@@ -1,10 +1,7 @@
-// src/pages/Analyzer/GetInfo/GetInfo.jsx
 // Step 1: Collect past occupations, location, industries, and run ability analysis.
-//
-// This version delegates ability fetching to abilityApi.js:
 // - For each selected ANZSCO code, call /anzsco/{code}/skills
 // - Normalize + dedupe abilities
-// - Keep the rest of your UX (modal, alerts, etc.) unchanged
+
 
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Card, Select, Space, Typography, Alert, Modal } from "antd";
@@ -64,10 +61,9 @@ export default function GetInfo({
   const [analysisMsg, setAnalysisMsg] = useState("");
   const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
   const [renderAnalysisModal, setRenderAnalysisModal] = useState(false);
-
+  
   const { isMobile } = useResponsive();
 
-  // Render modal only when needed (perf/cleanup)
   useEffect(() => {
     if (analysisModalOpen) setRenderAnalysisModal(true);
   }, [analysisModalOpen]);
@@ -97,7 +93,6 @@ export default function GetInfo({
 
       const codes = chosen.map((c) => c.occupation_code);
 
-      // Fetch each code in parallel; tolerate partial failures.
       const settled = await Promise.allSettled(
         codes.map((code) => getAnzscoSkills(code))
       );
@@ -144,7 +139,7 @@ export default function GetInfo({
 
   const stepPill = step > 0 ? `Step ${step}` : "Intro";
 
-  // Simple responsive inlines (avoid CSS just for tiny spacing toggles)
+  // responsive 
   const cardHeaderStyle = {
     display: "flex",
     flexDirection: isMobile ? "column" : "row",
@@ -178,7 +173,7 @@ export default function GetInfo({
       introContent={
         <div>
           Provide a few of your <b>past occupations</b>, preferred <b>work location</b>, and
-          <b> target industries</b>. We’ll use them to tailor your analysis.
+          <b> target industries</b>. We'll use them to tailor your analysis.
         </div>
       }
       actionsContent={

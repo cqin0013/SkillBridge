@@ -1,15 +1,13 @@
-// src/pages/Analyzer/JobSuggestion/JobSuggestion.jsx
 // Purpose: Load job suggestions; user must (1) choose a sub-occupation for a card
 // AND (2) click "Select" on that card. Only then the parent PageActions.Next is enabled.
 // This component itself renders no Back/Next buttons — parent controls PageActions.
-// Shows at most 10 jobs. Comments are in English.
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Empty, Spin, Typography } from "antd";
 import JobCard from "./components/JobCard/JobCard";
 import { suggestJobs } from "../../../lib/api/JobSuggestionApi";
 
-const { Title, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 // Session keys read by later steps (SkillGap)
 const KEY_SELECTED_JOB = "sb_selected_job";
@@ -66,7 +64,6 @@ function readUserRegionPref() {
 export default function JobSuggestion({
   setActionsProps,
   setTargetJob,
-  onUnmatchedChange, // eslint-disable-line no-unused-vars
 }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -107,7 +104,6 @@ export default function JobSuggestion({
         // Keep all jobs; limit to first 10 for a focused UI
         setJobs(list.slice(0, 10));
       } catch (e) {
-        console.error(e);
         setError("Failed to load suggestions.");
       } finally {
         setLoading(false);
@@ -158,14 +154,9 @@ export default function JobSuggestion({
 
   return (
     <div style={{ padding: 16 }}>
-      <Title level={4}>Job Suggestions</Title>
-      <Paragraph type="secondary">
-        Choose a role, pick a sub-occupation for it, then click <b>Select</b> on the card to continue.
-      </Paragraph>
-
       {loading && (
         <div style={{ display: "flex", justifyContent: "center", padding: 24 }}>
-          <Spin />
+          <Spin tip="Matching suitable jobs for you…" />
         </div>
       )}
 
@@ -190,8 +181,6 @@ export default function JobSuggestion({
           />
         ))}
       </div>
-
-      {/* No PageActions here — parent controls Back/Next. */}
     </div>
   );
 }

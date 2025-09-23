@@ -1,5 +1,4 @@
-﻿// src/components/ui/PastOccupationSearch/PastOccupationSearch.jsx
-import React, { useMemo, useState, useEffect } from "react";
+﻿import { useMemo, useState, useEffect } from "react";
 import {
   Form,
   Row,
@@ -27,30 +26,39 @@ const ANZSCO_SEARCH_URL =
 
 /**
  * PastOccupationSearch
- * - Select a past industry (ANZSCO major group 1–8) + search by keyword
- * - Opens a modal with results and supports add/remove up to MAX_SELECT
+ * - Pick a past industry (ANZSCO major group 1–8) + search by keyword.
+ * - Opens a modal with results and supports add/remove up to MAX_SELECT.
+ * - Mobile layout stacks actions below the title so long titles never get cut off.
  */
 export default function PastOccupationSearch({
   selected: selectedProp,
   onChangeSelected: onChangeSelectedProp,
 }) {
-  // --------------------- Local state ---------------------
+  /** Controlled selection state */
   const [selected, setSelected] = useState(
     Array.isArray(selectedProp) ? selectedProp : []
   );
+
+  /** Simple UI states */
   const [industryId, setIndustryId] = useState();
   const [titleKw, setTitleKw] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [renderPickerModal, setRenderPickerModal] = useState(false);
+
+  /** Data + feedback states */
   const [searchLoading, setSearchLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [expandedCodes, setExpandedCodes] = useState(new Set());
   const [tipAfterAction, setTipAfterAction] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  /** Responsive helpers */
   const { isMobile } = useResponsive();
+  const formGutter = isMobile ? [8, 8] : [12, 8];
+  const controlSize = isMobile ? "middle" : "large";
+  const modalWidth = isMobile ? undefined : 720;
 
-  // Resolve industry name for the current selection (used when mapping results)
+  /** Resolve industry name for the current selection (mapped into result items) */
   const industryName = useMemo(() => {
     if (industryId == null) return undefined;
     const item = INDUSTRY_OPTIONS.find(
@@ -59,7 +67,7 @@ export default function PastOccupationSearch({
     return item?.name;
   }, [industryId]);
 
-  // --------------------- Sync with parent via prop ---------------------
+  /** Keep parent in sync */
   const syncSelected = (next) => {
     setSelected(next);
     try {
@@ -76,25 +84,16 @@ export default function PastOccupationSearch({
     if (pickerOpen) setRenderPickerModal(true);
   }, [pickerOpen]);
 
-  // Remaining selection slots
+  /** Remaining selection slots */
   const remain = Math.max(0, MAX_SELECT - selected.length);
 
-  const formGutter = isMobile ? [8, 8] : [12, 8];
-  const controlSize = isMobile ? "middle" : "large";
-  const modalWidth = isMobile ? undefined : 720;
-  const searchButton = (
-    <Button type="primary" {...(isMobile ? { block: true } : {})}>
-      Search
-    </Button>
-  );
-
-  // Fast lookup set for already-selected occupation codes
+  /** Fast lookup set for already-selected occupation codes */
   const selectedCodes = useMemo(
     () => new Set(selected.map((item) => item.occupation_code)),
     [selected]
   );
 
-  // --------------------- Search entry (validations) ---------------------
+  /* ----------------------- Search entry (validations) ----------------------- */
   const handlePickerOpen = () => setPickerOpen(true);
   const handlePickerClose = () => setPickerOpen(false);
   const handleAfterPickerChange = (open) => {
@@ -119,16 +118,16 @@ export default function PastOccupationSearch({
     await doSearch(q);
   };
 
-  // --------------------- Actual search request (NEW ENDPOINT) ---------------------
+  /* --------------------- Actual search request (endpoint) ------------------- */
   const doSearch = async (q) => {
     try {
       setSearchLoading(true);
       setResults([]);
 
-      // Build URL: first=<major group> & s=<keyword> & limit=12
+      // Build URL: first=<major group> & s=<keyword> & limit=10
       const url =
         `${ANZSCO_SEARCH_URL}?first=${encodeURIComponent(industryId)}` +
-        `&s=${encodeURIComponent(q)}&limit=12`;
+        `&s=${encodeURIComponent(q)}&limit=10`;
 
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Search failed: ${res.status}`);
@@ -136,14 +135,15 @@ export default function PastOccupationSearch({
       const data = await res.json();
       const items = Array.isArray(data?.items) ? data.items : [];
 
-      // Map API fields (anzsco_code/title) -> internal fields (occupation_*)
-      // NOTE: description removed for now; API does not return it.
+      // Map API fields (anzsco_code/title/description) -> internal fields used by UI
       const mapped = items.map((it) => ({
         occupation_code:
           it.anzsco_code ?? it.code ?? it.anzsco ?? String(it.id ?? ""),
-        occupation_title: it.anzsco_title ?? it.title ?? it.name ?? "(Untitled)",
-        // occupation_description: it.anzsco_description ?? it.description ?? "",
-        occupation_industry: industryName, // <-- use industry NAME (not code)
+        occupation_title:
+          it.anzsco_title ?? it.title ?? it.name ?? "(Untitled)",
+        occupation_description:
+          it.anzsco_description ?? it.description ?? "", // now supported
+        occupation_industry: industryName,
       }));
 
       setResults(mapped);
@@ -155,7 +155,7 @@ export default function PastOccupationSearch({
     }
   };
 
-  // --------------------- Selection handlers ---------------------
+  /* --------------------------- Selection handlers -------------------------- */
   const toggleDetails = (code) => {
     setExpandedCodes((prev) => {
       const next = new Set(prev);
@@ -168,7 +168,7 @@ export default function PastOccupationSearch({
     if (selectedCodes.has(item.occupation_code)) return;
     if (remain <= 0) {
       setTipAfterAction(
-        "You’ve reached the maximum of 5 occupations. Remove one to add a new entry."
+        "You've reached the maximum of 5 occupations. Remove one to add a new entry."
       );
       return;
     }
@@ -184,10 +184,10 @@ export default function PastOccupationSearch({
     setTipAfterAction("Removed. You can search again or refine your keywords.");
   };
 
-  // --------------------- Render ---------------------
+  /* --------------------------------- Render -------------------------------- */
   return (
     <>
-      <Form layout="vertical" className="pos">
+      <Form layout="vertical" className={`pos pos--${controlSize}`}>
         <Row gutter={formGutter} align="stretch">
           <Col xs={24} md={8}>
             <Form.Item label="Past industry" className="pos__field">
@@ -207,9 +207,11 @@ export default function PastOccupationSearch({
               />
             </Form.Item>
           </Col>
+
           <Col xs={24} md={16}>
             <Form.Item label="Past job title" className="pos__field">
               <Input.Search
+                // Keep input and button the same height via the same size prop
                 size={controlSize}
                 value={titleKw}
                 onChange={(event) => {
@@ -221,7 +223,12 @@ export default function PastOccupationSearch({
                 placeholder="Type your past job title (e.g., Data Analyst)"
                 allowClear
                 loading={searchLoading}
-                enterButton={searchButton}
+                // Custom button with the same size guarantees equal height
+                enterButton={
+                  <Button size={controlSize} type="primary">
+                    Search
+                  </Button>
+                }
               />
             </Form.Item>
           </Col>
@@ -272,7 +279,11 @@ export default function PastOccupationSearch({
           {searchLoading ? (
             <Alert type="info" showIcon message="Searching… Please wait." />
           ) : results.length === 0 ? (
-            <Alert type="info" showIcon message="No results found. Try another keyword." />
+            <Alert
+              type="info"
+              showIcon
+              message="Input error or we don’t have information about the job you’re looking for. Try another keyword or search for a similar occupation."
+            />
           ) : (
             <List
               dataSource={results}
@@ -284,22 +295,62 @@ export default function PastOccupationSearch({
 
                 return (
                   <List.Item className="pos__item" key={code}>
-                    <div className="pos__main">
-                      <div className="pos__title">
-                        <span>{item.occupation_title}</span>
+                    {/* Main row: stack on mobile so title gets full width */}
+                    <div
+                      className="pos__main"
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        alignItems: isMobile ? "flex-start" : "center",
+                        flexDirection: isMobile ? "column" : "row",
+                        minWidth: 0, // let children shrink inside flex
+                        width: "100%",
+                      }}
+                    >
+                      {/* Title block should be able to wrap on small screens */}
+                      <div
+                        className="pos__title"
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          width: "100%",
+                        }}
+                      >
+                        <span
+                          className="pos__title-text"
+                          style={{
+                            display: "block",
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                            overflowWrap: "anywhere",
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {item.occupation_title}
+                        </span>
                         {isSelected && (
-                          <Text type="secondary" style={{ marginLeft: 8 }}>
+                          <Text type="secondary" style={{ marginLeft: 0 }}>
                             (selected)
                           </Text>
                         )}
                       </div>
 
-                      <div className="pos__actions">
+                      {/* Actions: move under title on mobile */}
+                      <div
+                        className="pos__actions"
+                        style={{
+                          display: "flex",
+                          gap: 8,
+                          flexShrink: 0,
+                          width: isMobile ? "100%" : "auto",
+                        }}
+                      >
                         {isSelected ? (
                           <Button
                             size={isMobile ? "middle" : "small"}
                             danger
                             onClick={() => removeItem(code)}
+                            style={{ flex: isMobile ? 1 : undefined }}
                           >
                             Remove
                           </Button>
@@ -309,6 +360,7 @@ export default function PastOccupationSearch({
                             type="primary"
                             onClick={() => addItem(item)}
                             disabled={disabledToAdd}
+                            style={{ flex: isMobile ? 1 : undefined }}
                           >
                             Add
                           </Button>
@@ -318,6 +370,7 @@ export default function PastOccupationSearch({
                           type="text"
                           className="pos__show"
                           onClick={() => toggleDetails(code)}
+                          style={{ flex: isMobile ? 1 : undefined, textAlign: "left" }}
                         >
                           {isOpen ? "Hide details" : "Show details"}
                         </Button>
@@ -325,17 +378,17 @@ export default function PastOccupationSearch({
                     </div>
 
                     {isOpen && (
-                      <div className="pos__details">
-                        {/* Description disabled for now: API doesn't return it */}
-                        {/* {item.occupation_description ? (
+                      <div className="pos__details" style={{ width: "100%", minWidth: 0 }}>
+                        {/* Description if available; otherwise default message */}
+                        {item.occupation_description ? (
                           <Paragraph style={{ marginBottom: 8 }}>
                             {item.occupation_description}
                           </Paragraph>
                         ) : (
                           <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                            No description available.
+                            no description for this occupation
                           </Paragraph>
-                        )} */}
+                        )}
                         <div className="pos__meta">
                           <Text type="secondary">Industry:</Text>&nbsp;
                           {String(item.occupation_industry ?? "—")}

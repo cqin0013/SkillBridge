@@ -1,17 +1,18 @@
-// src/pages/Analyzer/SkillGap/SkillGap.jsx
+
 // Step 4: Show ability gaps (Not Met). Robustly normalizes data from props/session/API.
-// English comments explain logic; UI texts remain concise.
+// Fast UX: no artificial delay; spinner shows only during real fallback fetching.
+
 
 import { useRef, useMemo, useState, useEffect } from "react";
 import HelpToggle from "../../../components/ui/HelpToggle/HelpToggle";
 import SectionBox from "../../../components/ui/SectionBox/SectionBox";
 import GapTable from "../../../components/ui/GapTable";
-import { Typography } from "antd";
+import { Typography, Spin } from "antd";
 import { suggestJobs } from "../../../lib/api/JobSuggestionApi";
 
 const { Paragraph } = Typography;
 
-/* ---------- Exported page intro (for TwoCardScaffold header) ---------- */
+/*  Exported page intro (for TwoCardScaffold header) */
 export const pageIntro = {
   stepPill: "Step 4",
   title: "Skill Gaps",
@@ -75,54 +76,59 @@ function normalizeUnmatched(src) {
     (x) => (x?.title || x?.name || x?.code || "").toString().trim().length > 0
   );
 
-  // If items in flat list didn't carry `type`, try infer from code prefix or fallback "-"
+  // If items in flat list didn't carry `type`, fall back to category or "-"
   unmatchedFlat = unmatchedFlat.map((x) => {
     if (x.type) return x;
-    // weak heuristics can be added here; for now fallback
     return { ...x, type: x.type || (x.category ?? "-") };
   });
 
   return { knowledge, skill, tech, unmatchedFlat };
 }
 
+/** Read cached unmatched from sessionStorage synchronously (avoid first-frame null). */
+function readCachedUnmatched() {
+  try {
+    const cached = sessionStorage.getItem("sb_unmatched");
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function SkillGap({
-  targetJobCode,     // e.g. "15-2031.00"
-  targetJobTitle,    // optional display
-  unmatched,         // { unmatchedFlat?, knowledge?, skill?, tech?, ... }
+  targetJobCode,     
+  targetJobTitle,    
+  unmatched,        
   onPrev,
   onNext,
-  setActionsProps,   // optional (control PageActions in scaffold)
+  setActionsProps,   
 }) {
+  // Initialize from props or cache to avoid initial empty render
+  const [localUnmatched, setLocalUnmatched] = useState(
+    () => unmatched ?? readCachedUnmatched()
+  );
+
+  // Fetching flag: only true during real network fallback
+  const [isFetching, setIsFetching] = useState(false);
+
   const [showHelp, setShowHelp] = useState(false);
-  const [localUnmatched, setLocalUnmatched] = useState(unmatched || null);
   const printRef = useRef(null);
 
-  /* 1) Read session snapshot when local is empty */
-  useEffect(() => {
-    if (localUnmatched) return;
-    try {
-      const cached = sessionStorage.getItem("sb_unmatched");
-      if (cached) {
-        setLocalUnmatched(JSON.parse(cached));
-      }
-    } catch {/* noop */}
-  }, [localUnmatched]);
-
-  /* 2) If parent passes fresher unmatched later, adopt it */
+  /* Adopt fresher props when they arrive */
   useEffect(() => {
     if (unmatched) setLocalUnmatched(unmatched);
   }, [unmatched]);
 
-  /* 3) Fallback: re-fetch suggestions and pick the same occupation's unmatched */
+  /* Fallback: re-fetch suggestions and pick the same occupation's unmatched when we truly have nothing */
   useEffect(() => {
-    if (localUnmatched) return; // we already have data
+    if (localUnmatched) return; // prop or cache already available
 
-    // Selected occupation (parent) saved by Step 3
+    // Selected occupation (saved by Step 3)
     let selectedJob = null;
     try {
       const raw = sessionStorage.getItem("sb_selected_job");
       if (raw) selectedJob = JSON.parse(raw);
-    } catch {/* noop */}
+    } catch { /* noop */ }
     if (!selectedJob) return;
 
     // Selections from Step 2
@@ -136,7 +142,7 @@ export default function SkillGap({
         const mf = meta?.majorFirst ?? meta?.major_first;
         if (mf != null) majorFirst = String(mf).trim() || null;
       }
-    } catch {/* noop */}
+    } catch { /* noop */ }
     if (!selections.length) return;
 
     const isSameOccupation = (item) => {
@@ -151,6 +157,7 @@ export default function SkillGap({
 
     (async () => {
       try {
+        setIsFetching(true);
         const list = await suggestJobs({ selections, majorFirst });
         const found = (list || []).find(isSameOccupation);
         const unmatchedFromApi =
@@ -162,15 +169,22 @@ export default function SkillGap({
           setLocalUnmatched(unmatchedFromApi);
           try {
             sessionStorage.setItem("sb_unmatched", JSON.stringify(unmatchedFromApi));
-          } catch {/* noop */}
+          } catch { /* noop */ }
+        } else {
+          // Resolve to empty shape to indicate true "no gap"
+          setLocalUnmatched({ knowledge: [], skill: [], tech: [], unmatchedFlat: [] });
         }
       } catch (e) {
         console.error("[SkillGap] fallback fetch unmatched failed:", e);
+        // Resolve to empty shape to avoid permanent spinner
+        setLocalUnmatched({ knowledge: [], skill: [], tech: [], unmatchedFlat: [] });
+      } finally {
+        setIsFetching(false);
       }
     })();
   }, [localUnmatched]);
 
-  /* 4) Normalize and build rows */
+  /* Normalize and build rows */
   const normalized = useMemo(() => normalizeUnmatched(localUnmatched), [localUnmatched]);
 
   const rows = useMemo(
@@ -185,15 +199,17 @@ export default function SkillGap({
 
   // Visible debug (comment out in production)
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log(
-      "[SkillGap] counts",
-      { knowledge: normalized.knowledge.length, skill: normalized.skill.length, tech: normalized.tech.length, flat: rows.length }
-    );
+    console.log("[SkillGap] counts", {
+      knowledge: normalized.knowledge.length,
+      skill: normalized.skill.length,
+      tech: normalized.tech.length,
+      flat: rows.length,
+    });
   }, [normalized.knowledge.length, normalized.skill.length, normalized.tech.length, rows.length]);
 
-  /* 5) Persist snapshot for downstream (Step 5) */
+  /* Persist snapshot for downstream (Step 5) */
   useEffect(() => {
+    if (!localUnmatched) return;
     try {
       sessionStorage.setItem(
         "sb_unmatched",
@@ -208,41 +224,70 @@ export default function SkillGap({
       window.dispatchEvent(
         new CustomEvent("sb:unmatched:update", { detail: { unmatched: normalized } })
       );
-    } catch {/* noop */}
-  }, [normalized.knowledge, normalized.skill, normalized.tech, normalized.unmatchedFlat]);
+    } catch { /* noop */ }
+  }, [localUnmatched, normalized.knowledge, normalized.skill, normalized.tech, normalized.unmatchedFlat]);
 
-  /* 6) Wire PageActions */
+  /* Wire PageActions: disable Next only when truly fetching */
   useEffect(() => {
     if (typeof setActionsProps === "function") {
       setActionsProps({
         onPrev,
         onNext,
         nextText: "Next",
-        // Uncomment if you want to block Next when no gaps:
-        // nextDisabled: rows.length === 0,
-        // nextDisabledReason: rows.length === 0 ? "No gaps to plan for." : undefined,
+        nextDisabled: isFetching,
+        nextDisabledReason: isFetching ? "Please wait while we generate your skill gaps." : undefined,
       });
     }
-  }, [setActionsProps, onPrev, onNext, rows.length]);
+  }, [setActionsProps, onPrev, onNext, isFetching]);
 
   const displayOccupation = targetJobTitle || targetJobCode || "-";
+
+  // Title node that wraps automatically on small screens or long strings
+  const titleNode = (
+    <div
+      style={{
+        whiteSpace: "normal",
+        wordBreak: "break-word",
+        overflowWrap: "anywhere",
+        lineHeight: 1.35,
+      }}
+    >
+      {`Unmatched abilities (Not Met) — ${displayOccupation}`}
+    </div>
+  );
 
   return (
     <>
       <SectionBox
         variant="question"
-        title={`Unmatched abilities (Not Met) — ${displayOccupation}`}
+        title={titleNode} 
         extra={
           <HelpToggle show={showHelp} onToggle={() => setShowHelp((v) => !v)}>
             We list the ability <b>title</b> and its <b>classification</b> (Knowledge, Skill, or Tech).
           </HelpToggle>
         }
       >
-        {rows.length ? (
+        {isFetching ? (
+ 
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 160,
+              gap: 12,
+              paddingBlock: 24,
+            }}
+          >
+            <Spin tip="Generating your skill gaps…" />
+          </div>
+        ) : rows.length ? (
+    
           <div ref={printRef} className="sg-print-area">
             <GapTable rows={rows} hideMet />
           </div>
         ) : (
+
           <p style={{ fontStyle: "italic", color: "var(--color-muted, #6b7280)", margin: 0 }}>
             You already match this job well.
           </p>

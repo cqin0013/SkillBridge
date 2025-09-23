@@ -1,5 +1,5 @@
-// src/components/Header/Header.jsx
-import React, { useState, useEffect, useRef } from "react";
+
+import  { useState, useEffect, useRef } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import StrangerThinkLogo from "../../assets/images/StrangerThink.png";
 import useResponsive from "../../lib/hooks/useResponsive";
@@ -41,7 +41,7 @@ export default function Header() {
   // When switching to desktop, close the menu if it’s open
   useEffect(() => { if (isDesktop && open) setOpen(false); }, [isDesktop, open]);
 
-  //  Add mode class to header (for CSS styling)
+  //  Add mode class to header 、
   const modeClass = isDesktop ? "is-desktop" : "is-touch";
 
   return (
@@ -56,7 +56,7 @@ export default function Header() {
         <nav id="primary-nav" className="st-nav" aria-label="Primary">
           <NavLink to="/Analyzer" className={linkClass}>Analyzer</NavLink>
           <NavLink to="/Profile"  className={linkClass}>Profile</NavLink>
-          <NavLink to="/Insight"  className={linkClass}>Insight</NavLink>
+          {/* <NavLink to="/Insight"  className={linkClass}>Insight</NavLink> */}
         </nav>
       )}
 
@@ -71,7 +71,7 @@ export default function Header() {
           >
             <NavLink to="/Analyzer" className={linkClass}>Analyzer</NavLink>
             <NavLink to="/Profile"  className={linkClass}>Profile</NavLink>
-            <NavLink to="/Insight"  className={linkClass}>Insight</NavLink>
+            {/* <NavLink to="/Insight"  className={linkClass}>Insight</NavLink> */}
           </nav>
 
           <button

@@ -19,22 +19,26 @@ import { setCache } from "../../utils/cache";
 
 /** Total number of steps in the wizard */
 const TOTAL_STEPS = 6;
-/** Keep step within valid range */
+/** Clamp step index into a valid range */
 const clamp = (n) =>
   Math.max(0, Math.min(TOTAL_STEPS - 1, Number.isFinite(n) ? n : 0));
 
 export default function AnalyzerWizard() {
+  /* ========== antd v5: useModal to avoid static method context warning ========== */
+  // `useModal` returns an instance (modal) and a context holder that must be rendered once.
+  const [modal, modalContextHolder] = Modal.useModal();
+
   /* ---------------- URL step sync ---------------- */
   const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState(0);
 
-  // Read ?step= from the URL and sync local state
+  // Read ?step= from URL and sync to local state
   useEffect(() => {
     const s = parseInt(searchParams.get("step"), 10);
     if (!Number.isNaN(s)) setStep(clamp(s));
   }, [searchParams]);
 
-  // Navigate to a step and update ?step= in the URL
+  // Navigate to a step and update ?step=
   const goTo = (n) => {
     const s = clamp(n);
     setStep(s);
@@ -48,20 +52,18 @@ export default function AnalyzerWizard() {
   const [roles, setRoles] = useState([]); // Past roles
   const [excludedOccupationCodes, setExcludedOccupationCodes] = useState([]);
   const [stateCode, setStateCode] = useState("All"); // Preferred location (state)
-  const [abilities, setAbilities] = useState([]); // User’s curated abilities (Step 2)
-  const [selectedIndustryIds, setSelectedIndustryIds] = useState([]); // User’s selected industries
-  const [targetJobCode, setTargetJobCode] = useState(""); // Chosen job code (Step 3)
+  const [abilities, setAbilities] = useState([]); // Curated abilities (Step 2)
+  const [selectedIndustryIds, setSelectedIndustryIds] = useState([]); // Industries chosen in Step 1
+  const [targetJobCode, setTargetJobCode] = useState(""); // Chosen sub-occupation code (Step 3)
   const [targetJobTitle, setTargetJobTitle] = useState(""); // Chosen job title (Step 3)
-  const [unmatched, setUnmatched] = useState(null); // Unmatched abilities from Step 3
+  const [unmatched, setUnmatched] = useState(null); // Unmatched abilities from Step 3 (for Step 4)
 
   /* ---------------- Helpers for industry names ---------------- */
-  // Build id -> name map once
   const industryNameMap = useMemo(() => {
     const m = new Map();
     (INDUSTRY_OPTIONS || []).forEach((o) => m.set(o.id, o.name));
     return m;
   }, []);
-  // Convert selected ids to readable names
   const selectedIndustryNames = useMemo(
     () => (selectedIndustryIds || []).map((id) => industryNameMap.get(id) || id),
     [selectedIndustryIds, industryNameMap]
@@ -154,21 +156,21 @@ export default function AnalyzerWizard() {
 
       flat = [];
       knowledge.forEach((x) =>
-        flat.push({ type: "Knowledge", title: x?.title || x?.name, code: x?.code })
+        flat.push({ title: x?.title || x?.name, desc: "Knowledge" })
       );
       skill.forEach((x) =>
-        flat.push({ type: "Skill", title: x?.title || x?.name, code: x?.code })
+        flat.push({ title: x?.title || x?.name, desc: "Skill" })
       );
       tech.forEach((x) =>
-        flat.push({ type: "Tech", title: x?.title || x?.name, code: x?.code })
+        flat.push({ title: x?.title || x?.name, desc: "Tech" })
       );
     }
 
-    // Normalize to roadmap steps
+    // Normalize
     let steps = (flat || [])
       .map((x) => ({
         title: (x?.title || x?.code || "").toString().trim(),
-        desc: (x?.type || "").toString().trim() || undefined,
+        desc: (x?.desc || x?.type || "").toString().trim() || undefined,
       }))
       .filter((s) => s.title.length > 0);
 
@@ -186,7 +188,8 @@ export default function AnalyzerWizard() {
 
   /* ---------------- Step 5: confirm & generate roadmap ---------------- */
   const handleFinish = () => {
-    Modal.confirm({
+    // Use instance-based modal to respect context (theme/locale)
+    modal.confirm({
       title: "Generate a learning roadmap?",
       content:
         "Generate a roadmap from your missing abilities and save it to Profile.",
@@ -196,17 +199,17 @@ export default function AnalyzerWizard() {
         const gaps = readUnmatched();
         const steps = buildRoadmapStepsFromGaps(gaps);
         setCache("roadmap", { steps, updatedAt: Date.now() });
-        Modal.success({ title: "Roadmap generated", content: "Saved to Profile." });
+        modal.success({ title: "Roadmap generated", content: "Saved to Profile." });
         goTo(0);
       },
       onCancel: () => {
-        Modal.success({ title: "Done", content: "You’ve finished the analyzer." });
+        modal.success({ title: "Done", content: "You’ve finished the analyzer." });
         goTo(0);
       },
     });
   };
 
-  /* ---------------- Step 3: allow child to control Next disabled state ---------------- */
+  /* ---------------- Step 3: child controls Next disabled state ---------------- */
   const [actionsStep3, setActionsStep3] = useState({
     onPrev: () => goTo(2),
     onNext: () => goTo(4),
@@ -217,6 +220,9 @@ export default function AnalyzerWizard() {
   /* ---------------- Render steps ---------------- */
   return (
     <>
+      {/* antd v5 modal context holder (required when using `useModal`) */}
+      {modalContextHolder}
+
       {/* Step 0: Intro */}
       {step === 0 && <AnalyzerIntro onStart={() => goTo(1)} />}
 
@@ -259,11 +265,11 @@ export default function AnalyzerWizard() {
         >
           <AbilityAnalyzer
             abilities={abilities}
-            // Live updates: anytime user adds/removes abilities, update state immediately
+            // Live update: whenever abilities change, keep state in sync
             onAbilitiesChange={setAbilities}
             onPrev={() => goTo(1)}
             onNext={(finalAbilities) => {
-              setAbilities(finalAbilities); // also set on “Next” for safety
+              setAbilities(finalAbilities); // ensure we save on Next
               goTo(3);
             }}
           />
@@ -284,7 +290,7 @@ export default function AnalyzerWizard() {
           actionsProps={actionsStep3}
         >
           <JobSuggestion
-            abilities={abilities} // latest abilities (live from Step 2)
+            abilities={abilities}
             selectedIndustryIds={selectedIndustryIds}
             targetJob={targetJobCode}
             setTargetJob={(code, title) => {
@@ -294,7 +300,7 @@ export default function AnalyzerWizard() {
             onUnmatchedChange={setUnmatched}
             onPrev={() => goTo(2)}
             onNext={() => goTo(4)}
-            setActionsProps={setActionsStep3} // let child enable/disable Next
+            setActionsProps={setActionsStep3} // child enables/disables Next here
           />
         </TwoCardScaffold>
       )}
