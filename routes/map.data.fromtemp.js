@@ -1,5 +1,3 @@
-// routes/map.data.fromtemp.js
-// Build router factory: pass in mysql2/promise pool from index.js
 import express from "express";
 /**
  * @openapi
@@ -235,7 +233,7 @@ import express from "express";
 export default function buildRouter(pool) {
   const router = express.Router();
 
-  // 统一州名，避免 VIC/Victoria 分裂成两组
+  // Unify state names to avoid VIC/Victoria being split into two groups
   const normState = `
   CASE
     WHEN state_name IN ('NSW','New South Wales') THEN 'New South Wales'
@@ -250,12 +248,12 @@ export default function buildRouter(pool) {
   END
   `;
 
-  // ✅ 兼容 4 位 / 6 位存储：取字符串前 4 位，不做 LPAD
+  //Get the first 4 characters of a string
   const fourDigitFilter = `
   LEFT(TRIM(CAST(anzsco_code AS CHAR)), 4) = ?
   `;
 
-  // 1) 各州最新日期的 nsc_emp
+  // 1 nsc_emp for each state with the latest date
   const SQL_LATEST_BY_STATE = `
   WITH filtered AS (
     SELECT ${normState} AS state, date, nsc_emp
@@ -273,7 +271,7 @@ export default function buildRouter(pool) {
   ORDER BY state;
   `;
 
-  // 2) 历史统计（每州整段历史）
+  // 2  Historical statistics (entire history of each state)
   const SQL_STATS_BY_STATE = `
   SELECT
     ${normState} AS state,
@@ -290,7 +288,7 @@ export default function buildRouter(pool) {
   ORDER BY state;
   `;
 
-  // 3) 按年趋势（每州每年均值）
+  // 3 Annual average per state
   const SQL_YEARLY_TREND = `
   SELECT
     ${normState} AS state,
@@ -304,7 +302,7 @@ export default function buildRouter(pool) {
 
   /**
    * POST /api/shortage/by-anzsco
-   * body: { "anzsco_code": "261313" }   // 4~6 位都行，按前 4 位匹配
+   * body: { "anzsco_code": "261313" }   // 4~6 
    */
   router.post("/shortage/by-anzsco", async (req, res) => {
     try {
@@ -322,9 +320,9 @@ export default function buildRouter(pool) {
 
         res.json({
           query: { input_code: raw, match_prefix4: prefix4 },
-          latest_by_state: latest,   // 每州一条最新值（仍按“最新日期”）
-          stats_by_state: stats,     // 每州统计
-          yearly_trend: yearly       // ✅ 每州每年均值
+          latest_by_state: latest,   // One latest value per state
+          stats_by_state: stats,     // Statistics per state
+          yearly_trend: yearly       // Annual average per state
         });
       } finally {
         conn.release();

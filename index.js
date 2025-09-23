@@ -1,4 +1,3 @@
-// index.js
 // SkillBridge API
 // Endpoints:
 // - GET  /health
@@ -6,10 +5,10 @@
 // - GET  /occupations/:code/titles
 // - POST /occupations/match-top
 // - POST /occupations/rank-by-codes
-// - GET  /anzsco/search?s=&first=&limit=   <-- 新增（澳洲：首位+关键词模糊查 6 位 ANZSCO）
-// - GET  /anzsco/:code/skills              <-- 新增（澳洲6位 -> 映射到 SOC -> 返回 ability）
-// - GET  /api/anzsco/:code/training-advice <-- 已有（课程建议）
-// - GET  /api/anzsco/:code/demand          <-- 已有（地区需求）
+// - GET  /anzsco/search?s=&first=&limit=   
+// - GET  /anzsco/:code/skills              
+// - GET  /api/anzsco/:code/training-advice 
+// - GET  /api/anzsco/:code/demand          
 
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger.js';
@@ -29,7 +28,7 @@ import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 import path from 'node:path';
 
-// ✅ ANZSCO 两个子路由（你已经有）
+//------------------------=======================================
 import initAnzscoTrainingRoutes from './anzsco.training.router.js';
 import initAnzscoDemandRoutes   from './anzsco.demand.router.js';
 
@@ -46,29 +45,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 // ===================== Security =====================
-// ---- 代理与基础设置 ----
+// ---- Proxy and Infrastructure Settings ----
 app.set('trust proxy', 1);
 
-// ---- 解析 CORS 白名单（支持正则）----
+// ---- 解析 CORS 白名单（支持正则）----Parsing CORS whitelist (regular expressions supported)
 const rawAllowlist = String(process.env.CORS_ALLOWLIST || '')
   .split(',')
   .map(s => s.trim())
   .filter(Boolean);
 
-// 把 CORS_ALLOWLIST 中以 "re:" 开头的项当作正则，其它当作精确匹配
+// Treat CORS_ALLOWLIST items starting with "re:" as regular expressions, and the others as exact matches.
 // 例如：CORS_ALLOWLIST="http://localhost:5173,https://foo.example.com,re:/^https:\/\/.+\.koyeb\.app$/"
 const allowPatterns = [
-  // 默认内置几个常用来源（保留你原来的本地端口）
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:8080',
-  // ✅ 内置 Koyeb 子域通配
+
   /.+\.koyeb\.app$/,
-  // 来自环境变量的条目
+  //Entries from environment variables
   ...rawAllowlist.map(x => (x.startsWith('re:') ? new RegExp(x.slice(3)) : x)),
 ];
 
-// 帮助函数：判断 Origin 是否匹配白名单（字符串或正则）
+// 帮助函数：Determine whether Origin matches the whitelist (string or regular expression)
 function isOriginAllowed(origin) {
   return allowPatterns.some(p => (p instanceof RegExp ? p.test(origin) : p === origin));
 }
@@ -77,6 +75,7 @@ function isOriginAllowed(origin) {
 app.use(cors({
   origin(origin, cb) {
     // 无 Origin（如 curl/postman/同源导航）时直接放行
+    //Directly allow access when there is no Origin (such as curl/postman/same-origin navigation)
     if (!origin) return cb(null, true);
     if (isOriginAllowed(origin)) return cb(null, true);
     return cb(new Error('Not allowed by CORS'));
@@ -90,25 +89,25 @@ app.use(cors({
 // ---- Helmet / CSP ----
 app.disable('x-powered-by');
 
-// 这里只保留你启用的跨源资源策略
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
+// Refine CSP: Allow Koyeb domains and whitelists to initiate XHR/fetch
 // 细化 CSP：允许 Koyeb 域与白名单发起 XHR/fetch
 app.use(helmet.contentSecurityPolicy({
   useDefaults: true,
   directives: {
     "default-src": ["'self'"],
-    // ✅ 关键：允许同源 + http/https + *.koyeb.app + 环境变量白名单
+
     "connect-src": [
       "'self'",
       "http:",
       "https:",
       "*.koyeb.app",
-      // 把精确字符串白名单也纳入 CSP（正则无法直接放 CSP，这里仅加入字符串项）
+
       ...allowPatterns.filter(x => typeof x === 'string'),
     ],
     "img-src": ["'self'", "data:"],
-    "script-src": ["'self'"],          // 如果你用 swagger-ui-express 且需要内联脚本，改为 "'self'", "'unsafe-inline'"
+    "script-src": ["'self'"],
     "style-src": ["'self'", "'unsafe-inline'"],
     "frame-ancestors": ["'none'"],
   },
@@ -143,10 +142,8 @@ app.use(session({
   rolling: true,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // SameSite=None 需要 secure=true
+    secure: process.env.NODE_ENV === 'production', // SameSite=None need secure=true
     sameSite,
-    // 提醒：在 Koyeb 的二级域名环境一般不要显式设置 cookie domain
-    // 否则跨子域可能失效。没有强需求就保持 undefined。
     domain: process.env.COOKIE_DOMAIN || undefined,
     maxAge: 1000 * 60 * 60 * 8,
   },
@@ -180,7 +177,7 @@ const norm   = (s) => (s ?? '').replace(/[\r\n]/g, '').trim().toLowerCase();
 const strip  = (s) => (s ?? '').replace(/[\r\n]/g, '');
 const ensureArray = (a) => (Array.isArray(a) ? a : []);
 
-// ✅ 第1位行业静态映射（产品图里的对照表；数据库里没有）
+// ======Static mapping of the first industry (not in the database)===
 const ANZSCO_MAJOR = Object.freeze({
   '1': 'Managers',
   '2': 'Professionals',
@@ -225,14 +222,15 @@ app.get('/health', async (_req, res) => {
   }
 });
 
-// ===================== ANZSCO 扩展接口（新增） =====================
+// ===================== ANZSCO  =====================
 
 /**
  * GET /anzsco/search?s=keyword&first=1&limit=10
  * - 在 ANZSCO 里做“首位行业 + 标题模糊”搜索，返回 6 位 anzsco_code 与标题
+ * - Searching for "first industry + title fuzzy" in ANZSCO returns the 6-digit anzsco_code and title.
  * - 如果不传 s，则仅按 first 返回该行业内的前 N 个（按标题排序）
+ * - If s is not passed, only the first N products in the industry will be returned (sorted by title)
  */
-// 复用现有模糊打分逻辑的 ANZSCO 搜索：首位行业 + 标题模糊
 /**
  * @openapi
  * /anzsco/search:
@@ -320,7 +318,7 @@ app.get('/anzsco/search', async (req, res) => {
 
   const conn = await pool.getConnection();
   try {
-    // ===== 打分：分别对 title / description 计算，再取最大值作为最终 score =====
+    // ===== Scoring: Calculate the title/description separately and take the maximum value as the final score =====
     const titleScore = `
       (LOWER(COALESCE(a.anzsco_title,'')) = LOWER(?)) * 100 +
       (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT(?, '%'))) * 90 +
@@ -336,7 +334,7 @@ app.get('/anzsco/search', async (req, res) => {
     const scoreExpr = `GREATEST( ${titleScore} , ${descScore} )`;
     const scoreParams = [s, s, s, s,  s, s, s, s]; // title(4) + desc(4)
 
-    // ===== WHERE：首位行业 + （可选）标题/描述模糊 =====
+    // ===== WHERE：First industry + vague title/description =====
     const where = s
       ? `a.anzsco_code LIKE ? AND (
            LOWER(COALESCE(a.anzsco_title,'')) LIKE CONCAT('%', ?, '%')
@@ -353,7 +351,7 @@ app.get('/anzsco/search', async (req, res) => {
       LIMIT ?
     `;
 
-    // 参数顺序：WHERE → ORDER BY(评分) → LIMIT
+    //WHERE → ORDER BY scores → LIMIT
     const params = [...whereParams, ...scoreParams, limit];
 
     const [rows] = await conn.query(sql, params);
@@ -363,7 +361,7 @@ app.get('/anzsco/search', async (req, res) => {
       items: rows.map(r => ({
         anzsco_code: r.anzsco_code,
         anzsco_title: strip(r.anzsco_title),
-        // 若数据库为 NULL，直接返回 null；否则去掉换行
+        // If the database is NULL, return null directly; otherwise remove the line break
         anzsco_description: r.anzsco_description == null ? null : strip(r.anzsco_description),
       })),
     });
@@ -377,7 +375,9 @@ app.get('/anzsco/search', async (req, res) => {
 /**
  * GET /anzsco/:code/skills
  * - 输入 ANZSCO 6 位；通过 ANZSCO→OSCA→ISCO→SOC 找到 SOC occupation(s)
+ * - Enter 6 digits of ANZSCO; find SOC occupation(s) via ANZSCO→OSCA→ISCO→SOC
  * - 返回这些 SOC 的 ability（knowledge/skill/tech），供前端修改后再做匹配
+ * - Return the ability (knowledge/skill/tech) of these SOCs for the front-end to modify and match
  */
 /**
  * @openapi
@@ -450,7 +450,7 @@ app.get('/anzsco/:code/skills', async (req, res) => {
     const occCodes = socOcc.map(r => r.occupation_code);
     const placeholders = occCodes.map(()=>'?').join(',');
 
-    // 2) 拉取 ability（合并所有关联 SOC，做 DISTINCT）
+    // 2) Pull ability (merge all related SOCs and perform DISTINCT)
     const [kn] = await conn.query(
       `
       SELECT DISTINCT k.knowledge_code AS code, k.knowledge_title AS title
@@ -500,15 +500,9 @@ app.get('/anzsco/:code/skills', async (req, res) => {
   }
 });
 
-// ===================== 已有的 ANZSCO 路由（课程/需求） =====================
+// ==========================================
 app.use('/api/anzsco', initAnzscoTrainingRoutes(pool)); // -> /api/anzsco/:code/training-advice
 app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/demand
-
-// ===================== 既有的 SOC 侧接口（保持不变） =====================
-// ===== 推荐职业 + 未命中 ability 列表 =====
-// 请求体可两种写法（二选一或混用）:
-// 1) { selections:[{type:'knowledge'|'skill'|'tech', code:'...'}, ...] }
-// 2) { knowledge_codes:['2.C.1.a',...], skill_codes:['2.B.1.e',...], tech_codes:['43233208',...] }
 
 
 app.use("/api", buildRouter(pool));
@@ -597,12 +591,11 @@ app.get('/debug/login', (req, res) => {
 
 
 
-// 在所有业务路由之后、错误处理中间件之前挂载：
-// ===== Swagger 文档（中英文）=====
+// ===== Swagger Documentation (Chinese and English)=====
 app.get('/openapi.en.json', (_req, res) => res.json(swaggerSpecEn));
 app.get('/openapi.zh.json', (_req, res) => res.json(swaggerSpecZh));
 
-// 方式 A：一个 /docs 页面，内置下拉切换（推荐）
+// A /docs page with a built-in drop-down switch
 app.use('/docs',
   swaggerUi.serve,
   swaggerUi.setup(null, {
@@ -618,7 +611,7 @@ app.use('/docs',
 );
 
 
-// 错误处理
+// error
 app.use((err, req, res, next) => {
   if (err && err.message === 'Not allowed by CORS') {
     return res.status(403).json({ error: 'CORS blocked' });

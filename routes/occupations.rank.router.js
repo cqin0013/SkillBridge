@@ -1,18 +1,9 @@
-// occupations.rank.router.js
 import express from 'express';
 
-/**
- * 抽离版：/occupations/rank-by-codes
- * - 保持你原有匹配/计数/排序逻辑不变
- * - 新增：
- *   1) 读取可选的 major_first ('1'..'8')
- *   2) SOC -> ANZSCO 映射，返回 anzsco: [{code,title,description}]
- *   3) major_first 时过滤
- */
 export default function initRankRoutes(pool) {
   const router = express.Router();
 
-  // ===== 本文件内使用的小工具 =====
+  // ===== tools =====
   const ensureArray = (a) => (Array.isArray(a) ? a : []);
   const strip = (s) => (s ?? '').replace(/[\r\n]/g, '');
   /**
@@ -222,9 +213,8 @@ export default function initRankRoutes(pool) {
    *         description: Server error.
    *         x-description-zh: 服务器错误。
    */
-
   router.post('/occupations/rank-by-codes', async (req, res) => {
-    // 解析入参
+
     let selections = ensureArray(req.body?.selections)
       .map(x => ({ type: String(x.type || '').toLowerCase(), code: String(x.code || '').trim() }))
       .filter(x => x.type && x.code && ['knowledge', 'skill', 'tech'].includes(x.type));
@@ -234,7 +224,7 @@ export default function initRankRoutes(pool) {
     const te2 = ensureArray(req.body?.tech_codes).map(x => ({ type: 'tech', code: String(x).trim() }));
     selections = selections.concat(kn2, sk2, te2);
 
-    // 去重
+    // Deduplication
     const seen = new Set();
     selections = selections.filter(s => {
       const k = `${s.type}|${s.code}`;
@@ -247,12 +237,12 @@ export default function initRankRoutes(pool) {
       return res.status(400).json({ error: 'no codes provided' });
     }
 
-    // 选中全集
+
     const selKn = new Set(selections.filter(x => x.type === 'knowledge').map(x => x.code));
     const selSk = new Set(selections.filter(x => x.type === 'skill').map(x => x.code));
     const selTe = new Set(selections.filter(x => x.type === 'tech').map(x => x.code));
 
-    // 读取可选的 ANZSCO 首位（1..8）
+    // Read the optional ANZSCO first digit (1..8)
     const qMajor = (req.query?.major_first ?? '').toString().trim();
     const bMajor = (req.body?.major_first ?? '').toString().trim();
     const majorFirstRaw = qMajor || bMajor;
@@ -260,7 +250,7 @@ export default function initRankRoutes(pool) {
 
     const conn = await pool.getConnection();
     try {
-      // code -> title 映射
+      // code -> title
       const knTitleMap = new Map(), skTitleMap = new Map(), teTitleMap = new Map();
 
       if (selKn.size) {
@@ -291,7 +281,7 @@ export default function initRankRoutes(pool) {
         rows.forEach(r => teTitleMap.set(r.tech_skill_code, strip(r.tech_title)));
       }
 
-      // 命中职业聚合
+      // Hit Profession Aggregation
       const results = [];
       if (selKn.size) {
         const codes = [...selKn];
@@ -327,7 +317,7 @@ export default function initRankRoutes(pool) {
         results.push(...rows);
       }
 
-      // 以职业为键做聚合
+      // Aggregate by occupation
       const byOcc = new Map();
       for (const r of results) {
         const key = r.occupation_code;
@@ -342,7 +332,7 @@ export default function initRankRoutes(pool) {
         byOcc.set(key, entry);
       }
 
-      // 生成结果（含未命中明细）
+      // Generate results (including miss details)
       const items = [...byOcc.values()]
         .map(e => {
           const kc = e.matched.knowledge_codes.size;
@@ -370,7 +360,7 @@ export default function initRankRoutes(pool) {
         })
         .sort((a, b) => b.count - a.count || a.occupation_title.localeCompare(b.occupation_title));
 
-      // ====== SOC -> ANZSCO 映射（仅返回含详情的 anzsco[]）======
+      // ====== SOC -> ANZSCO
       const occCodesAll = items.map(it => it.occupation_code);
       let occToAnzscoFull = new Map(); // Map<occupation_code, Array<{code,title,description}>>
 
@@ -406,7 +396,7 @@ export default function initRankRoutes(pool) {
         }, new Map());
       }
 
-      // 根据 major_first 过滤并挂回到每条记录
+      // Filter by major_first and link back to each record
       const itemsWithAnzsco = items.map(it => {
         const allObjs = occToAnzscoFull.get(it.occupation_code) || [];
         const filteredObjs = majorFirst
@@ -419,7 +409,7 @@ export default function initRankRoutes(pool) {
         ? itemsWithAnzsco.filter(it => it.anzsco.length > 0)
         : itemsWithAnzsco;
 
-      // 返回
+      // return
       res.json({ total_selected: selections.length, items: finalItems });
     } catch (e) {
       console.error('rank-by-codes error:', e);
