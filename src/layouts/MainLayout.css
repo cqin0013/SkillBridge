@@ -11,10 +11,15 @@
   /* modern dynamic viewport height */
 }
 
+.app-shell>header {
+  flex: 0 0 auto;
+}
 /* Header/Footer are natural-height; main grows to fill remaining space */
 .app-main {
   flex: 1 1 auto;
   min-width: 0;
+  position: relative;
+    overflow: visible;
 }
 
 /*  respect device bottom safe area on iOS */

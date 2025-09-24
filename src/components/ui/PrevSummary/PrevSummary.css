@@ -1,19 +1,53 @@
-/* Make the card fill the left column while honoring a max width if needed */
-.prev-summary-card {
-  width: 100%;
-  box-sizing: border-box;
+/* Keep your existing .prev-summary-card and .prev-wrap if you have them */
+
+/* Placeholder when no data on mid/small screens */
+.prev-empty {
+  padding: 8px 0;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
 }
 
-/* Ensure long strings/arrays wrap correctly inside description items */
-.prev-summary-card .ant-descriptions-item-content,
-.prev-wrap {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  hyphens: auto;
+/* Mid screens (1000–1499): slim inline tab placed where the component would be */
+.prev-summary-tab {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 8px 0;
 }
 
-/* Friendly wrapping for Ant Design tags inside the card */
-.prev-summary-card .ant-tag {
-  margin-bottom: 4px;
+.prev-summary-tab button {
+  height: 40px;
+  border-radius: 20px;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(0, 0, 0, .06);
+}
+
+/* Drawer body tweak (optional) */
+.prev-summary-drawer .ant-drawer-body {
+  padding-block: 12px;
+}
+
+/* Small screens (<1000): draggable floating badge */
+.prev-drag-badge {
+  width: 56px;
+  /* must match JS constraints */
+  height: 56px;
+  /* must match JS constraints */
+  border-radius: 50%;
+  border: none;
+  outline: none;
+  cursor: grab;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1677ff;
+  /* Ant Design default primary */
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+}
+
+.prev-drag-badge:active {
+  cursor: grabbing;
+  transform: scale(0.98);
 }

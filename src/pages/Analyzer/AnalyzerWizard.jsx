@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { Modal } from "antd";
 
 import { TwoCardScaffold } from "./Analyzer";
-import PrevSummary from "../../components/ui/PrevSummary/PrevSummary";
+import PrevSummary from "../../components/ui/PrevSummary/PrevSummary.tsx";
 import ProgressBar from "../../components/ui/ProgressBar/ProgressBar";
 
 import AnalyzerIntro from "./AnalyzerIntro/AnalyzerIntro";
