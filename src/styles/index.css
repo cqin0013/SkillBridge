@@ -1,0 +1,21 @@
+
+/* 1) Tailwind core */
+@import "tailwindcss";
+
+/* 2) Global base semantics (minimal and accessible defaults) */
+@import "./base.css";
+
+
+@theme {
+  --color-primary: #637DAB;
+  --color-accent:  #DE9526;
+  --color-ink: #0F172A;
+  --color-ink-soft: #475569;
+  --color-ink-invert: #FFFFFF;
+  --color-border: #E2E8F0;
+}
+
+:root {
+  --color-primary: #637DAB;
+  --color-accent: #DE9526;
+}

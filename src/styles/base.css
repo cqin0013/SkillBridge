@@ -1,0 +1,17 @@
+/* Purpose: apply global semantics only; keep component styles elsewhere. */
+@layer base {
+  /* Use the project's sans stack defined in tailwind.config.js */
+  html { @apply font-sans; }
+
+  /* White surface + AAA body text by default */
+  body { @apply m-0 bg-white text-ink; }
+
+  /* Links:
+     - Keep AAA contrast (ink) at normal sizes.
+     - Always underline (non-color cue).
+     - Hover: strengthen decoration; only switch to primary if the link is "large text". */
+  .prose a {
+    @apply font-medium text-ink underline underline-offset-2 decoration-ink/40;
+  }
+
+}
