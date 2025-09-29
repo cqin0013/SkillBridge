@@ -1,7 +1,9 @@
 // src/components/home/FeatureCard.tsx
 // A reusable feature card with image tile, title, description and a CTA button.
-// Visual tweaks: softer gradient tile and a de-emphasized icon (lower saturation/opacity).
+// Now includes a "reveal-on-view" entrance animation (first time visible),
+// consistent with FeatureSection. Optional `revealDelayMs` supports staggered grids.
 
+import { useEffect, useRef } from "react"
 import Button from "../ui/Button"
 
 type ButtonVariant = "primary" | "accent" | "ghost"
@@ -17,6 +19,7 @@ export type FeatureCardProps = {
   ctaVariant?: ButtonVariant
   tone?: Tone                   // controls the colored tile background
   className?: string
+  revealDelayMs?: number        // optional: delay to stagger multiple cards
 }
 
 function toneBg(tone: Tone = "neutral") {
@@ -43,11 +46,59 @@ export default function FeatureCard({
   ctaVariant = "primary",
   tone = "neutral",
   className,
+  revealDelayMs = 0,
 }: FeatureCardProps) {
+  // Ref used for reveal-on-view entrance animation
+  const revealRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const el = revealRef.current
+    if (!el || typeof window === "undefined") return
+
+    // Respect reduced motion preference: show immediately with no animation
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (prefersReduced) {
+      el.classList.remove("opacity-0", "translate-y-2")
+      el.classList.add("opacity-100", "translate-y-0")
+      return
+    }
+
+    // Avoid flashing if initially above the fold (SSR hydration/fast paint)
+    const initialBox = el.getBoundingClientRect()
+    const viewportH = window.innerHeight || document.documentElement.clientHeight
+    if (initialBox.top < viewportH * 0.9) {
+      if (revealDelayMs > 0) el.style.transitionDelay = `${revealDelayMs}ms`
+      el.classList.remove("opacity-0", "translate-y-2")
+      el.classList.add("opacity-100", "translate-y-0")
+      return
+    }
+
+    // Observe first intersection, then reveal and unobserve
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            if (revealDelayMs > 0) el.style.transitionDelay = `${revealDelayMs}ms`
+            el.classList.remove("opacity-0", "translate-y-2")
+            el.classList.add("opacity-100", "translate-y-0")
+            io.unobserve(el)
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -12%" }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [revealDelayMs])
+
   return (
     <article
+      // Initial state matches FeatureSection: transparent + slight downward offset,
+      // then transitions to fully visible and settled when observed.
+      ref={revealRef}
       className={[
         "group rounded-3xl border border-border bg-white p-6 shadow-card transition",
+        "opacity-0 translate-y-2 transform-gpu duration-500 will-change-transform",
         "hover:translate-y-[-2px] hover:shadow-lg focus-within:translate-y-[-2px] focus-within:shadow-lg",
         className || "",
       ].join(" ")}

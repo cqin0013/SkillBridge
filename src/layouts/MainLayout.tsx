@@ -1,6 +1,6 @@
 // English comments only inside code:
 // Layout that renders Header and Footer once, and an <Outlet /> in between.
-// Also scrolls to top and focuses main on route change for better UX/a11y.
+// Also scrolls to top on route change for better UX.
 
 import { Outlet, useLocation } from "react-router-dom"
 import { useEffect, useRef, useMemo } from "react"
@@ -24,8 +24,6 @@ export default function MainLayout() {
   useEffect(() => {
     // Scroll to top when the route (pathname) changes.
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior })
-    // Move focus to the main content for accessibility.
-    mainRef.current?.focus()
   }, [pathname])
 
   const transparent = useMemo(
@@ -55,3 +53,5 @@ export default function MainLayout() {
     </div>
   )
 }
+
+
