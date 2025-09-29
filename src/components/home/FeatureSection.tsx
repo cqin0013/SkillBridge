@@ -1,10 +1,15 @@
 // src/components/home/FeatureSection.tsx
-// English comments only inside code:
 // FeatureSection supports two visual styles:
 // 1) "panel": text on the left + large decorative panel on the right.
-//    Enlarged variant supports wider container, bigger paddings/type, taller panel,
-//    and a larger image via props.
+//    Image is statically larger (no hover zoom); the whole card animates on hover.
 // 2) "image": legacy two-column media + text.
+//    Media block is taller to make the image visually larger (no hover zoom);
+//    the whole card animates on hover.
+//
+// Notes:
+// - Entrance animation uses IntersectionObserver to reveal on first view.
+// - Hover/focus animate the entire card (lift + subtle scale + shadow).
+// - Image hover zoom is intentionally removed per requirements.
 
 import { useEffect, useId, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -66,9 +71,10 @@ export default function FeatureSection({
 }: Props) {
   const navigate = useNavigate()
 
-  // Choose visual style; default to panel if bullets exist
+  // Choose visual style; default to "panel" if bullets exist
   const mode: Visual = visual ?? (bullets && bullets.length > 0 ? "panel" : "image")
 
+  // Accessibility ids for tooltips
   const mediaTtId = useId()
   const copyTtId = useId()
   const ctaTtId = useId()
@@ -102,18 +108,19 @@ export default function FeatureSection({
 
   // Panel height and image default size
   const defaultPanelHeights =
-    size === "xl"    ? "h-[420px] lg:h-[500px]"
-    : size === "large" ? "h-[360px] lg:h-[420px]"
-    : "h-[320px] lg:h-[380px]"
+    size === "xl"    ? "h-[460px] lg:h-[540px]" // slightly taller to make the visual larger
+    : size === "large" ? "h-[400px] lg:h-[480px]"
+    : "h-[340px] lg:h-[400px]"
 
   const panelHeights = panelHeightClassName || defaultPanelHeights
 
+  // Statically larger image (no hover zoom); tweak per size tier
   const defaultImgSize =
-    size === "xl"    ? "h-48 w-48 lg:h-56 lg:w-56"
-    : size === "large" ? "h-36 w-36 lg:h-44 lg:w-44"
-    : "h-32 w-32 lg:h-36 lg:w-36"
+    size === "xl"    ? "h-64 w-64 lg:h-72 lg:w-72"
+    : size === "large" ? "h-44 w-44 lg:h-52 lg:w-52"
+    : "h-36 w-36 lg:h-44 lg:w-44"
 
-  // Reveal-on-view
+  // Reveal-on-view entrance animation
   const revealRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     const el = revealRef.current
@@ -147,7 +154,7 @@ export default function FeatureSection({
     return () => io.disconnect()
   }, [])
 
-  // Tooltip bubble (CSS-only)
+  // Tooltip bubble (CSS-only, activated on hover/focus)
   const tooltipClasses =
     "pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 " +
     "rounded px-2 py-1 text-xs bg-ink text-ink-invert shadow-card " +
@@ -155,26 +162,26 @@ export default function FeatureSection({
     "group-hover/tt:opacity-100 group-hover/tt:scale-100 " +
     "group-focus-visible/tt:opacity-100 group-focus-visible/tt:scale-100"
 
-  // SPA CTA
+  // SPA CTA navigation
   const onCta = () => navigate(to)
 
-  // ---------- Panel style (enlarged; white→primary gradient; no border) ----------
+  // ---------- Panel style ----------
   if (mode === "panel") {
     return (
       <section id={id} className={className}>
-        {/* Wider container and smaller side paddings to feel closer to edges */}
         <div className={`mx-auto ${containerWidth} px-3 lg:px-6 ${sectionPadding}`}>
+          {/* Card wrapper: the whole card animates on hover/focus (lift + subtle scale + shadow) */}
           <div
             ref={revealRef}
             className="
               opacity-0 translate-y-2 transform-gpu transition duration-500 will-change-transform
-              rounded-3xl
-              bg-gradient-to-br from-white to-primary/15
-              shadow-card p-6 lg:p-12
+              rounded-3xl bg-gradient-to-br from-white to-primary/15 shadow-card p-6 lg:p-12
+              hover:-translate-y-1 hover:scale-[1.01] hover:shadow-lg
+              focus-within:-translate-y-1 focus-within:scale-[1.01] focus-within:shadow-lg
             "
           >
             <div className={`grid grid-cols-1 items-start ${gridGap} lg:grid-cols-2`}>
-              {/* Left: copy */}
+              {/* Left: copy block with optional badge, bullets, CTA */}
               <div>
                 {badgeLabel && (
                   <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-bold text-white shadow-sm">
@@ -213,11 +220,10 @@ export default function FeatureSection({
                 </div>
               </div>
 
-              {/* Right: visual panel (primary-tinted with subtle accent glow option) */}
+              {/* Right: visual panel with a larger static image (no hover zoom) */}
               <div className="relative">
-                <div className="rounded-3xl bg-gradient-to-b from-primary/10 via-primary/5 to-white p-8 lg:p-10 shadow-inner">
+                <div className="rounded-3xl bg-gradient-to-b from-primary/5 via-primary/5 to-transparent">
                   <div className={`relative mx-auto flex w-full max-w-[880px] items-center justify-center rounded-2xl bg-gradient-to-tr from-primary/25 to-primary/10 ${panelHeights}`}>
-                    {/* Larger image if provided; otherwise fallback tile */}
                     {image ? (
                       <img
                         src={image}
@@ -225,14 +231,15 @@ export default function FeatureSection({
                         loading="lazy"
                         decoding="async"
                         className={[
+                          // Base image styling (no hover transform)
                           "relative object-contain drop-shadow-sm filter saturate-75 opacity-90",
+                          // Statically larger size tuned per "size" prop
                           imageClassName || defaultImgSize,
                         ].join(" ")}
                       />
                     ) : (
-                      <div className="relative h-40 w-40 rounded-2xl bg-primary shadow-card" />
+                      <div className="relative h-70 w-70 rounded-2xl bg-primary shadow-card" />
                     )}
-
                     {/* Decorative dots */}
                     <span aria-hidden="true" className="absolute top-6 left-6 h-6 w-6 rounded-full bg-primary/15" />
                     <span aria-hidden="true" className="absolute bottom-6 right-6 h-4 w-4 rounded-full bg-primary/15" />
@@ -253,14 +260,17 @@ export default function FeatureSection({
   return (
     <section id={id} className={className}>
       <div className={`mx-auto max-w-6xl px-4 ${sectionPadding}`}>
+        {/* Card wrapper: the whole card animates on hover/focus (lift + subtle scale + shadow) */}
         <div
           ref={revealRef}
           className="
             opacity-0 translate-y-2 transform-gpu transition duration-500 will-change-transform
             grid grid-cols-1 items-center gap-10 lg:grid-cols-2
+            hover:-translate-y-1 hover:scale-[1.01] hover:shadow-lg
+            focus-within:-translate-y-1 focus-within:scale-[1.01] focus-within:shadow-lg
           "
         >
-          {/* Media (clickable; hover scale) */}
+          {/* Media block: taller container for a visually larger image (no hover zoom) */}
           <Link
             to={to}
             aria-label={`Open ${title}`}
@@ -271,6 +281,8 @@ export default function FeatureSection({
               aspectClass,
               mediaOrder,
               "w-full",
+              // Make the media area taller to enlarge the perceived image size
+              "min-h-[260px] sm:min-h-[320px] lg:min-h-[380px]",
             ].join(" ")}
           >
             {image && (
@@ -284,8 +296,7 @@ export default function FeatureSection({
                 sizes="(min-width:1024px) 50vw, 100vw"
                 className="
                   absolute inset-0 h-full w-full object-cover
-                  transition-transform duration-300 ease-out
-                  hover:scale-[1.03] focus:scale-[1.03]
+                  /* Intentionally no hover transform here */
                 "
               />
             )}
@@ -295,7 +306,7 @@ export default function FeatureSection({
             </span>
           </Link>
 
-          {/* Copy */}
+          {/* Copy block */}
           <div>
             <Link
               to={to}

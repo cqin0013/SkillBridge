@@ -5,7 +5,7 @@
  *
  * Responsibilities
  * - Desktop: inline nav with solid active indicator (GSAP) and hover dashed underline
- * - Mobile: hamburger + drawer (no overlay); closes on outside click / ESC / route change
+ * - Mobile: hamburger + drawer (transparent panel); closes on outside click / ESC / route change
  * - Animations: scroll hide/reveal (GSAP, yPercent), hover lift on brand & nav, drawer timeline
  *
  * Accessibility
@@ -96,7 +96,8 @@ const Brand = memo(function Brand({ fgClass }: { fgClass: string }) {
   );
 });
 
-// Desktop nav also receives `fgClass` (link color) and `indicatorColor`
+// Desktop nav receives `fgClass` (link color) and `indicatorColor`.
+// Hover dashed underline color switched to accent (was primary).
 const DesktopNav = memo(function DesktopNav({
   fgClass,
   indicatorColor,
@@ -104,7 +105,7 @@ const DesktopNav = memo(function DesktopNav({
   fgClass: string;
   indicatorColor: string;
 }) {
-  // Active underline is drawn by indicator bar; hover shows brand dashed underline
+  // Active underline is drawn by indicator bar; hover shows dashed underline in accent color
   const navClass = ({ isActive }: { isActive: boolean }) =>
     cx(
       "relative font-bold transition-colors will-change-transform",
@@ -113,8 +114,8 @@ const DesktopNav = memo(function DesktopNav({
       "no-underline decoration-transparent",
       NAV_SIZE,
       !isActive &&
-        "hover:underline hover:decoration-1 hover:decoration-dashed hover:decoration-primary/60 hover:underline-offset-[6px]",
-      "active:underline active:decoration-1 active:decoration-dashed active:decoration-primary/60 active:underline-offset-[6px]",
+        "hover:underline hover:decoration-1 hover:decoration-dashed hover:decoration-primary hover:underline-offset-[6px]",
+      "active:underline active:decoration-1 active:decoration-dashed active:decoration-primary active:underline-offset-[6px]",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded"
     );
 
@@ -167,17 +168,23 @@ type MobileMenuProps = {
   open: boolean;
   onClose: () => void;
   panelRef: React.RefObject<HTMLDivElement | null>;
+  fgClass: string; // inherit foreground (white on home, black elsewhere)
 };
 
-const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef }: MobileMenuProps) {
+// Transparent mobile drawer: panel is see-through; keep rounded corners and a soft shadow.
+// Link hover uses a very light translucent fill for feedback (remove if you want 100% pure transparent).
+const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef, fgClass }: MobileMenuProps) {
   if (!open) return null;
 
   return (
     <div
       ref={panelRef}
-      className="lg:hidden fixed top-16 right-3 z-50 w-[180px]
-                 rounded-xl border border-gray-200 bg-white p-2 shadow-md
-                 max-h-[min(65vh,420px)] overflow-auto"
+      className={cx(
+        "lg:hidden fixed top-16 right-3 z-50 w-[180px]",
+        "rounded-xl border border-transparent",   // no visible border
+        "bg-transparent p-2 shadow-md",          // transparent background + soft shadow
+        "max-h-[min(65vh,420px)] overflow-auto",
+      )}
       role="dialog"
       aria-modal="true"
       aria-label="Main menu"
@@ -190,18 +197,19 @@ const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef }: MobileM
             className={({ isActive }) =>
               cx(
                 "no-underline decoration-transparent rounded-md px-3 py-2 transition",
-                "text-black", // drawer is white; keep text black everywhere
+                fgClass, // use inherited foreground color (white on home, black elsewhere)
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:rounded-lg",
+                // dashed underline uses accent color on hover/active
                 isActive
-                  ? "border-b-2 border-black"
-                  : "hover:underline hover:decoration-1 hover:decoration-dashed hover:decoration-primary/60 hover:underline-offset-[6px]"
+                  ? "border-b-2 border-current"
+                  : "hover:underline hover:decoration-1 hover:decoration-dashed hover:decoration-primary/60 hover:underline-offset-[6px] hover:bg-white/10"
               )
             }
             onPointerEnter={(e) => { if (!prefersReduced()) gsap.to(e.currentTarget, { y: -2, duration: 0.16, ease: "power2.out" }); }}
             onPointerLeave={(e) => { if (!prefersReduced()) gsap.to(e.currentTarget, { y:  0, duration: 0.18, ease: "power2.out" }); }}
             onClick={onClose}
           >
-            <span className="font-bold"> {/* black by parent */}{it.label}</span>
+            <span className="font-bold">{it.label}</span>
           </NavLink>
         ))}
       </div>
@@ -413,8 +421,6 @@ export default function Header({ transparent = false, className }: HeaderProps) 
         "site-header",
         "top-0 z-40 border-b",
         // keep transparent only where parent asks (e.g., on "/")
-        // non-home pages will typically pass transparent={false} or omit
-        // You can also choose: transparent || onHome ? ... : ... if you want to auto-detect
         (transparent || onHome)
           ? "bg-transparent border-transparent"
           : "bg-white/80 border-gray-200 backdrop-blur supports-[backdrop-filter]:bg-white/60",
@@ -436,7 +442,7 @@ export default function Header({ transparent = false, className }: HeaderProps) 
 
       {/* aria-controls target for the hamburger */}
       <div id={menuId}>
-        <MobileMenu open={open} onClose={close} panelRef={panelRef} />
+        <MobileMenu open={open} onClose={close} panelRef={panelRef} fgClass={fgClass} />
       </div>
     </header>
   );

@@ -1,44 +1,42 @@
 // src/components/ui/Button.tsx
-// Reusable Button that supports three render modes:
-// 1) <button> (default)
-// 2) <a href="...">  (external or hard link)
-// 3) <Link to="..."> (React Router SPA link)
-// It keeps a11y traits (focus ring, aria-busy) and exposes variant/size APIs.
+// Reusable Button with a11y refinements:
+// - Link/anchor: when "disabled", remove from tab order and mark aria-disabled
+// - Loading announcements via aria-live
+// - Touch target meets 44px minimum where possible
+// - target="_blank" gets a safe rel fallback
 
 import * as React from "react"
 import { Link } from "react-router-dom"
 import clsx from "clsx"
 
-// ----- Variants & Sizes -----
 export type ButtonVariant = "primary" | "accent" | "ghost"
 type ButtonSize = "sm" | "md" | "lg"
 
 const base =
+  // Ensure min tap target; combine with explicit heights below
   "inline-flex items-center justify-center rounded-full font-semibold transition " +
-  "focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60 disabled:pointer-events-none"
+  "focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60 disabled:pointer-events-none " +
+  "min-h-[44px]" // WCAG suggested minimum touch target
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "h-9 px-4 text-sm",
-  md: "h-10 px-5 text-sm",
-  lg: "h-11 px-6 text-base",
+  // Keep explicit heights, but min-h guards small cases
+  sm: "h-11 px-4 text-sm", // 44px
+  md: "h-11 px-5 text-sm", // 44px
+  lg: "h-12 px-6 text-base", // 48px
 }
 
 const variants: Record<ButtonVariant, string> = {
-  // primary: cold-blue outline/fill per your design tokens
   primary:
-    "bg-primary text-white border border-primary hover:bg-primary/5 " +
+    "bg-primary text-white border border-primary hover:bg-primary/90 " +
     "focus-visible:ring-primary/40",
-  // accent: warm-gold solid CTA with black text for strong contrast
   accent:
-    "bg-accent text-black hover:brightness-105 shadow-card " +
+    "bg-accent text-black hover:bg-accent/90 shadow-card " +
     "focus-visible:ring-accent/40",
-  // ghost: text-only, subtle
   ghost:
-    "bg-transparent text-ink hover:bg-black/5 " +
+    "bg-transparent text-ink hover:bg-black/10 " +
     "focus-visible:ring-black/20",
 }
 
-// ----- Common props shared by all render modes -----
 type CommonProps = {
   id?: string
   title?: string
@@ -53,8 +51,6 @@ type CommonProps = {
   "aria-describedby"?: string
 }
 
-// ----- Three union shapes -----
-// <button>
 type ButtonAsButton = CommonProps & {
   to?: undefined
   href?: undefined
@@ -62,7 +58,6 @@ type ButtonAsButton = CommonProps & {
   rel?: undefined
 }
 
-// <a href>
 type ButtonAsLink = CommonProps & {
   href: string
   to?: undefined
@@ -70,7 +65,6 @@ type ButtonAsLink = CommonProps & {
   rel?: string
 }
 
-// <Link to>
 type ButtonAsRouterLink = CommonProps & {
   to: string
   href?: undefined
@@ -101,18 +95,25 @@ export default function Button(props: ButtonProps) {
   } = props
 
   const isDisabled = !!disabled || !!loading
-
-  // Compose classes once
   const classes = clsx(base, sizes[size], variants[variant], className)
+
+  // Helper: safe rel when opening new tab
+  const withSafeRel = (rel?: string, target?: string) =>
+    target === "_blank" ? rel ? rel : "noopener noreferrer" : rel
+
+  // Shared "loading" announcer (screen-reader friendly)
+  // Note: We keep it inside the control so SRs read the change quickly.
+  const srLoading = loading ? (
+    <span aria-live="polite" className="sr-only">
+      Loading…
+    </span>
+  ) : null
 
   // Render: React Router <Link>
   if (isRouterLink(props)) {
     const { to } = props
     const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
-      if (isDisabled) {
-        e.preventDefault()
-        return
-      }
+      if (isDisabled) { e.preventDefault(); return }
       onClick?.(e)
     }
     return (
@@ -123,9 +124,12 @@ export default function Button(props: ButtonProps) {
         className={classes}
         aria-disabled={isDisabled || undefined}
         aria-busy={loading || undefined}
+        // Remove from tab order when disabled to avoid focus trap/confusion
+        tabIndex={isDisabled ? -1 : undefined}
         onClick={handleClick}
       >
         {children}
+        {srLoading}
       </Link>
     )
   }
@@ -134,10 +138,7 @@ export default function Button(props: ButtonProps) {
   if (isAnchor(props)) {
     const { href, target, rel } = props
     const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
-      if (isDisabled) {
-        e.preventDefault()
-        return
-      }
+      if (isDisabled) { e.preventDefault(); return }
       onClick?.(e)
     }
     return (
@@ -146,23 +147,22 @@ export default function Button(props: ButtonProps) {
         title={title}
         href={href}
         target={target}
-        rel={rel}
+        rel={withSafeRel(rel, target)}
         className={classes}
         aria-disabled={isDisabled || undefined}
         aria-busy={loading || undefined}
+        tabIndex={isDisabled ? -1 : undefined}
         onClick={handleClick}
       >
         {children}
+        {srLoading}
       </a>
     )
   }
 
   // Render: <button>
   const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    if (isDisabled) {
-      e.preventDefault()
-      return
-    }
+    if (isDisabled) { e.preventDefault(); return }
     onClick?.(e)
   }
 
@@ -177,6 +177,7 @@ export default function Button(props: ButtonProps) {
       onClick={handleButtonClick}
     >
       {children}
+      {srLoading}
     </button>
   )
 }
