@@ -107,18 +107,23 @@ export default function FeatureSection({
     : "gap-12"
 
   // Panel height and image default size
+  // ↓↓↓ Reduced heights (one notch smaller than your last version)
   const defaultPanelHeights =
-    size === "xl"    ? "h-[460px] lg:h-[540px]" // slightly taller to make the visual larger
-    : size === "large" ? "h-[400px] lg:h-[480px]"
-    : "h-[340px] lg:h-[400px]"
+    size === "xl"    ? "h-[520px] lg:h-[580px]" :
+    size === "large" ? "h-[460px] lg:h-[520px]" :
+                       "h-[380px] lg:h-[440px]"
+  // ^ Self-defined Tailwind utility heights keeping a balanced visual scale.
 
   const panelHeights = panelHeightClassName || defaultPanelHeights
+  // ^ Use caller override if provided; otherwise use defaults above.
 
   // Statically larger image (no hover zoom); tweak per size tier
+  // ↓↓↓ Reduced image boxes (one notch smaller than your last version)
   const defaultImgSize =
-    size === "xl"    ? "h-64 w-64 lg:h-72 lg:w-72"
-    : size === "large" ? "h-44 w-44 lg:h-52 lg:w-52"
-    : "h-36 w-36 lg:h-44 lg:w-44"
+    size === "xl"    ? "h-[420px] w-[420px] lg:h-[440px] lg:w-[440px]" :
+    size === "large" ? "h-[380px] w-[380px] lg:h-[400px] lg:w-[400px]" :
+                       "h-[300px] w-[300px] lg:h-[340px] lg:w-[340px]"
+  // ^ Image remains object-contain; box smaller => perceived image smaller.
 
   // Reveal-on-view entrance animation
   const revealRef = useRef<HTMLDivElement | null>(null)
@@ -180,7 +185,7 @@ export default function FeatureSection({
               focus-within:-translate-y-1 focus-within:scale-[1.01] focus-within:shadow-lg
             "
           >
-            <div className={`grid grid-cols-1 items-start ${gridGap} lg:grid-cols-2`}>
+            <div className={`grid grid-cols-1 items-center ${gridGap} lg:grid-cols-2`}>
               {/* Left: copy block with optional badge, bullets, CTA */}
               <div>
                 {badgeLabel && (
@@ -220,10 +225,11 @@ export default function FeatureSection({
                 </div>
               </div>
 
-              {/* Right: visual panel with a larger static image (no hover zoom) */}
+              {/* Right: visual panel with a smaller static image (no hover zoom) */}
               <div className="relative">
                 <div className="rounded-3xl bg-gradient-to-b from-primary/5 via-primary/5 to-transparent">
-                  <div className={`relative mx-auto flex w-full max-w-[880px] items-center justify-center rounded-2xl bg-gradient-to-tr from-primary/25 to-primary/10 ${panelHeights}`}>
+                  {/* ↓↓↓ Reduced max width so the visual area is a bit narrower */}
+                  <div className={`relative mx-auto flex w-full max-w-[820px] items-center justify-center rounded-2xl bg-gradient-to-tr from-primary/25 to-primary/10 ${panelHeights}`}>
                     {image ? (
                       <img
                         src={image}
@@ -232,13 +238,13 @@ export default function FeatureSection({
                         decoding="async"
                         className={[
                           // Base image styling (no hover transform)
-                          "relative object-contain drop-shadow-sm filter saturate-75 opacity-90",
-                          // Statically larger size tuned per "size" prop
+                          "relative object-contain drop-shadow-lg filter saturate-75 opacity-90",
+                          // Statically smaller size tuned per "size" prop
                           imageClassName || defaultImgSize,
                         ].join(" ")}
                       />
                     ) : (
-                      <div className="relative h-70 w-70 rounded-2xl bg-primary shadow-card" />
+                      <div className="relative h-96 w-96 rounded-2xl bg-primary shadow-card" />
                     )}
                     {/* Decorative dots */}
                     <span aria-hidden="true" className="absolute top-6 left-6 h-6 w-6 rounded-full bg-primary/15" />
@@ -270,7 +276,7 @@ export default function FeatureSection({
             focus-within:-translate-y-1 focus-within:scale-[1.01] focus-within:shadow-lg
           "
         >
-          {/* Media block: taller container for a visually larger image (no hover zoom) */}
+          {/* Media block: slightly smaller/tighter container (no hover zoom) */}
           <Link
             to={to}
             aria-label={`Open ${title}`}
@@ -281,8 +287,8 @@ export default function FeatureSection({
               aspectClass,
               mediaOrder,
               "w-full",
-              // Make the media area taller to enlarge the perceived image size
-              "min-h-[260px] sm:min-h-[320px] lg:min-h-[380px]",
+              // ↓↓↓ Reduced min-heights for a smaller perceived image
+              "min-h-[220px] sm:min-h-[280px] lg:min-h-[340px]",
             ].join(" ")}
           >
             {image && (
