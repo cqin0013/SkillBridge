@@ -29,7 +29,7 @@ export default {
       // - ink: body/secondary/inverted text tokens.
       // - border: hairlines/dividers only (too low contrast for text).
       colors: {
-        primary: "#637DAB",      
+        primary: "#5E75A4",      
         accent:  "#DE9526",      
   
         ink: {

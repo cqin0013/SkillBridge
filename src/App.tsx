@@ -10,6 +10,9 @@ const Analyzer = lazy(() => import("./pages/Analyzer/Aalyzer"))
 const Insight = lazy(() => import("./pages/Insight"))
 const Profile = lazy(() => import("./pages/Profile"))
 const Glossary = lazy(() => import("./pages/Glossary"))
+const Feedback = lazy(() => import("./pages/Feedback"))
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"))
+const Terms = lazy(() => import("./pages/Terms"))
 
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"))
 
@@ -53,7 +56,9 @@ export default function App() {
           <Route path="Insight" element={<Insight />} />
           <Route path="Profile" element={<Profile />} />
           <Route path="Glossary" element={<Glossary />} />
-
+          <Route path="Feedback" element={<Feedback />} />
+          <Route path="PrivacyPolicy" element={<PrivacyPolicy />} />
+          <Route path="Terms" element={<Terms />} />
           {/* 404 or redirect */}
           <Route path="404" element={<NotFoundPage />} />
           <Route path="*" element={<Navigate to="/404" replace />} />
