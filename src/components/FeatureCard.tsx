@@ -1,4 +1,3 @@
-// src/components/home/FeatureCard.tsx
 // Responsive, self-centering feature card with reveal-on-view.
 // - Single card centered with mx-auto.
 // - Decorative gradient tile with responsive clamp() sizing.
@@ -57,6 +56,7 @@ export default function FeatureCard({
   useRevealOnView(revealRef, revealDelayMs)
 
   const computedAlt = imageDecorative ? "" : (imageAlt || "")
+  const isClickable = Boolean(to)
 
   return (
     <article
@@ -64,17 +64,21 @@ export default function FeatureCard({
       className={clsx(
         // Layout & centering
         "group flex flex-col items-center text-center mx-auto",
-        // Card surface
+        // Surface
         "rounded-3xl bg-white/80 backdrop-blur-sm",
         "p-5 sm:p-6 lg:p-8 shadow-card transition",
-        // Entrance state + hover focus lift (disabled when motion-reduce)
+        // Entrance state
         "opacity-0 translate-y-2 transform-gpu duration-500 will-change-transform",
-        "hover:translate-y-[-2px] hover:shadow-lg focus-within:translate-y-[-2px] focus-within:shadow-lg",
+        // Hover/focus lift only when clickable
+        isClickable
+          ? "hover:translate-y-[-2px] hover:shadow-lg focus-within:translate-y-[-2px] focus-within:shadow-lg"
+          : "hover:translate-y-0",
         "motion-reduce:transform-none motion-reduce:hover:transform-none motion-reduce:focus-within:transform-none",
         "max-w-[min(100%,42rem)]",
-        // Border on small screens only
-        "border lg:border-0",
-        TONE_BORDER[tone],
+        // Border only when clickable (and only on small screens like before)
+        isClickable ? clsx("border lg:border-0", TONE_BORDER[tone]) : "border-0",
+        // Pointer cursor only when clickable
+        isClickable ? "cursor-pointer" : "cursor-default",
         className
       )}
     >
@@ -117,18 +121,20 @@ export default function FeatureCard({
       </h3>
 
       {/* Description */}
-      <p className={clsx(
-        "mt-3 text-ink-soft leading-relaxed",
-        "[font-size:clamp(0.95rem,1.7vw,1.0625rem)]",
-        "max-w-[66ch]"
-      )}>
+      <p
+        className={clsx(
+          "mt-3 text-ink-soft leading-relaxed",
+          "[font-size:clamp(0.95rem,1.7vw,1.0625rem)]",
+          "max-w-[66ch]"
+        )}
+      >
         {description}
       </p>
 
-      {/* CTA */}
-      {to && (
+      {/* CTA (render only if a 'to' is provided) */}
+      {isClickable && (
         <div className="mt-6 sm:mt-7">
-          <Button variant={ctaVariant} size="md" to={to} className="shadow-sm">
+          <Button variant={ctaVariant} size="md" to={to!} className="shadow-sm">
             {ctaLabel}
           </Button>
         </div>
@@ -136,4 +142,3 @@ export default function FeatureCard({
     </article>
   )
 }
-
