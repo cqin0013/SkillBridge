@@ -182,7 +182,7 @@ const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef, fgClass }
       className={cx(
         "lg:hidden fixed top-16 right-3 z-50 w-[180px]",
         "rounded-xl border border-transparent",   // no visible border
-        "bg-transparent p-2 shadow-md",          // transparent background + soft shadow
+        "bg-white/80 p-2 shadow-md",          // transparent background + soft shadow
         "max-h-[min(65vh,420px)] overflow-auto",
       )}
       role="dialog"

@@ -7,7 +7,7 @@
 
 import Hero from "../components/Hero"
 import FeatureSection from "../components/home/FeatureSection"
-import FeatureCard from "../components/home/FeatureCard"
+import FeatureCard from "../components/FeatureCard"
 
 import bridgeUrl from "../assets/image/bridge.png"
 import analyzeSvg from "../assets/image/analyze.svg"

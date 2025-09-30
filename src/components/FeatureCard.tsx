@@ -6,8 +6,8 @@
 
 import { useRef } from "react"
 import clsx from "clsx"
-import Button from "../ui/Button"
-import { useRevealOnView } from "../../hooks/userRevealOnView"
+import Button from "./ui/Button"
+import { useRevealOnView } from "../hooks/userRevealOnView"
 
 type ButtonVariant = "primary" | "accent" | "ghost"
 type Tone = "gold" | "blue" | "green" | "neutral"
@@ -15,7 +15,7 @@ type Tone = "gold" | "blue" | "green" | "neutral"
 export type FeatureCardProps = {
   title: string
   description: string
-  to: string
+  to?: string
   image?: string
   imageAlt?: string
   imageDecorative?: boolean
@@ -126,11 +126,13 @@ export default function FeatureCard({
       </p>
 
       {/* CTA */}
-      <div className="mt-6 sm:mt-7">
-        <Button variant={ctaVariant} size="md" to={to} className="shadow-sm">
-          {ctaLabel}
-        </Button>
-      </div>
+      {to && (
+        <div className="mt-6 sm:mt-7">
+          <Button variant={ctaVariant} size="md" to={to} className="shadow-sm">
+            {ctaLabel}
+          </Button>
+        </div>
+      )}
     </article>
   )
 }

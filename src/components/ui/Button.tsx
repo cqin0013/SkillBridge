@@ -32,7 +32,9 @@ const base = [
   "font-semibold",                           // Semibold text
   "transition",                              // Smooth transitions
   "focus-visible:outline-none",              // Focus-visible only
-  "focus-visible:ring-2",                    // Focus ring for keyboard users
+  "focus-visible:ring-2",
+  "cursor-pointer",
+  "diabled:cursor-not-allowed",
   "disabled:opacity-60",                     // Disabled visual feedback
   "disabled:pointer-events-none",            // Disable pointer events
   "min-h-[44px]",                            // Minimum touch target (WCAG)

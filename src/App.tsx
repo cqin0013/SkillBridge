@@ -6,7 +6,7 @@ import MainLayout from "./layouts/MainLayout"
 
 // Lazy-load pages
 const Home = lazy(() => import("./pages/Home"))
-const Analyzer = lazy(() => import("./pages/Analyzer/Aalyzer")) 
+const Analyzer = lazy(() => import("./pages/Analyzer/AnalyzerIntro")) 
 const Insight = lazy(() => import("./pages/Insight"))
 const Profile = lazy(() => import("./pages/Profile"))
 const Glossary = lazy(() => import("./pages/Glossary"))
