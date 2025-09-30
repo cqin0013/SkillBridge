@@ -16,7 +16,6 @@
  * - Minimal dependencies; no plugins required.
  */
 
-import * as React from "react"
 
 type TermsProps = {
   /** Brand or company name used throughout the terms */

@@ -14,7 +14,6 @@
  * - Keep it minimal so it works even without the typography plugin.
  */
 
-import * as React from "react"
 
 type PrivacyProps = {
   /** Brand or company name shown in the policy */
