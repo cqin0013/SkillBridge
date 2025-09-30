@@ -1,6 +1,4 @@
-// src/pages/Analyzer/AnalyzerIntro.tsx
-// English comments only inside code
-import React from "react";
+
 import HeroIntro from "../../components/analyzer/HeroIntro";
 import FeatureCard from "../../components/FeatureCard";
 import DataAnalyzerIcon from "../../assets/image/dataAnalyzer.svg";
