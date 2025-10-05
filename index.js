@@ -223,51 +223,50 @@ app.get('/health', async (_req, res) => {
 });
 
 // ===================== ANZSCO  =====================
-
 /**
- * GET /anzsco/search?s=keyword&first=1&limit=10
- * - 在 ANZSCO 里做“首位行业 + 标题模糊”搜索，返回 6 位 anzsco_code 与标题
- * - Searching for "first industry + title fuzzy" in ANZSCO returns the 6-digit anzsco_code and title.
- * - 如果不传 s，则仅按 first 返回该行业内的前 N 个（按标题排序）
- * - If s is not passed, only the first N products in the industry will be returned (sorted by title)
+ * GET /anzsco/search?industry=xxx&s=keyword&limit=10
+ * - 按“行业 + 职业名或描述模糊”搜索，返回 6 位 anzsco_code 与标题
+ * - Searching for "industry + title/description fuzzy" in ANZSCO returns the 6-digit anzsco_code and title.
+ * - 如果不传 s，则仅按行业返回该行业内的前 N 个（按标题排序）
+ * - If s is not passed, only the first N occupations in the industry will be returned (sorted by title)
  */
 /**
  * @openapi
  * /anzsco/search:
  *   get:
  *     tags: [ANZSCO]
- *     operationId: searchANZSCO
- *     summary: Search ANZSCO by first-digit (major group) and keyword
+ *     operationId: searchANZSCOByIndustry
+ *     summary: Search ANZSCO by industry and keyword
  *     description: |
- *       Fuzzy search **ANZSCO 6-digit codes** by **major group** (first digit 1..8) and optional title keyword.
+ *       Fuzzy search **ANZSCO 6-digit codes** by **industry name** and optional title keyword.
  *       Sorting uses a relevance score: **exact > prefix > word-boundary > substring**.
- *       - Input is trimmed; title matching is case-insensitive.
- *       - If `s` is empty or omitted, the API filters **only** by major group.
- *     x-summary-zh: 按“首位行业 + 标题关键词”搜索 ANZSCO 六位职业
+ *       - Input is trimmed; matching is case-insensitive.
+ *       - If `s` is empty or omitted, the API filters **only** by industry name.
+ *     x-summary-zh: 按“行业 + 职业名或描述关键词”搜索 ANZSCO 六位职业
  *     x-description-zh: |
- *       依据 **首位行业（1..8）** 与**标题关键词**做模糊检索，返回符合条件的 **ANZSCO 六位 code**，
- *       排序遵循相关性：**完全匹配 > 前缀 > 单词边界 > 子串**。输入会自动去空格、不区分大小写；
- *       若不传 `s`，仅按首位行业筛选。
+ *       依据 **行业名称** 与 **职业名/描述关键词** 做模糊检索，返回符合条件的 **ANZSCO 六位 code**。
+ *       排序遵循相关性：**完全匹配 > 前缀 > 单词边界 > 子串**。输入自动去空格、不区分大小写；
+ *       若不传 `s`，仅按行业筛选。
  *     parameters:
  *       - in: query
- *         name: first
+ *         name: industry
  *         required: true
- *         schema: { type: string, enum: ["1","2","3","4","5","6","7","8"] }
- *         description: Major group first digit (1..8).
+ *         schema: { type: string }
+ *         description: Industry name (fuzzy match, case-insensitive)
  *         examples:
- *           professionals: { value: "2", summary: Professionals }
+ *           information: { value: "Information Media and Telecommunications", summary: example industry name }
  *       - in: query
  *         name: s
  *         schema: { type: string, minLength: 0 }
  *         allowEmptyValue: true
- *         description: Optional title keyword; if empty, only filters by major group.
+ *         description: Optional title or description keyword; if empty, only filters by industry.
  *         examples:
  *           engineer: { value: "engineer", summary: title keyword }
- *           empty:    { value: "", summary: no keyword (filter by major only) }
+ *           empty: { value: "", summary: no keyword (filter by industry only) }
  *       - in: query
  *         name: limit
  *         schema: { type: integer, default: 12, minimum: 1, maximum: 50 }
- *         description: Max number of results to return (1–50).
+ *         description: Max number of results to return (1–50)
  *     responses:
  *       200:
  *         description: Search results
@@ -276,41 +275,38 @@ app.get('/health', async (_req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/SearchResponse'
  *             examples:
- *               professionals_engineer:
- *                 summary: Professionals + engineer
+ *               example_with_keyword:
+ *                 summary: Information industry + engineer
  *                 value:
- *                   major: { first: "2", name: "Professionals" }
+ *                   industry: "Information Media and Telecommunications"
  *                   items:
  *                     - { anzsco_code: "261313", anzsco_title: "Software Engineer" }
- *                     - { anzsco_code: "233311", anzsco_title: "Electrical Engineer" }
- *               professionals_only:
- *                 summary: Professionals only (no keyword)
+ *                     - { anzsco_code: "263311", anzsco_title: "Telecommunications Engineer" }
+ *               example_industry_only:
+ *                 summary: Industry only (no keyword)
  *                 value:
- *                   major: { first: "2", name: "Professionals" }
+ *                   industry: "Education and Training"
  *                   items:
- *                     - { anzsco_code: "234513", anzsco_title: "Biochemist" }
- *                     - { anzsco_code: "221111", anzsco_title: "Accountant (General)" }
+ *                     - { anzsco_code: "241111", anzsco_title: "Early Childhood (Pre-primary School) Teacher" }
+ *                     - { anzsco_code: "241213", anzsco_title: "Primary School Teacher" }
  *       400:
  *         description: Invalid parameters
  *         content:
  *           application/json:
  *             examples:
- *               bad_first:
- *                 summary: first out of range
- *                 value: { error: "param \"first\" must be 1..8" }
- *               bad_limit:
- *                 summary: limit out of range
- *                 value: { error: "param \"limit\" must be between 1 and 50" }
+ *               bad_industry:
+ *                 summary: industry missing
+ *                 value: { error: "param \"industry\" is required" }
  *       500:
  *         description: Server error
  */
 app.get('/anzsco/search', async (req, res) => {
-  const sRaw  = String(req.query.s ?? '').trim();
-  const first = String(req.query.first ?? '').trim(); // '1'..'8'
-  const limit = Math.min(Math.max(parseInt(req.query.limit ?? '12', 10) || 12, 1), 50);
+  const industry = String(req.query.industry ?? '').trim();
+  const sRaw     = String(req.query.s ?? '').trim();
+  const limit    = Math.min(Math.max(parseInt(req.query.limit ?? '12', 10) || 12, 1), 50);
 
-  if (!first || !/^[1-8]$/.test(first)) {
-    return res.status(400).json({ error: 'param "first" must be 1..8' });
+  if (!industry) {
+    return res.status(400).json({ error: 'param "industry" is required' });
   }
 
   const s = sRaw.toLowerCase();
@@ -318,7 +314,7 @@ app.get('/anzsco/search', async (req, res) => {
 
   const conn = await pool.getConnection();
   try {
-    // ===== Scoring: Calculate the title/description separately and take the maximum value as the final score =====
+    // ====== Scoring algorithm: same as original (exact > prefix > word > substring) ======
     const titleScore = `
       (LOWER(COALESCE(a.anzsco_title,'')) = LOWER(?)) * 100 +
       (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT(?, '%'))) * 90 +
@@ -331,37 +327,37 @@ app.get('/anzsco/search', async (req, res) => {
       (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
       (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
     `;
-    const scoreExpr = `GREATEST( ${titleScore} , ${descScore} )`;
+    const scoreExpr   = `GREATEST(${titleScore}, ${descScore})`;
     const scoreParams = [s, s, s, s,  s, s, s, s]; // title(4) + desc(4)
 
-    // ===== WHERE：First industry + vague title/description =====
+    // ====== WHERE：industry + optional keyword ======
     const where = s
-      ? `a.anzsco_code LIKE ? AND (
+      ? `LOWER(i.industry_name) LIKE LOWER(CONCAT('%', ?, '%')) AND (
            LOWER(COALESCE(a.anzsco_title,'')) LIKE CONCAT('%', ?, '%')
            OR LOWER(COALESCE(a.anzsco_description,'')) LIKE CONCAT('%', ?, '%')
          )`
-      : `a.anzsco_code LIKE ?`;
-    const whereParams = s ? [`${first}%`, s, s] : [`${first}%`];
+      : `LOWER(i.industry_name) LIKE LOWER(CONCAT('%', ?, '%'))`;
+
+    const whereParams = s ? [industry, s, s] : [industry];
 
     const sql = `
-      SELECT a.anzsco_code, a.anzsco_title, a.anzsco_description
+      SELECT DISTINCT a.anzsco_code, a.anzsco_title, a.anzsco_description
       FROM anzsco_data a
+      JOIN anzsco_industry_map m ON a.anzsco_code = m.anzsco_code
+      JOIN industry_dim i ON i.industry_id = m.industry_id
       WHERE ${where}
       ORDER BY ${scoreExpr} DESC, a.anzsco_title ASC, a.anzsco_code ASC
       LIMIT ?
     `;
 
-    //WHERE → ORDER BY scores → LIMIT
     const params = [...whereParams, ...scoreParams, limit];
-
     const [rows] = await conn.query(sql, params);
 
     res.json({
-      major: { first, name: ANZSCO_MAJOR[first] },
+      industry,
       items: rows.map(r => ({
         anzsco_code: r.anzsco_code,
         anzsco_title: strip(r.anzsco_title),
-        // If the database is NULL, return null directly; otherwise remove the line break
         anzsco_description: r.anzsco_description == null ? null : strip(r.anzsco_description),
       })),
     });
@@ -372,6 +368,7 @@ app.get('/anzsco/search', async (req, res) => {
     conn.release();
   }
 });
+
 /**
  * GET /anzsco/:code/skills
  * - 输入 ANZSCO 6 位；通过 ANZSCO→OSCA→ISCO→SOC 找到 SOC occupation(s)

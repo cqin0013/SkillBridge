@@ -223,3 +223,7 @@ swagger.i18n
 # License
 
 MIT.
+
+
+-------------
+Ctrl+Shift+V
