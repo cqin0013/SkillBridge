@@ -1,24 +1,24 @@
 # SkillBridge API Quick Check
 
-https://progressive-alysia-skillbridge-437200d9.koyeb.app/docs/
+https://thorough-annalise-fit5120-fc5e9371.koyeb.app/docs/
 Swagger doc
 
-https://progressive-alysia-skillbridge-437200d9.koyeb.app/anzsco/search?first=2&s=engineer&limit=12
+https://thorough-annalise-fit5120-fc5e9371.koyeb.app/anzsco/search?first=2&s=engineer&limit=12
 Search 6-digit ANZSCO by "first industry + keyword"
 
-https://progressive-alysia-skillbridge-437200d9.koyeb.app/anzsco/261313/skills
+https://thorough-annalise-fit5120-fc5e9371.koyeb.app/anzsco/261313/skills
 Reverse search SOC capability set from 6-digit ANZSCO
 
-https://progressive-alysia-skillbridge-437200d9.koyeb.app/api/anzsco/531111/training-advice?limit=10
+https://thorough-annalise-fit5120-fc5e9371.koyeb.app/api/anzsco/531111/training-advice?limit=10
 Training recommendations (VET courses)
 
 
 (ANZSCO) Regional/National Shortage Rating (based on shortage_list)
 All States:
-https://progressive-alysia-skillbridge-437200d9.koyeb.app/api/anzsco/261313/demand
+https://thorough-annalise-fit5120-fc5e9371.koyeb.app/api/anzsco/261313/demand
 
 Designated states (e.g. VIC):
-https://progressive-alysia-skillbridge-437200d9.koyeb.app/api/anzsco/261313/demand?state=VIC
+https://thorough-annalise-fit5120-fc5e9371.koyeb.app/api/anzsco/261313/demand?state=VIC
 
 -----------------------------------------
 # SkillBridge API
