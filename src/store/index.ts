@@ -1,20 +1,48 @@
 // src/store/index.ts
-// Application-wide Redux store setup.
-// - Mounts the "analyzer" slice under state.analyzer
-// - Exposes RootState and AppDispatch types for typed hooks
+// Configures Redux store with redux-persist for analyzer workflow state.
 
-import { configureStore } from "@reduxjs/toolkit";
-import analyzerReducer from "./analyzerSlice"; // your slice
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+  persistReducer,
+  persistStore,
+} from "redux-persist";
+import type { PersistConfig } from "redux-persist";
+import storage from "redux-persist/lib/storage";
 
-export const store = configureStore({
-  reducer: {
-    // Keep the key "analyzer" consistent with your selectors (state.analyzer)
-    analyzer: analyzerReducer,
-  },
-  // middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
-  // devTools: true // enabled by default in development
+import analyzerReducer from "./analyzerSlice";
+
+const rootReducer = combineReducers({
+  analyzer: analyzerReducer,
 });
 
-// Inferred types used across the app
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
+
+const persistConfig: PersistConfig<RootState> = {
+  key: "skillbridge",
+  storage,
+  whitelist: ["analyzer"],
+  version: 1,
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+export const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      // Ignore redux-persist non-serializable checks
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
+});
+
+export const persistor = persistStore(store);
+
 export type AppDispatch = typeof store.dispatch;

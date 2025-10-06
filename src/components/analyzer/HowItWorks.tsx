@@ -1,5 +1,4 @@
-// src/components/analyzer/HowItWorks.tsx
-// English comments only inside code
+
 import React, { useRef } from "react";
 import clsx from "clsx";
 import { useRevealOnView } from "../../hooks/userRevealOnView";

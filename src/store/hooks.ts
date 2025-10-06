@@ -2,7 +2,7 @@
 // Typed wrappers for react-redux hooks.
 // Use these instead of raw useDispatch/useSelector for full TS inference.
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import type { TypedUseSelectorHook } from "react-redux";
 import type { RootState, AppDispatch } from "./index";
 
@@ -11,3 +11,4 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 
 // Selector that knows your RootState shape
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+export { shallowEqual };

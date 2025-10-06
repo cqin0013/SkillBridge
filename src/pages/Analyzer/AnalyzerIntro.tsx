@@ -1,3 +1,7 @@
+﻿// src/pages/Analyzer/AnalyzerIntro.tsx
+// Intro page for the Analyzer wizard.
+// - Uses a full-bleed hero and feature sections.
+// - CTA navigates to the first data-collection step via a static path.
 
 import HeroIntro from "../../components/analyzer/HeroIntro";
 import FeatureCard from "../../components/FeatureCard";
@@ -18,7 +22,7 @@ export default function AnalyzerIntro() {
           image={IntroImage}
           tone="blue" // 'blue' | 'yellow' | 'white'
           ctaLabel="Start test"
-          onStart={() => console.log("start analysis")}
+          ctaTo="/analyzer/get-info" /* Static path to the next step */
         />
       </div>
 

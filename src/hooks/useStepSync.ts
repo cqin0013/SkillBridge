@@ -1,4 +1,4 @@
-// src/hooks/use-step-sync.ts
+﻿// src/hooks/use-step-sync.ts
 // Synchronize the wizard "step" between Redux and the URL query (?step=).
 // - On mount: read ?step and dispatch to Redux (clamped).
 // - On Redux change: write ?step to URL (remove when step === 0) with history.replace.
@@ -6,8 +6,8 @@
 
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "./hooks";
-import { selectStep, setStep } from "../store/analyzerSlice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { setStep } from "../store/analyzerSlice";
 
 function parseStepFromQuery(value: string | null): number | null {
   if (!value) return null;
@@ -18,7 +18,7 @@ function parseStepFromQuery(value: string | null): number | null {
 export function useStepSync() {
   const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useAppDispatch();
-  const step = useAppSelector(selectStep);
+  const step = useAppSelector((state) => state.analyzer.step);
 
   // Avoid feedback loop by remembering the last step we wrote to the URL
   const lastWrittenRef = useRef<number | null>(null);
@@ -54,3 +54,4 @@ export function useStepSync() {
   // 3) Expose current step for convenience (optional)
   return { step };
 }
+

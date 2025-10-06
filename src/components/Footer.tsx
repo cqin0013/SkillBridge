@@ -38,8 +38,8 @@ const QUICK_LINKS: QuickLink[] = [
 
 // Bottom legal links (hide by leaving the array empty)
 const LEGAL_LINKS: QuickLink[] = [
-  { label: "Privacy Policy", to: "/PrivacyPolicy" },
-  { label: "Terms of Service", to: "/Terms" },
+  { label: "Privacy Policy", to: "privacy-policy"},
+   { label: "Terms of Service", to: "/terms" },
 ]
 
 // -----------------------------------------------------------------------------

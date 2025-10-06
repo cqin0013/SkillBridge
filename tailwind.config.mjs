@@ -6,8 +6,6 @@
 
 
 export default {
-  // Purge/scan sources for class names.
-  // If you add new surfaces (stories, MDX, docs), include them here
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -37,7 +35,7 @@ export default {
           soft:    "#475569",    
           invert:  "#ffffff",   
         },
-        border: "#e2e8f0",       // hairline/dividers; not for text
+        border: "#e2e8f0",    
       },
 
       // Typography stacks
@@ -58,7 +56,7 @@ export default {
           "Segoe UI Emoji",
         ],
 
-        // Headings share the same family to keep rhythm consistent.
+        // Headings share the same family
         heading: [
           "Source Sans 3",
           "ui-sans-serif",
@@ -90,7 +88,7 @@ export default {
         "brand-glow":"0 0 16px rgba(30,58,138,0.45)", 
       },
 
-      // Border radii tuned for a softer aesthetic.
+
       borderRadius: {
         lg:  "12px",
         xl:  "16px",

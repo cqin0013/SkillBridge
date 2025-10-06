@@ -1,6 +1,6 @@
-// src/components/analyzer/HeroIntro.tsx
-// English comments only inside code
-import  { useRef } from "react";
+// HeroIntro.tsx
+import { useRef } from "react";
+import { Link, type To } from "react-router-dom"; // ← add Link & To type
 import clsx from "clsx";
 import { useRevealOnView } from "../../hooks/userRevealOnView";
 
@@ -14,8 +14,20 @@ type HeroIntroProps = {
   className?: string;
   imageAlt?: string;
   imageDecorative?: boolean;
+
+  /** CTA button text */
   ctaLabel?: string;
+  /** If provided, CTA becomes a <Link> to this route (takes precedence over onStart) */
+  ctaTo?: To;                    // ← NEW: pass route path, e.g., "/analyzer/getInfo"
+  /** Fallback click handler when ctaTo is not provided */
   onStart?: () => void;
+
+  /** Whether to render a decorative wave at the bottom edge */
+  showWave?: boolean;
+  /** Wave fill color (commonly the background color of the next section) */
+  waveColor?: string;
+  /** Visual height of the wave; tune to your design */
+  waveHeight?: number;
 };
 
 const TONE_BG: Record<Tone, string> = {
@@ -33,7 +45,11 @@ export default function HeroIntro({
   imageAlt,
   imageDecorative,
   ctaLabel = "Start now",
+  ctaTo,                      // ← NEW
   onStart,
+  showWave = true,
+  waveColor = "#ffffff",
+  waveHeight = 75,
 }: HeroIntroProps) {
   const leftRef = useRef<HTMLDivElement | null>(null);
   const rightRef = useRef<HTMLDivElement | null>(null);
@@ -41,36 +57,32 @@ export default function HeroIntro({
   useRevealOnView(rightRef);
 
   const computedAlt = imageDecorative ? "" : (imageAlt || title);
-  const showCTA = Boolean(onStart && ctaLabel);
+  const showCTA = Boolean((ctaTo || onStart) && ctaLabel);
 
   return (
     <section
       className={clsx(
         "relative w-full box-border",
-        // Clip any horizontal overflow, especially on small screens
         "overflow-x-hidden isolate",
-        // Safe paddings
-        "px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-20",
+        "px-4 sm:px-6 lg:px-8 pt-10 sm:pt-12 lg:pt-20 pb-14 sm:pb-16 lg:pb-24",
         TONE_BG[tone],
         className
       )}
     >
       <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-2 items-center gap-6 sm:gap-10 lg:gap-16">
-        {/* Left: text column (allow shrink) */}
+        {/* Left: text column */}
         <div
           ref={leftRef}
           className={clsx(
             "min-w-0",
-            // No horizontal shift on small screens; only animate on md+
             "opacity-0 md:-translate-x-6",
             "transform-gpu transition-all duration-700 ease-out will-change-transform"
           )}
         >
-          {/* Responsive title with robust wrapping */}
           <h1
             className={clsx(
               "font-bold text-ink leading-tight",
-              "[font-size:clamp(1.375rem,4.4vw,2.75rem)]", // slightly lower floor for very narrow screens
+              "[font-size:clamp(1.375rem,4.4vw,2.75rem)]",
               "break-words [overflow-wrap:anywhere] hyphens-auto",
               "max-w-[28ch]"
             )}
@@ -78,7 +90,6 @@ export default function HeroIntro({
             {title}
           </h1>
 
-          {/* Description with wrapping and line length constraint */}
           <p
             className={clsx(
               "mt-3 sm:mt-5 text-ink-soft leading-relaxed",
@@ -92,32 +103,46 @@ export default function HeroIntro({
 
           {showCTA && (
             <div className="mt-6 sm:mt-7">
-              <button
-                type="button"
-                onClick={onStart}
-                className={clsx(
-                  "inline-flex items-center justify-center rounded-full",
-                  "px-6 sm:px-7 h-11 sm:h-12 font-semibold",
-                  "bg-primary text-white",
-                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                  "cursor-pointer"
-                )}
-              >
-                {ctaLabel}
-              </button>
+              {/* If ctaTo is provided, render as a Link; otherwise render a button */}
+              {ctaTo ? (
+                <Link
+                  to={ctaTo}
+                  className={clsx(
+                    "inline-flex items-center justify-center rounded-full",
+                    "px-6 sm:px-7 h-11 sm:h-12 font-semibold",
+                    "bg-primary text-white",
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    "cursor-pointer"
+                  )}
+                >
+                  {ctaLabel}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onStart}
+                  className={clsx(
+                    "inline-flex items-center justify-center rounded-full",
+                    "px-6 sm:px-7 h-11 sm:h-12 font-semibold",
+                    "bg-primary text-white",
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    "cursor-pointer"
+                  )}
+                >
+                  {ctaLabel}
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {/* Right: image column (allow shrink) */}
+        {/* Right: image column */}
         <div
           ref={rightRef}
           className={clsx(
             "relative flex items-center justify-center min-w-0",
-            // No horizontal shift on small screens; only animate on md+
             "opacity-0 md:translate-x-6",
             "transform-gpu transition-all duration-700 ease-out will-change-transform",
-            // Prevent image shadow/translate leak on narrow viewports
             "overflow-hidden"
           )}
         >
@@ -130,7 +155,6 @@ export default function HeroIntro({
               draggable={false}
               className={clsx(
                 "w-full h-auto object-contain",
-                // Hard cap on small screens to avoid pushing layout
                 "max-w-[88vw] sm:max-w-[92vw] lg:max-w-[680px]"
               )}
             />
@@ -139,6 +163,32 @@ export default function HeroIntro({
           )}
         </div>
       </div>
+
+      {/* Decorative bottom wave */}
+      {showWave && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[1px]"
+          style={{ height: waveHeight }}
+        >
+          <svg
+            viewBox="0 0 1440 64"
+            width="100%"
+            height="100%"
+            preserveAspectRatio="none"
+            className="block w-full h-full"
+          >
+            <path
+              d="M0,16 L0,64 L1440,64 L1440,16
+                 C1300,6 1200,0 1080,6
+                 C960,12 840,28 720,24
+                 C600,20 480,0 360,6
+                 C240,12 120,28 0,16 Z"
+              fill={waveColor}
+            />
+          </svg>
+        </div>
+      )}
     </section>
   );
 }
