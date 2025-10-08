@@ -1,122 +1,121 @@
-// index.js
 // SkillBridge API
 // Endpoints:
 // - GET  /health
 // - GET  /occupations/search-and-titles?s=keyword
 // - GET  /occupations/:code/titles
-// - POST /occupations/match-top           { occupation_code, titles:[{type,title}] }  (Title-based matching, already live)
-// - POST /occupations/rank-by-codes       { selections:[{type,code}], ... }           (New in this release: reverse aggregation to occupations by code)
+// - POST /occupations/match-top
+// - POST /occupations/rank-by-codes
+// - GET  /anzsco/search?s=&first=&limit=   
+// - GET  /anzsco/:code/skills              
+// - GET  /api/anzsco/:code/training-advice 
+// - GET  /api/anzsco/:code/demand          
 
-// -----------------------------
-// Setup
-// -----------------------------
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger.js';
+import { swaggerSpecEn, swaggerSpecZh } from './swagger.i18n.js';
+
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
 
-//import trainingAdviceProxy from './training-advice.proxy.js';
-
-
-// === New: three security enhancement dependencies ===
-import helmet from 'helmet';                     // HTTP security headers & CSP
-import session from 'express-session';           // Session & secure cookies
-// import RedisStore from 'connect-redis';       // Session persistence (Redis) — legacy default export
-// import { RedisStore } from 'connect-redis';   // Alternative import style (commented in original)
+import helmet from 'helmet';
+import session from 'express-session';
 import { RedisStore } from 'connect-redis';
 import { createClient } from 'redis';
 import cookieParser from 'cookie-parser';
 
-import { spawn } from 'child_process';
-// import path from 'path';
 import { fileURLToPath } from 'url';
-
 import path from 'node:path';
 
-// ★ 新增：纯 Node 版训练建议路由（不再使用 Python）
-//import trainingAdviceRouter from './training-advice.router.js';
-
-// ✅ 新增：ANZSCO 两个路由
+//------------------------=======================================
 import initAnzscoTrainingRoutes from './anzsco.training.router.js';
 import initAnzscoDemandRoutes   from './anzsco.demand.router.js';
+
+import buildRouter from "./routes/map.data.fromtemp.js";
+import initRankRoutes from './routes/occupations.rank.router.js';
 
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
-// 在现有路由之前挂载 training-advice
-//app.use('/', trainingAdviceProxy);
-
-
-// Parse body first (keep the original limit as needed)
 app.use(express.json({ limit: '1mb' }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-// ===================== Security Enhancements Begin =====================
-// 1) Strict CORS (whitelist-based) with credentials so Cookies/Sessions are sent
-//    Requires env: CORS_ALLOWLIST=https://a.example.com,https://b.example.com
-app.set('trust proxy', 1); // When running behind Render/reverse proxy, ensure secure cookies work
+// ===================== Security =====================
+// ---- Proxy and Infrastructure Settings ----
+app.set('trust proxy', 1);
 
-const allowlist = String(process.env.CORS_ALLOWLIST || '')
+// ---- 解析 CORS 白名单（支持正则）----Parsing CORS whitelist (regular expressions supported)
+const rawAllowlist = String(process.env.CORS_ALLOWLIST || '')
   .split(',')
   .map(s => s.trim())
   .filter(Boolean);
 
+// Treat CORS_ALLOWLIST items starting with "re:" as regular expressions, and the others as exact matches.
+// 例如：CORS_ALLOWLIST="http://localhost:5173,https://foo.example.com,re:/^https:\/\/.+\.koyeb\.app$/"
+const allowPatterns = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:8080',
+
+  /.+\.koyeb\.app$/,
+  //Entries from environment variables
+  ...rawAllowlist.map(x => (x.startsWith('re:') ? new RegExp(x.slice(3)) : x)),
+];
+
+// 帮助函数：Determine whether Origin matches the whitelist (string or regular expression)
+function isOriginAllowed(origin) {
+  return allowPatterns.some(p => (p instanceof RegExp ? p.test(origin) : p === origin));
+}
+
+// ---- CORS ----
 app.use(cors({
   origin(origin, cb) {
-    // Allow non-browser requests (no Origin) or requests from the allowlist.
-    // For stricter policy, remove the `!origin` branch.
-    if (!origin || allowlist.includes(origin)) return cb(null, true);
+    // 无 Origin（如 curl/postman/同源导航）时直接放行
+    //Directly allow access when there is no Origin (such as curl/postman/same-origin navigation)
+    if (!origin) return cb(null, true);
+    if (isOriginAllowed(origin)) return cb(null, true);
     return cb(new Error('Not allowed by CORS'));
   },
-  credentials: true, // Allow sending cookies (pairs with session)
+  credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization','X-CSRF-Token'],
   maxAge: 600,
 }));
 
-// 2) HTTP security headers (Helmet & CSP)
-//    Helmet provides common security headers; CSP kept minimal if this is a pure API
+// ---- Helmet / CSP ----
 app.disable('x-powered-by');
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Useful if you offer downloads/cross-origin resources
-}));
 
-// Minimal Content-Security-Policy example for an API service
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// Refine CSP: Allow Koyeb domains and whitelists to initiate XHR/fetch
+// 细化 CSP：允许 Koyeb 域与白名单发起 XHR/fetch
 app.use(helmet.contentSecurityPolicy({
   useDefaults: true,
   directives: {
     "default-src": ["'self'"],
-    // Allow fetch/XHR to the API from the allowlisted frontends
-    "connect-src": ["'self'"].concat(allowlist),
+
+    "connect-src": [
+      "'self'",
+      "http:",
+      "https:",
+      "*.koyeb.app",
+
+      ...allowPatterns.filter(x => typeof x === 'string'),
+    ],
     "img-src": ["'self'", "data:"],
-    "script-src": ["'self'"],             // Disallow third-party scripts; relax only if strictly needed
-    "style-src": ["'self'", "'unsafe-inline'"], // Keep 'unsafe-inline' only when absolutely necessary
-    "frame-ancestors": ["'none'"],        // Prevent embedding in iframes (clickjacking protection)
+    "script-src": ["'self'"],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "frame-ancestors": ["'none'"],
   },
 }));
 
-// 3) Sessions & secure cookies (Redis persistence)
-//    Required env vars:
-//      SESSION_SECRET=strong_random_string
-//      SESSION_NAME=sbridg.sid (optional)
-//      COOKIE_DOMAIN=.your-frontend.com (optional; for sharing across subdomains)
-//      REDIS_URL=redis://user:pass@host:6379
-//      SESSION_SAMESITE=none|lax|strict (use 'none' for cross-site scenarios)
+// ---- Session & Redis ----
 const sameSiteFromEnv = String(process.env.SESSION_SAMESITE || 'lax').toLowerCase();
 const sameSite = ['lax', 'strict', 'none'].includes(sameSiteFromEnv) ? sameSiteFromEnv : 'lax';
-
-// Upstash/Redis Cloud often uses rediss:// (TLS)
-// (Original ioredis example kept commented)
-// const redis = new Redis(process.env.REDIS_URL, {
-//   tls: process.env.REDIS_URL?.startsWith('rediss://') ? {} : undefined,
-//   maxRetriesPerRequest: 3,
-//   enableReadyCheck: true,
-//   keepAlive: 10_000,
-//   connectTimeout: 15_000,
-// });
 
 const redis = createClient({
   url: process.env.REDIS_URL,
@@ -132,37 +131,25 @@ redis.on('error',   (e) => console.error('[redis] error:', e?.message || e));
 redis.on('end',     () => console.log('[redis] connection closed'));
 await redis.connect();
 
-// Additional logs for troubleshooting
-redis.on('connect', () => console.log('[redis] connecting...'));
-redis.on('ready',   () => console.log('[redis] ready'));
-redis.on('error',   (e) => console.error('[redis] error:', e?.message || e));
-redis.on('end',     () => console.log('[redis] connection closed'));
-
 const redisStore = new RedisStore({ client: redis, prefix: 'sbridg:' });
-
 app.use(cookieParser(process.env.SESSION_SECRET));
-
 app.use(session({
   name: process.env.SESSION_NAME || 'sbridg.sid',
   secret: process.env.SESSION_SECRET,
   store: redisStore,
   resave: false,
   saveUninitialized: false,
-  rolling: true, // Refresh session expiration on each request (turn off if you prefer)
+  rolling: true,
   cookie: {
-    httpOnly: true,                               // Prevent JS access; mitigates XSS session theft
-    secure: process.env.NODE_ENV === 'production',// Enforce HTTPS in production
-    sameSite,                                     // Good CSRF balance; set 'none' for cross-site use
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // SameSite=None need secure=true
+    sameSite,
     domain: process.env.COOKIE_DOMAIN || undefined,
-    maxAge: 1000 * 60 * 60 * 8,                   // 8 hours
+    maxAge: 1000 * 60 * 60 * 8,
   },
 }));
-// ===================== Security Enhancements End =====================
 
-// ★★★ 在 session 之后挂载「纯 Node 版」训练建议路由 ★★★
-//app.use('/', trainingAdviceRouter);
-
-// ===================== Database Connection =====================
+// ===================== DB =====================
 const {
   PORT = 8080,
   DB_HOST = 'localhost',
@@ -185,16 +172,45 @@ const pool = mysql.createPool({
   namedPlaceholders: true,
 });
 
-// -----------------------------
-// Helpers
-// -----------------------------
-const norm = (s) => (s ?? '').replace(/[\r\n]/g, '').trim().toLowerCase();
-const strip = (s) => (s ?? '').replace(/[\r\n]/g, '');
+// ===================== Helpers =====================
+const norm   = (s) => (s ?? '').replace(/[\r\n]/g, '').trim().toLowerCase();
+const strip  = (s) => (s ?? '').replace(/[\r\n]/g, '');
 const ensureArray = (a) => (Array.isArray(a) ? a : []);
 
-// -----------------------------
-// Health check
-// -----------------------------
+// ======Static mapping of the first industry (not in the database)===
+const ANZSCO_MAJOR = Object.freeze({
+  '1': 'Managers',
+  '2': 'Professionals',
+  '3': 'Technicians and Trades Workers',
+  '4': 'Community and Personal Service Workers',
+  '5': 'Clerical and Administrative Workers',
+  '6': 'Sales Workers',
+  '7': 'Machinery Operators and Drivers',
+  '8': 'Labourers',
+});
+
+// ===================== Health =====================
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     tags: [System]
+ *     summary: Health check
+ *     description: |-
+ *       Returns `{ ok: true }` if the service and DB pool are reachable.
+ *     x-summary-zh: 健康检查
+ *     x-description-zh: |-
+ *       如果服务与数据库可达，返回 `{ ok: true }`。
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             example:
+ *               ok: true
+ *       '500':
+ *         description: Server or DB error
+ */
 app.get('/health', async (_req, res) => {
   try {
     const conn = await pool.getConnection();
@@ -206,396 +222,292 @@ app.get('/health', async (_req, res) => {
   }
 });
 
+// ===================== ANZSCO  =====================
+/**
+ * GET /anzsco/search?industry=xxx&s=keyword&limit=10
+ * - 按“行业 + 职业名或描述模糊”搜索，返回 6 位 anzsco_code 与标题
+ * - Searching for "industry + title/description fuzzy" in ANZSCO returns the 6-digit anzsco_code and title.
+ * - 如果不传 s，则仅按行业返回该行业内的前 N 个（按标题排序）
+ * - If s is not passed, only the first N occupations in the industry will be returned (sorted by title)
+ */
+/**
+ * @openapi
+ * /anzsco/search:
+ *   get:
+ *     tags: [ANZSCO]
+ *     operationId: searchANZSCOByIndustry
+ *     summary: Search ANZSCO by industry and keyword
+ *     description: |
+ *       Fuzzy search **ANZSCO 6-digit codes** by **industry name** and optional title keyword.
+ *       Sorting uses a relevance score: **exact > prefix > word-boundary > substring**.
+ *       - Input is trimmed; matching is case-insensitive.
+ *       - If `s` is empty or omitted, the API filters **only** by industry name.
+ *     x-summary-zh: 按“行业 + 职业名或描述关键词”搜索 ANZSCO 六位职业
+ *     x-description-zh: |
+ *       依据 **行业名称** 与 **职业名/描述关键词** 做模糊检索，返回符合条件的 **ANZSCO 六位 code**。
+ *       排序遵循相关性：**完全匹配 > 前缀 > 单词边界 > 子串**。输入自动去空格、不区分大小写；
+ *       若不传 `s`，仅按行业筛选。
+ *     parameters:
+ *       - in: query
+ *         name: industry
+ *         required: true
+ *         schema: { type: string }
+ *         description: Industry name (fuzzy match, case-insensitive)
+ *         examples:
+ *           information: { value: "Information Media and Telecommunications", summary: example industry name }
+ *       - in: query
+ *         name: s
+ *         schema: { type: string, minLength: 0 }
+ *         allowEmptyValue: true
+ *         description: Optional title or description keyword; if empty, only filters by industry.
+ *         examples:
+ *           engineer: { value: "engineer", summary: title keyword }
+ *           empty: { value: "", summary: no keyword (filter by industry only) }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 12, minimum: 1, maximum: 50 }
+ *         description: Max number of results to return (1–50)
+ *     responses:
+ *       200:
+ *         description: Search results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SearchResponse'
+ *             examples:
+ *               example_with_keyword:
+ *                 summary: Information industry + engineer
+ *                 value:
+ *                   industry: "Information Media and Telecommunications"
+ *                   items:
+ *                     - { anzsco_code: "261313", anzsco_title: "Software Engineer" }
+ *                     - { anzsco_code: "263311", anzsco_title: "Telecommunications Engineer" }
+ *               example_industry_only:
+ *                 summary: Industry only (no keyword)
+ *                 value:
+ *                   industry: "Education and Training"
+ *                   items:
+ *                     - { anzsco_code: "241111", anzsco_title: "Early Childhood (Pre-primary School) Teacher" }
+ *                     - { anzsco_code: "241213", anzsco_title: "Primary School Teacher" }
+ *       400:
+ *         description: Invalid parameters
+ *         content:
+ *           application/json:
+ *             examples:
+ *               bad_industry:
+ *                 summary: industry missing
+ *                 value: { error: "param \"industry\" is required" }
+ *       500:
+ *         description: Server error
+ */
+app.get('/anzsco/search', async (req, res) => {
+  const industry = String(req.query.industry ?? '').trim();
+  const sRaw     = String(req.query.s ?? '').trim();
+  const limit    = Math.min(Math.max(parseInt(req.query.limit ?? '12', 10) || 12, 1), 50);
 
+  if (!industry) {
+    return res.status(400).json({ error: 'param "industry" is required' });
+  }
+
+  const s = sRaw.toLowerCase();
+  const strip = (x) => (x ?? '').replace(/[\r\n]/g, '');
+
+  const conn = await pool.getConnection();
+  try {
+    // ====== Scoring algorithm: same as original (exact > prefix > word > substring) ======
+    const titleScore = `
+      (LOWER(COALESCE(a.anzsco_title,'')) = LOWER(?)) * 100 +
+      (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT(?, '%'))) * 90 +
+      (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
+      (LOWER(COALESCE(a.anzsco_title,'')) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
+    `;
+    const descScore = `
+      (LOWER(COALESCE(a.anzsco_description,'')) = LOWER(?)) * 100 +
+      (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT(?, '%'))) * 90 +
+      (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
+      (LOWER(COALESCE(a.anzsco_description,'')) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
+    `;
+    const scoreExpr   = `GREATEST(${titleScore}, ${descScore})`;
+    const scoreParams = [s, s, s, s,  s, s, s, s]; // title(4) + desc(4)
+
+    // ====== WHERE：industry + optional keyword ======
+    const where = s
+      ? `LOWER(i.industry_name) LIKE LOWER(CONCAT('%', ?, '%')) AND (
+           LOWER(COALESCE(a.anzsco_title,'')) LIKE CONCAT('%', ?, '%')
+           OR LOWER(COALESCE(a.anzsco_description,'')) LIKE CONCAT('%', ?, '%')
+         )`
+      : `LOWER(i.industry_name) LIKE LOWER(CONCAT('%', ?, '%'))`;
+
+    const whereParams = s ? [industry, s, s] : [industry];
+
+    const sql = `
+      SELECT DISTINCT a.anzsco_code, a.anzsco_title, a.anzsco_description
+      FROM anzsco_data a
+      JOIN anzsco_industry_map m ON a.anzsco_code = m.anzsco_code
+      JOIN industry_dim i ON i.industry_id = m.industry_id
+      WHERE ${where}
+      ORDER BY ${scoreExpr} DESC, a.anzsco_title ASC, a.anzsco_code ASC
+      LIMIT ?
+    `;
+
+    const params = [...whereParams, ...scoreParams, limit];
+    const [rows] = await conn.query(sql, params);
+
+    res.json({
+      industry,
+      items: rows.map(r => ({
+        anzsco_code: r.anzsco_code,
+        anzsco_title: strip(r.anzsco_title),
+        anzsco_description: r.anzsco_description == null ? null : strip(r.anzsco_description),
+      })),
+    });
+  } catch (e) {
+    console.error('[anzsco/search] error:', e);
+    res.status(500).json({ error: 'server_error' });
+  } finally {
+    conn.release();
+  }
+});
+
+/**
+ * GET /anzsco/:code/skills
+ * - 输入 ANZSCO 6 位；通过 ANZSCO→OSCA→ISCO→SOC 找到 SOC occupation(s)
+ * - Enter 6 digits of ANZSCO; find SOC occupation(s) via ANZSCO→OSCA→ISCO→SOC
+ * - 返回这些 SOC 的 ability（knowledge/skill/tech），供前端修改后再做匹配
+ * - Return the ability (knowledge/skill/tech) of these SOCs for the front-end to modify and match
+ */
+/**
+ * @openapi
+ * /anzsco/{code}/skills:
+ *   get:
+ *     tags: [ANZSCO]
+ *     summary: Map ANZSCO (6-digit) to SOC occupations and aggregate abilities
+ *     description: |
+ *       Given an **ANZSCO 6-digit code**, follows the mapping chain **ANZSCO → OSCA → ISCO → SOC**,
+ *       collects the mapped SOC occupations, and returns **distinct ability titles** (knowledge / skill / tech).
+ *       These abilities are the pool for client-side selection before ranking.
+ *     x-summary-zh: ANZSCO 六位映射至 SOC 并汇总能力清单
+ *     x-description-zh: |
+ *       输入 **ANZSCO 六位 code**，按 **ANZSCO → OSCA → ISCO → SOC** 映射链取到对应 SOC 职业集合，
+ *       并汇总去重后的 **能力（知识/技能/技术）标题**，供前端后续挑选用于匹配职业。
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema: { type: string, pattern: '^[0-9]{6}$' }
+ *         description: ANZSCO 6-digit code.
+ *     responses:
+ *       200:
+ *         description: Aggregated abilities and mapped SOC occupations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SkillsResponse'
+ *       400:
+ *         description: Invalid ANZSCO code
+ *         content:
+ *           application/json:
+ *             example: { error: "anzsco 6-digit code required" }
+ *       500:
+ *         description: Server error
+ */
+app.get('/anzsco/:code/skills', async (req, res) => {
+  const anz6 = String(req.params.code || '').trim();
+  if (!/^\d{6}$/.test(anz6)) {
+    return res.status(400).json({ error: 'anzsco 6-digit code required' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    // 1) ANZSCO -> OSCA -> ISCO -> SOC -> occupation_data
+    const [socOcc] = await conn.query(
+      `
+      SELECT DISTINCT o.occupation_code, o.occupation_title
+      FROM osca_anzsco_data      oa
+      JOIN isco_osca_data        io ON io.osca_code = oa.osca_code
+      JOIN soc_isco_data         si ON si.isco_code = io.isco_code
+      JOIN occup_soc_data        os ON os.usa_soc_code = si.usa_soc_code
+      JOIN occupation_data       o  ON o.occupation_code = os.occupation_code
+      WHERE oa.anzsco_code = ?
+      ORDER BY o.occupation_title
+      `,
+      [anz6]
+    );
+
+    if (socOcc.length === 0) {
+      return res.json({
+        anzsco: { code: anz6 },
+        occupations: [],
+        knowledge_titles: [],
+        skill_titles: [],
+        tech_titles: []
+      });
+    }
+
+    const occCodes = socOcc.map(r => r.occupation_code);
+    const placeholders = occCodes.map(()=>'?').join(',');
+
+    // 2) Pull ability (merge all related SOCs and perform DISTINCT)
+    const [kn] = await conn.query(
+      `
+      SELECT DISTINCT k.knowledge_code AS code, k.knowledge_title AS title
+      FROM occup_know_data ok
+      JOIN knowledge_data  k  ON k.knowledge_code = ok.knowledge_code
+      WHERE ok.occupation_code IN (${placeholders})
+      ORDER BY k.knowledge_title
+      `,
+      occCodes
+    );
+    const [sk] = await conn.query(
+      `
+      SELECT DISTINCT s.skill_code AS code, s.skill_title AS title
+      FROM occup_skill_data os
+      JOIN skill_data      s  ON s.skill_code = os.skill_code
+      WHERE os.occupation_code IN (${placeholders})
+      ORDER BY s.skill_title
+      `,
+      occCodes
+    );
+    const [te] = await conn.query(
+      `
+      SELECT DISTINCT t.tech_skill_code AS code, t.tech_title AS title
+      FROM occup_tech_data ot
+      JOIN technology_skill_data t ON t.tech_skill_code = ot.tech_skill_code
+      WHERE ot.occupation_code IN (${placeholders})
+      ORDER BY t.tech_title
+      `,
+      occCodes
+    );
+
+    res.json({
+      anzsco: { code: anz6, major_first: anz6[0], major_name: ANZSCO_MAJOR[anz6[0]] },
+      occupations: socOcc.map(r => ({
+        occupation_code: r.occupation_code,
+        occupation_title: strip(r.occupation_title)
+      })),
+      knowledge_titles: kn.map(x => ({ code: x.code, title: strip(x.title) })),
+      skill_titles:     sk.map(x => ({ code: x.code, title: strip(x.title) })),
+      tech_titles:      te.map(x => ({ code: x.code, title: strip(x.title) })),
+    });
+  } catch (e) {
+    console.error('[anzsco/:code/skills] error:', e);
+    res.status(500).json({ error: 'server_error' });
+  } finally {
+    conn.release();
+  }
+});
+
+// ==========================================
 app.use('/api/anzsco', initAnzscoTrainingRoutes(pool)); // -> /api/anzsco/:code/training-advice
 app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/demand
 
 
-// -----------------------------
-// 1) Search occupations (returns only base info; supports includeAliases flag; no score in response)
-//    GET /occupations/search-and-titles?s=keyword&limit=10&includeScore=0
-//
-// Notes:
-// - WHERE first performs broad fuzzy filtering (match in any of: occupation title / alternative titles / reported titles)
-// - ORDER BY calculates a relevance score with priority:
-//   1) Exact equality with occupation title
-//   2) Prefix match on occupation title
-//   3) Word-boundary match (space before the substring)
-//   4) Substring match anywhere in occupation title
-//   5) Equality/prefix/contains in alternative/reported titles (decreasing weights)
-//   Ties are broken by occupation_title ascending
-// -----------------------------
-app.get('/occupations/search-and-titles', async (req, res) => {
-  const s = (req.query.s || '').trim();
-  const limit = Math.min(Math.max(parseInt(req.query.limit ?? '10', 10) || 10, 1), 20); // 1..20
-  const includeAliases = String(req.query.includeAliases || '1') === '1'; // 1 = include aliases/reported titles
+app.use("/api", buildRouter(pool));
+app.use('/', initRankRoutes(pool));
 
-  if (s.length < 2) return res.status(400).json({ error: 'query too short (>=2)' });
 
-  const conn = await pool.getConnection();
-  try {
-    // Score expression (ORDER BY only; not sent to the client)
-    let scoreExpr = `
-      (LOWER(o.occupation_title) = LOWER(?)) * 100 +
-      (LOWER(o.occupation_title) LIKE LOWER(CONCAT(?, '%'))) * 90 +
-      (LOWER(o.occupation_title) LIKE LOWER(CONCAT('% ', ?, '%'))) * 85 +
-      (LOWER(o.occupation_title) LIKE LOWER(CONCAT('%', ?, '%'))) * 80
-    `;
-    const scoreParams = [s, s, s, s];
 
-    // Filter: at least fuzzy match on the main title
-    let where = `LOWER(o.occupation_title) LIKE LOWER(CONCAT('%', ?, '%'))`;
-    const whereParams = [s];
-
-    // Optionally include alternative/reported titles in filtering and scoring
-    if (includeAliases) {
-      scoreExpr += `
-        + EXISTS(SELECT 1 FROM alternative_titles_data a
-                  WHERE a.occupation_code = o.occupation_code
-                    AND LOWER(a.alternate_title) = LOWER(?)) * 60
-        + EXISTS(SELECT 1 FROM alternative_titles_data a
-                  WHERE a.occupation_code = o.occupation_code
-                    AND LOWER(a.alternate_title) LIKE LOWER(CONCAT(?, '%'))) * 55
-        + EXISTS(SELECT 1 FROM alternative_titles_data a
-                  WHERE a.occupation_code = o.occupation_code
-                    AND LOWER(a.alternate_title) LIKE LOWER(CONCAT('%', ?, '%'))) * 50
-        + EXISTS(SELECT 1 FROM reported_title_data r
-                  WHERE r.occupation_code = o.occupation_code
-                    AND LOWER(r.report_job_title) = LOWER(?)) * 40
-        + EXISTS(SELECT 1 FROM reported_title_data r
-                  WHERE r.occupation_code = o.occupation_code
-                    AND LOWER(r.report_job_title) LIKE LOWER(CONCAT(?, '%'))) * 35
-        + EXISTS(SELECT 1 FROM reported_title_data r
-                  WHERE r.occupation_code = o.occupation_code
-                    AND LOWER(r.report_job_title) LIKE LOWER(CONCAT('%', ?, '%'))) * 30
-      `;
-      scoreParams.push(s, s, s, s, s, s);
-
-      where += `
-        OR EXISTS (SELECT 1 FROM alternative_titles_data a
-                    WHERE a.occupation_code = o.occupation_code
-                      AND LOWER(a.alternate_title) LIKE LOWER(CONCAT('%', ?, '%')))
-        OR EXISTS (SELECT 1 FROM reported_title_data r
-                    WHERE r.occupation_code = o.occupation_code
-                      AND LOWER(r.report_job_title) LIKE LOWER(CONCAT('%', ?, '%')))
-      `;
-      whereParams.push(s, s);
-    }
-
-    const sql = `
-      SELECT
-        o.occupation_code,
-        o.occupation_title,
-        o.occupation_description
-      FROM occupation_data o
-      WHERE ${where}
-      ORDER BY ${scoreExpr} DESC, o.occupation_title ASC
-      LIMIT ?
-    `;
-
-    const params = [...scoreParams, ...whereParams, limit];
-    const [rows] = await conn.query(sql, params);
-
-    const items = rows.map(r => ({
-      occupation_code: r.occupation_code,
-      occupation_title: (r.occupation_title || '').replace(/[\r\n]/g, ''),
-      occupation_description: (r.occupation_description || '').replace(/[\r\n]/g, '')
-    }));
-
-    res.json({ items });
-  } catch (e) {
-    console.error('search route error:', e);
-    res.status(500).json({ error: 'server error' });
-  } finally {
-    conn.release();
-  }
-});
-
-// -----------------------------
-// 2) Fetch the three title categories by occupation_code (direct code lookup)
-// -----------------------------
-app.get('/occupations/:code/titles', async (req, res) => {
-  const occ = (req.params.code || '').trim();
-  if (!occ) return res.status(400).json({ error: 'occupation_code required' });
-
-  const conn = await pool.getConnection();
-  try {
-    const [meta] = await conn.query(
-      `SELECT occupation_code, occupation_title, occupation_description
-         FROM occupation_data WHERE occupation_code = ?`,
-      [occ]
-    );
-    if (meta.length === 0) return res.status(404).json({ error: 'occupation not found' });
-
-    const [kn] = await conn.query(
-      `SELECT k.knowledge_code AS code, k.knowledge_title AS title
-         FROM occup_know_data ok
-         JOIN knowledge_data k ON k.knowledge_code = ok.knowledge_code
-        WHERE ok.occupation_code = ?
-        ORDER BY k.knowledge_title`,
-      [occ]
-    );
-    const [sk] = await conn.query(
-      `SELECT s.skill_code AS code, s.skill_title AS title
-         FROM occup_skill_data os
-         JOIN skill_data s ON s.skill_code = os.skill_code
-        WHERE os.occupation_code = ?
-        ORDER BY s.skill_title`,
-      [occ]
-    );
-    const [tech] = await conn.query(
-      `SELECT t.tech_skill_code AS code, t.tech_title AS title
-         FROM occup_tech_data ot
-         JOIN technology_skill_data t ON t.tech_skill_code = ot.tech_skill_code
-        WHERE ot.occupation_code = ?
-        ORDER BY t.tech_title`,
-      [occ]
-    );
-
-    res.json({
-      occupation: meta[0],
-      knowledge_titles: kn.map(x => ({ code: x.code, title: strip(x.title) })),
-      skill_titles:     sk.map(x => ({ code: x.code, title: strip(x.title) })),
-      tech_titles:      tech.map(x => ({ code: x.code, title: strip(x.title) })),
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'server error' });
-  } finally {
-    conn.release();
-  }
-});
-
-// -----------------------------
-// 3) Title-based matching (already in use in your client)
-// -----------------------------
-app.post('/occupations/match-top', async (req, res) => {
-  const occ = req.body?.occupation_code;
-  const picksRaw = ensureArray(req.body?.titles).slice(0, 6); // Up to 6
-  if (!occ || picksRaw.length === 0) {
-    return res.status(400).json({ error: 'occupation_code & titles required' });
-  }
-
-  const picks = picksRaw
-    .map(t => ({ type: norm(t.type), title: norm(t.title) }))
-    .filter(t => t.type && t.title && ['knowledge','skill','tech'].includes(t.type));
-
-  if (!picks.length) return res.json({ items: [] });
-
-  const conn = await pool.getConnection();
-  try {
-    const [kn] = await conn.query(
-      `SELECT 'knowledge' AS type, k.knowledge_code AS code, k.knowledge_title AS raw_title
-         FROM occup_know_data ok
-         JOIN knowledge_data k ON k.knowledge_code = ok.knowledge_code
-        WHERE ok.occupation_code = ?`,
-      [occ]
-    );
-    const [sk] = await conn.query(
-      `SELECT 'skill' AS type, s.skill_code AS code, s.skill_title AS raw_title
-         FROM occup_skill_data os
-         JOIN skill_data s ON s.skill_code = os.skill_code
-        WHERE os.occupation_code = ?`,
-      [occ]
-    );
-    const [tech] = await conn.query(
-      `SELECT 'tech' AS type, t.tech_skill_code AS code, t.tech_title AS raw_title
-         FROM occup_tech_data ot
-         JOIN technology_skill_data t ON t.tech_skill_code = ot.tech_skill_code
-        WHERE ot.occupation_code = ?`,
-      [occ]
-    );
-
-    const index = new Map(); // `${type}|${norm(title)}` -> row
-    for (const row of [...kn, ...sk, ...tech]) {
-      index.set(`${row.type}|${norm(row.raw_title)}`, row);
-    }
-
-    const agg = new Map(); // `${type}|${code}` -> {type,code,title,count}
-    for (const p of picks) {
-      const hit = index.get(`${p.type}|${p.title}`);
-      if (!hit) continue;
-      const key = `${hit.type}|${hit.code}`;
-      const prev = agg.get(key) || { type: hit.type, code: hit.code, title: strip(hit.raw_title), count: 0 };
-      prev.count += 1;
-      agg.set(key, prev);
-    }
-
-    const items = [...agg.values()].sort((a, b) => b.count - a.count);
-    res.json({ items });
-  } catch (e) {
-    console.error('match-top error:', e);
-    res.status(500).json({ error: 'server error' });
-  } finally {
-    conn.release();
-  }
-});
-
-// -----------------------------
-// 4) Reverse aggregation: given codes, rank occupations and return UNMATCHED codes+titles (no upper limit)
-// -----------------------------
-app.post('/occupations/rank-by-codes', async (req, res) => {
-  // Parse both input formats
-  let selections = ensureArray(req.body?.selections)
-    .map(x => ({ type: norm(x.type), code: (x.code ?? '').trim() }))
-    .filter(x => x.type && x.code && ['knowledge','skill','tech'].includes(x.type));
-
-  const kn2 = ensureArray(req.body?.knowledge_codes).map(String).map(x => x.trim()).filter(Boolean).map(code => ({ type: 'knowledge', code }));
-  const sk2 = ensureArray(req.body?.skill_codes).map(String).map(x => x.trim()).filter(Boolean).map(code => ({ type: 'skill', code }));
-  const te2 = ensureArray(req.body?.tech_codes).map(String).map(x => x.trim()).filter(Boolean).map(code => ({ type: 'tech', code }));
-  selections = selections.concat(kn2, sk2, te2);
-
-  // Deduplicate (removed the former "max 10 items" limit)
-  const seen = new Set();
-  const uniq = [];
-  for (const s of selections) {
-    const k = `${s.type}|${s.code}`;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    uniq.push(s);
-  }
-  selections = uniq;
-
-  if (selections.length === 0) {
-    return res.status(400).json({ error: 'no codes provided' });
-  }
-
-  // Full selected sets by type (used later to compute "unmatched")
-  const selKn = new Set(selections.filter(x => x.type === 'knowledge').map(x => x.code));
-  const selSk = new Set(selections.filter(x => x.type === 'skill').map(x => x.code));
-  const selTe = new Set(selections.filter(x => x.type === 'tech').map(x => x.code));
-
-  const conn = await pool.getConnection();
-  try {
-    // Preload selected codes' titles into maps
-    const knTitleMap = new Map();
-    const skTitleMap = new Map();
-    const teTitleMap = new Map();
-
-    if (selKn.size) {
-      const codes = [...selKn];
-      const [rows] = await conn.query(
-        `SELECT knowledge_code, knowledge_title FROM knowledge_data
-          WHERE knowledge_code IN (${codes.map(()=>'?').join(',')})`,
-        codes
-      );
-      for (const r of rows) knTitleMap.set(r.knowledge_code, strip(r.knowledge_title));
-    }
-    if (selSk.size) {
-      const codes = [...selSk];
-      const [rows] = await conn.query(
-        `SELECT skill_code, skill_title FROM skill_data
-          WHERE skill_code IN (${codes.map(()=>'?').join(',')})`,
-        codes
-      );
-      for (const r of rows) skTitleMap.set(r.skill_code, strip(r.skill_title));
-    }
-    if (selTe.size) {
-      const codes = [...selTe];
-      const [rows] = await conn.query(
-        `SELECT tech_skill_code, tech_title FROM technology_skill_data
-          WHERE tech_skill_code IN (${codes.map(()=>'?').join(',')})`,
-        codes
-      );
-      for (const r of rows) teTitleMap.set(r.tech_skill_code, strip(r.tech_title));
-    }
-
-    // For each selected code, fetch linked occupations via the three relation tables
-    const results = [];
-    if (selKn.size) {
-      const codes = [...selKn];
-      const [rows] = await conn.query(
-        `SELECT ok.occupation_code, o.occupation_title, ok.knowledge_code AS code, 'knowledge' AS type
-           FROM occup_know_data ok
-           JOIN occupation_data o ON o.occupation_code = ok.occupation_code
-          WHERE ok.knowledge_code IN (${codes.map(()=>'?').join(',')})`,
-        codes
-      );
-      results.push(...rows);
-    }
-    if (selSk.size) {
-      const codes = [...selSk];
-      const [rows] = await conn.query(
-        `SELECT os.occupation_code, o.occupation_title, os.skill_code AS code, 'skill' AS type
-           FROM occup_skill_data os
-           JOIN occupation_data o ON o.occupation_code = os.occupation_code
-          WHERE os.skill_code IN (${codes.map(()=>'?').join(',')})`,
-        codes
-      );
-      results.push(...rows);
-    }
-    if (selTe.size) {
-      const codes = [...selTe];
-      const [rows] = await conn.query(
-        `SELECT ot.occupation_code, o.occupation_title, ot.tech_skill_code AS code, 'tech' AS type
-           FROM occup_tech_data ot
-           JOIN occupation_data o ON o.occupation_code = ot.occupation_code
-          WHERE ot.tech_skill_code IN (${codes.map(()=>'?').join(',')})`,
-        codes
-      );
-      results.push(...rows);
-    }
-
-    // Aggregate hits per occupation
-    const byOcc = new Map();
-    for (const r of results) {
-      const key = r.occupation_code;
-      const entry = byOcc.get(key) || {
-        occupation_code: r.occupation_code,
-        occupation_title: strip(r.occupation_title),
-        matched: { knowledge_codes: new Set(), skill_codes: new Set(), tech_codes: new Set() }
-      };
-      if (r.type === 'knowledge') entry.matched.knowledge_codes.add(r.code);
-      if (r.type === 'skill')     entry.matched.skill_codes.add(r.code);
-      if (r.type === 'tech')      entry.matched.tech_codes.add(r.code);
-      byOcc.set(key, entry);
-    }
-
-    // Build response: "unmatched" arrays include {code, title}
-    const items = [...byOcc.values()].map(e => {
-      const kc = e.matched.knowledge_codes.size;
-      const sc = e.matched.skill_codes.size;
-      const tc = e.matched.tech_codes.size;
-
-      const unmatched_kn = [...selKn]
-        .filter(code => !e.matched.knowledge_codes.has(code))
-        .map(code => ({ code, title: knTitleMap.get(code) ?? null }));
-
-      const unmatched_sk = [...selSk]
-        .filter(code => !e.matched.skill_codes.has(code))
-        .map(code => ({ code, title: skTitleMap.get(code) ?? null }));
-
-      const unmatched_te = [...selTe]
-        .filter(code => !e.matched.tech_codes.has(code))
-        .map(code => ({ code, title: teTitleMap.get(code) ?? null }));
-
-      return {
-        occupation_code: e.occupation_code,
-        occupation_title: e.occupation_title,
-        count: kc + sc + tc,  // Still sort by total hit count
-        unmatched: {
-          knowledge: unmatched_kn,
-          skill:     unmatched_sk,
-          tech:      unmatched_te
-        }
-      };
-    }).sort((a, b) => b.count - a.count || a.occupation_title.localeCompare(b.occupation_title));
-
-    res.json({
-      total_selected: selections.length,
-      items
-    });
-  } catch (e) {
-    console.error('rank-by-codes error:', e);
-    res.status(500).json({ error: 'server error' });
-  } finally {
-    conn.release();
-  }
-});
-
-// -----------------------------
-// (Optional) Quick sanity check for occupation_data
-// -----------------------------
+// ===================== Debug & Errors =====================
 app.get('/test-occupations', async (_req, res) => {
   try {
     const conn = await pool.getConnection();
@@ -610,16 +522,23 @@ app.get('/test-occupations', async (_req, res) => {
   }
 });
 
-// Read session for debugging
 app.get('/debug/me', (req, res) => {
-  res.json({
-    hasSession: !!req.session,
-    sessionID: req.sessionID,
-    userId: req.session?.userId ?? null
-  });
+  res.json({ hasSession: !!req.session, sessionID: req.sessionID, userId: req.session?.userId ?? null });
 });
 
-// 1) Check if Redis is reachable
+/**
+ * @openapi
+ * /debug/redis:
+ *   get:
+ *     tags: [Debug]
+ *     summary: Redis connectivity check
+ *     x-summary-zh: Redis 连接检查
+ *     responses:
+ *       200:
+ *         description: OK
+ *       500:
+ *         description: Not reachable
+ */
 app.get('/debug/redis', async (_req, res) => {
   try {
     const pong = await redis.ping();
@@ -630,7 +549,6 @@ app.get('/debug/redis', async (_req, res) => {
   }
 });
 
-// 2) Direct Redis write test (helps rule out permission/ACL issues)
 app.get('/debug/redis-write', async (_req, res) => {
   try {
     const key = 'sbridg:debug:write';
@@ -643,7 +561,19 @@ app.get('/debug/redis-write', async (_req, res) => {
   }
 });
 
-// 3) More robust login demo: surface session.save errors as JSON (instead of HTML 500)
+/**
+ * @openapi
+ * /debug/login:
+ *   get:
+ *     tags: [Debug]
+ *     summary: Demo login (session.save surfaced as JSON)
+ *     x-summary-zh: Demo 登录（将 session.save 错误以 JSON 暴露）
+ *     responses:
+ *       200:
+ *         description: OK
+ *       500:
+ *         description: Session save error
+ */
 app.get('/debug/login', (req, res) => {
   req.session.userId = 'u-123';
   req.session.save((err) => {
@@ -655,26 +585,40 @@ app.get('/debug/login', (req, res) => {
   });
 });
 
-// -----------------------------
-// Start server
-// -----------------------------
 
-// — Place these handlers at the very end —
-// Convert CORS rejections into 403 JSON, avoiding 500 + HTML
+
+
+// ===== Swagger Documentation (Chinese and English)=====
+app.get('/openapi.en.json', (_req, res) => res.json(swaggerSpecEn));
+app.get('/openapi.zh.json', (_req, res) => res.json(swaggerSpecZh));
+
+// A /docs page with a built-in drop-down switch
+app.use('/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(null, {
+    explorer: true,
+    swaggerOptions: {
+      urls: [
+        { url: '/openapi.en.json', name: 'English' },
+        { url: '/openapi.zh.json', name: '中文' },
+      ],
+    },
+    customSiteTitle: 'SkillBridge API Docs',
+  }),
+);
+
+
+// error
 app.use((err, req, res, next) => {
   if (err && err.message === 'Not allowed by CORS') {
     return res.status(403).json({ error: 'CORS blocked' });
   }
   return next(err);
 });
-
-// Generic catch-all error handler; always return JSON to ease debugging
 app.use((err, req, res, _next) => {
   console.error('[unhandled error]', err);
   res.status(500).json({ error: err?.message || String(err) });
 });
-
-// const { PORT = 8080 } = process.env;
 
 app.listen(PORT, () => {
   console.log(`SkillBridge API listening on http://localhost:${PORT}`);

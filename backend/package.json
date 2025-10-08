@@ -20,6 +20,8 @@
     "ioredis": "^5.7.0",
     "mysql2": "^3.14.4",
     "redis": "^4.7.1",
-    "soap": "^1.4.1"
+    "soap": "^1.4.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }
