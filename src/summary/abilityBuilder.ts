@@ -1,6 +1,7 @@
 // src/summary/abilityBuilder.ts
-// Emit a non-pill summary row so compact mode shows the count.
-// Also emit pill chips for full mode.
+// Builder that emits a single value row with Knowledge/Tech/Skills counts.
+// The renderer stays dumb; it will just show this value row.
+// No `any`.
 
 import type { SummaryBuilder, SummaryItem, SummaryRoot, DraftOverrides } from "./types";
 import { registerSummaryBuilder } from "./registry";
@@ -8,36 +9,35 @@ import { registerSummaryBuilder } from "./registry";
 type AType = "knowledge" | "tech" | "skill";
 type AbilityLite = { name: string; code?: string; aType: AType };
 
-type AnalyzerWithAbilities = { chosenAbilities?: AbilityLite[] | null | undefined };
+// Extend drafts to optionally carry abilities so pages can pass live picks.
 type DraftWithAbilities = DraftOverrides & { abilities?: AbilityLite[] };
 
-const abilityBuilder: SummaryBuilder<SummaryRoot> = (state, drafts) => {
-  const s = state.analyzer as AnalyzerWithAbilities;
+const abilityCountsBuilder: SummaryBuilder<SummaryRoot> = (state, drafts) => {
   const fromDrafts = (drafts as DraftWithAbilities | undefined)?.abilities;
-  const source: AbilityLite[] = fromDrafts ?? (s?.chosenAbilities ?? []);
+  const chosen = fromDrafts ?? ((state.analyzer as { chosenAbilities?: AbilityLite[] | null })?.chosenAbilities ?? []);
 
-  const items: SummaryItem[] = [];
-
-  // Summary value row: compact will show this value
-  items.push({
-    id: "ability:__summary",
-    label: "Abilities",
-    value: String(source.length), // show count
-    pill: false,
-  });
-
-  // Detail chips for full mode
-  for (const a of source) {
-    items.push({
-      id: `ability:${a.aType}:${a.code || a.name}`,
-      label: a.name,
-      pill: true,
-    });
+  let knowledge = 0;
+  let tech = 0;
+  let skill = 0;
+  for (const a of chosen) {
+    if (a?.aType === "knowledge") knowledge += 1;
+    else if (a?.aType === "tech") tech += 1;
+    else if (a?.aType === "skill") skill += 1;
   }
+
+  const items: SummaryItem[] = [
+    {
+      id: "ability:counts",
+      label: "Counts",
+      value: `Knowledge:${knowledge} • Tech:${tech} • Skills:${skill}`,
+      pill: false,
+    },
+  ];
 
   return items;
 };
 
-export function registerAbilitySummaryBuilder() {
-  registerSummaryBuilder("abilities", abilityBuilder, 40);
+export function registerAbilityCountsBuilder(): void {
+  // Priority higher than generic core if needed; adjust weight as you like.
+  registerSummaryBuilder("ability-counts", abilityCountsBuilder, 40);
 }

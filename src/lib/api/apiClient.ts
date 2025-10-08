@@ -1,21 +1,33 @@
 // src/lib/api/apiClient.ts
 import { httpGet, httpPost } from "../services/https";
 
-export type Query = Record<string, string | number | boolean | undefined>;
+/** Query types: support primitives and arrays (serialized as repeated params). */
+type QueryPrimitive = string | number | boolean | undefined;
+export type Query = Record<string, QueryPrimitive | QueryPrimitive[]>;
 
 const RAW = (import.meta.env.VITE_API_BASE as string | undefined) ?? "";
 const BASE = RAW.trim().replace(/\/+$/, "");
 
-/** Build absolute or relative URL with query string. */
+/** Build absolute or relative URL with query string (arrays => repeated params). */
 function buildUrl(path: string, q?: Query): string {
   const rel = path.startsWith("/") ? path : `/${path}`;
-  const qs = q
-    ? "?" +
-      Object.entries(q)
-        .filter(([, v]) => v !== undefined)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
-        .join("&")
-    : "";
+
+  let qs = "";
+  if (q) {
+    const usp = new URLSearchParams();
+    for (const [k, v] of Object.entries(q)) {
+      if (Array.isArray(v)) {
+        v.forEach((val) => {
+          if (val !== undefined) usp.append(k, String(val));
+        });
+      } else if (v !== undefined) {
+        usp.append(k, String(v));
+      }
+    }
+    const s = usp.toString();
+    qs = s ? `?${s}` : "";
+  }
+
   return BASE ? `${BASE}${rel}${qs}` : `${rel}${qs}`;
 }
 

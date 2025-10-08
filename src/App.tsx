@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import AnalyzerEntry from "./pages/Analyzer/AnalyzerEntry";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 const Home = lazy(() => import("./pages/Home"));
 const Insight = lazy(() => import("./pages/Insight"));
@@ -33,23 +34,25 @@ export default function App() {
   }, [pathname, hash]);
 
   return (
-    <Suspense fallback={<Spinner />}>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="analyzer/*" element={<AnalyzerEntry />} />
-          <Route path="insight" element={<Insight />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="glossary" element={<Glossary />} />
-          <Route path="feedback" element={<Feedback />} />
-          <Route path="privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="terms" element={<Terms />} />
+    <ErrorBoundary feedbackHref="/feedback" onError={(e) => console.error(e)}>
+      <Suspense fallback={<Spinner />}>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="analyzer/*" element={<AnalyzerEntry />} />
+            <Route path="insight" element={<Insight />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="glossary" element={<Glossary />} />
+            <Route path="feedback" element={<Feedback />} />
+            <Route path="privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="terms" element={<Terms />} />
 
-          {/* 404 */}
-          <Route path="404" element={<NotFoundPage />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Route>
-      </Routes>
-    </Suspense>
+            {/* 404 */}
+            <Route path="404" element={<NotFoundPage />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

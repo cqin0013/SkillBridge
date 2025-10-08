@@ -9,9 +9,11 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { store, persistor } from "./store";
 import { registerDefaultSummaryBuilders } from "./summary/defaultBuilders";
-import { registerAbilitySummaryBuilder } from "./summary/abilityBuilder";
+import { registerAbilityCountsBuilder } from "./summary/abilityBuilder";
+import { registerJobSummaryBuilder } from "./summary/jobBuilder";
 registerDefaultSummaryBuilders();
-registerAbilitySummaryBuilder();
+registerAbilityCountsBuilder();
+registerJobSummaryBuilder();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

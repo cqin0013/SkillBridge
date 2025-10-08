@@ -1,54 +1,68 @@
 ﻿// src/hooks/useRouteStep.ts
 // Path-driven step resolver and navigator for the analyzer wizard.
-// - STEP_PATHS must match your AnalyzerRoutes paths in order.
-// - Exposes current step index and simple prev/next/goTo helpers.
+// - STEP_PATHS must match your AnalyzerRoutes in order.
+// - Helpers support passing router state between steps.
 
+import { useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import type { AnalyzerRouteState } from "../types/routes";
 
-/** Ordered list of step paths. Keep in sync with your <AnalyzerRoutes>. */
+/** Ordered list of absolute step paths. Keep in sync with <AnalyzerRoutes>. */
 export const STEP_PATHS = [
   "/analyzer/intro",
   "/analyzer/get-info",
   "/analyzer/abilities",
-  "/analyzer/jobs",        // add when the page exists
-  "/analyzer/skill-gap",   // add when the page exists
-  "/analyzer/training",    // add when the page exists
+  "/analyzer/job-suggestion",
+  "/analyzer/skill-gap",
+  "/analyzer/training",
 ] as const;
 
 export type StepPath = (typeof STEP_PATHS)[number];
 export const TOTAL_STEPS = STEP_PATHS.length;
 
-/** Normalize path for stable comparison (trim trailing slashes except root). */
-const normalize = (p: string): string => (p === "/" ? "/" : p.replace(/\/+$/, ""));
-
 /** Return the current step index resolved from location.pathname. */
 export function useRouteStep(): number {
   const { pathname } = useLocation();
-  const i = STEP_PATHS.indexOf(normalize(pathname) as StepPath);
+  const i = STEP_PATHS.findIndex((p) => pathname.startsWith(p));
   return i >= 0 ? i : 0;
 }
 
-/** Navigation helpers for previous/next/goTo based on STEP_PATHS. */
-export function useStepNav() {
+/** Navigation helpers with router-state passthrough. */
+export function useStepNav(): {
+  goPrev: () => void;
+  goNext: (state?: AnalyzerRouteState, replace?: boolean) => void;
+  goTo: (path: StepPath, state?: AnalyzerRouteState, replace?: boolean) => void;
+  canPrev: boolean;
+  canNext: boolean;
+  stepIndex: number;
+} {
   const navigate = useNavigate();
-  const curr = useRouteStep();
-  const canPrev = curr > 0;
-  const canNext = curr < TOTAL_STEPS - 1;
+  const stepIndex = useRouteStep();
 
-  /** Navigate to previous step if available. */
-  const goPrev = (): void => {
-    if (canPrev) navigate(STEP_PATHS[curr - 1]);
-  };
+  const canPrev = stepIndex > 0;
+  const canNext = stepIndex < TOTAL_STEPS - 1;
 
-  /** Navigate to next step if available. */
-  const goNext = (): void => {
-    if (canNext) navigate(STEP_PATHS[curr + 1]);
-  };
+  const goPrev = useCallback(() => {
+    if (!canPrev) return;
+    const target = STEP_PATHS[stepIndex - 1];
+    navigate(target);
+  }, [canPrev, stepIndex, navigate]);
 
-  /** Navigate directly to a specific step path. */
-  const goTo = (path: StepPath): void => {
-    navigate(path);
-  };
+  const goNext = useCallback(
+    (state?: AnalyzerRouteState, replace = false) => {
+      if (!canNext) return;
+      const target = STEP_PATHS[stepIndex + 1];
+      navigate(target, { state, replace });
+    },
+    [canNext, stepIndex, navigate]
+  );
 
-  return { curr, canPrev, canNext, goPrev, goNext, goTo };
+  const goTo = useCallback(
+    (path: StepPath, state?: AnalyzerRouteState, replace = false) => {
+      navigate(path, { state, replace });
+    },
+    [navigate]
+  );
+
+  return { goPrev, goNext, goTo, canPrev, canNext, stepIndex };
 }

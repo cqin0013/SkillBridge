@@ -27,5 +27,5 @@ export function useAnzscoSearch(params: SearchParams) {
   });
 }
 
-// 👇 新增这一行
+
 export type { AnzscoOccupation };

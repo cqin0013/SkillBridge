@@ -5,10 +5,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AnalyzerIntro from "./AnalyzerIntro";
 import AnalyzerGetInfo from "./AnalyzerGetInfo";
 import AnalyzerAbility from "./AnalyzerAbility";
-// TODO: add remaining steps when pages exist
-// import AnalyzerJobSuggestions from "./AnalyzerJobSuggestions";
-// import AnalyzerSkillGap from "./AnalyzerSkillGap";
-// import AnalyzerTraining from "./AnalyzerTraining";
+import AnalyzerJobSuggestion from "./AnalyzerJobSuggestion";
+import AnalyzerSkillGap from "./AnalyzerSkillGap";
+import AnalyzerTraining from "./AnalyzerTraining";
 
 export default function AnalyzerRoutes() {
   return (
@@ -25,10 +24,9 @@ export default function AnalyzerRoutes() {
       {/* Step 2: Abilities → "/analyzer/abilities" */}
       <Route path="abilities" element={<AnalyzerAbility />} />
 
-      {/* TODO: the rest steps */}
-      {/* <Route path="jobs" element={<AnalyzerJobSuggestions />} /> */}
-      {/* <Route path="skill-gap" element={<AnalyzerSkillGap />} /> */}
-      {/* <Route path="training" element={<AnalyzerTraining />} /> */}
+      <Route path="job-suggestion" element={<AnalyzerJobSuggestion />} /> 
+      <Route path="skill-gap" element={<AnalyzerSkillGap />} /> 
+      <Route path="training" element={<AnalyzerTraining />} />
 
       {/* Fallback inside "/analyzer/*" */}
       <Route path="*" element={<Navigate to="intro" replace />} />

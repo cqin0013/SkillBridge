@@ -1,48 +1,38 @@
 // src/store/index.ts
-// Configures Redux store with redux-persist for analyzer workflow state.
+// Store composition that consumes the single persist config.
 
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import {
-  FLUSH,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-  REHYDRATE,
-  persistReducer,
-  persistStore,
-} from "redux-persist";
-import type { PersistConfig } from "redux-persist";
-import storage from "redux-persist/lib/storage";
-
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import { persistReducer, persistStore } from "redux-persist";
 import analyzerReducer from "./analyzerSlice";
+import { createRootPersistConfig } from "./persist";
 
+// Compose root reducer
 const rootReducer = combineReducers({
   analyzer: analyzerReducer,
+
 });
 
+// Export RootState based on the actual reducer shape
 export type RootState = ReturnType<typeof rootReducer>;
 
-const persistConfig: PersistConfig<RootState> = {
-  key: "skillbridge",
-  storage,
-  whitelist: ["analyzer"],
-  version: 1,
-};
+// Wrap with persistReducer using the single-source config
+const persistedReducer = persistReducer(createRootPersistConfig(), rootReducer);
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
+// Create the store
 export const store = configureStore({
   reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      // Ignore redux-persist non-serializable checks
+  middleware: (getDefault) =>
+    getDefault({
       serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        // Ignore redux-persist internal actions that carry non-serializable payloads
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
       },
     }),
 });
 
+// Create persistor for <PersistGate>
 export const persistor = persistStore(store);
 
-export type AppDispatch = typeof store.dispatch;
+// Typed helpers
+export type AppStore = typeof store;
+export type AppDispatch = AppStore["dispatch"];

@@ -45,7 +45,6 @@ const LEGAL_LINKS: QuickLink[] = [
 // -----------------------------------------------------------------------------
 
 export default function Footer() {
-  const year = new Date().getFullYear()
 
   return (
     <footer role="contentinfo" className="bg-ink text-ink-invert">
@@ -119,9 +118,9 @@ export default function Footer() {
 
         {/* Bottom bar: copyright + legal links -------------------------------------- */}
         <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          {/* Left: © line */}
+        
           <p className="text-base text-white/70">
-            © {year} {SITE_NAME}. All rights reserved.
+             {SITE_NAME}
           </p>
 
           {/* Right: legal links (auto-hide if LEGAL_LINKS is empty) */}

@@ -1,20 +1,21 @@
 // src/pages/analyzer/AnalyzerGetInfo.tsx
-// Page: uses AnalyzerLayout (ProgressBar + SummaryDock).
-// - Search API requires industry FULL NAME (labelEn). We map from code/slug → name.
+// Uses AnalyzerLayout header (Title + HelpToggle) and ProgressBar + SummaryDock.
+// - Search API requires the industry's FULL NAME; we map code/slug → name.
 // - Re-search always refetches even with the same params.
-// - Next button is enabled only when all three questions are completed.
-// - Disabled state shows an instant tooltip (no native title delay).
-// - On Next, persist facts to Redux and navigate forward.
+// - Next enabled only when all three questions are completed.
+// - On Next, persist to Redux and pass router state as fallback to the next step.
 
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
 
+import ErrorBoundary from "../../components/common/ErrorBoundary";
+import GlobalError from "../../components/common/GlobalError";
 import AnalyzerLayout from "../../layouts/AnalyzerLayout";
 import ComboSearchQuestion from "../../components/analyzer/ComboSearchQuestion";
 import SelectQuestion from "../../components/analyzer/SelectQuestion";
 import SearchResults from "../../components/analyzer/SearchResults";
+import Button from "../../components/ui/Button";
 
 import { useStepNav } from "../../hooks/useRouteStep";
 import { industryOptions, industryNameOf } from "../../data/industries";
@@ -28,23 +29,33 @@ import {
   setInterestedIndustryCodes,
   setChosenRoles,
 } from "../../store/analyzerSlice";
+import type { RootState } from "../../store";
+import type { AnalyzerRouteState } from "../../types/routes";
 
 // Hook param uses industry full name
 type SearchParams = { industry: string; keyword: string; limit?: number } | null;
 
-export default function AnalyzerGetInfo() {
+/** Page body isolated so the route-level ErrorBoundary can wrap it cleanly */
+function PageBody(): React.ReactElement {
   const { goPrev, goNext } = useStepNav();
   const qc = useQueryClient();
   const dispatch = useDispatch();
 
-  // Local drafts
+  // Read persisted selections to hydrate local drafts
+  const persisted = useSelector((s: RootState) => s.analyzer);
+
+  // Local drafts (lazy init from Redux so Back restores selections)
   const [industryCode, setIndustryCode] = useState<string>(""); // store code (A..T) or slug
   const [keyword, setKeyword] = useState<string>("");
-  const [region, setRegion] = useState<string>("");
-  const [interests, setInterests] = useState<string[]>([]);
-  const [draftRoles, setDraftRoles] = useState<Array<{ id: string; title: string }>>([]);
+  const [region, setRegion] = useState<string>(persisted.preferredRegion ?? "");
+  const [interests, setInterests] = useState<string[]>(
+    persisted.interestedIndustryCodes ?? []
+  );
+  const [draftRoles, setDraftRoles] = useState<Array<{ id: string; title: string }>>(
+    persisted.chosenRoles ?? []
+  );
 
-  // Submitted trigger snapshot
+  // Submitted snapshot used by the search hook
   const [submittedIndustryCode, setSubmittedIndustryCode] = useState<string>("");
   const [submittedKeyword, setSubmittedKeyword] = useState<string>("");
 
@@ -81,11 +92,10 @@ export default function AnalyzerGetInfo() {
     }
     setSearchErr("");
 
-    // Commit submitted snapshot
     setSubmittedIndustryCode(industryCode);
     setSubmittedKeyword(k);
 
-    // Force refetch for the concrete key to overwrite any in-memory cache
+    // Force refetch for this concrete key
     qc.invalidateQueries({
       queryKey: ["anzsco", "search", industryFullName, k, 12],
     });
@@ -94,10 +104,10 @@ export default function AnalyzerGetInfo() {
   // Selected ids for highlight/disable
   const pickedIds = useMemo(() => draftRoles.map((r) => r.id), [draftRoles]);
 
-  // Add/remove role
+  // Add/remove role (id = ANZSCO code; title = occupation title)
   const handleAddRole = (occ: AnzscoOccupation): void => {
     setDraftRoles((prev) =>
-      prev.some((x) => x.id === occ.code) ? prev : prev.concat({ id: occ.code, title: occ.title }),
+      prev.some((x) => x.id === occ.code) ? prev : prev.concat({ id: occ.code, title: occ.title })
     );
   };
   const handleRemoveRole = (code: string): void => {
@@ -115,13 +125,26 @@ export default function AnalyzerGetInfo() {
 
   const nextDisabled = nextBlockers.length > 0;
 
-  // Persist to Redux and go next
+  // Persist to Redux and go next with router-state fallback
   const handleSubmitAndNext = (): void => {
     if (nextDisabled) return;
-    dispatch(setPreferredRegion(region || undefined));
-    dispatch(setInterestedIndustryCodes(interests)); // still store codes
+
+    const preferred: string | null = region ?? null;
+    const industries: string[] | null = interests.length > 0 ? interests : null;
+
+    dispatch(setPreferredRegion(preferred));
+    dispatch(setInterestedIndustryCodes(industries));
     dispatch(setChosenRoles(draftRoles));
-    goNext();
+
+// Router-state fallback for the next page (Abilities)
+const state: AnalyzerRouteState = {
+  roles: draftRoles.length ? draftRoles : undefined,
+  region: region || undefined,                 
+  industries: interests.length ? interests : undefined,
+};
+
+goNext(state);
+
   };
 
   // Flags for empty-result messaging
@@ -130,22 +153,21 @@ export default function AnalyzerGetInfo() {
 
   return (
     <AnalyzerLayout
-      summaryDrafts={{
-        region,
-        industryCodes: interests,
-        roles: draftRoles,
+      summaryDrafts={{ region, industryCodes: interests, roles: draftRoles }}
+      title="Tell us about your background"
+      helpContent={{
+        title: "What to do on this page",
+        subtitle:
+          "Choose your previous industry, search and pick at least one role, then set a preferred location and interested industries.",
+        features: [
+          "Search requires a keyword of at least 2 characters.",
+          "Industry must be selected to enable search.",
+        ],
+        tips: ["Your selections will be saved for later steps."],
       }}
     >
-      {/* Title + subtitle */}
-      <header className="mt-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-ink">Tell us about your background</h1>
-        <p className="mt-2 text-ink-soft">
-          Select your previous industry and search related roles. Then choose your preferred location and the industries you are interested in.
-        </p>
-      </header>
-
-      {/* 1) Industry + keyword + Search */}
-      <section className="mt-8">
+      {/* Search form */}
+      <section className="mt-2">
         <ComboSearchQuestion
           title="1. Your previous industry and role search"
           subtitle="Choose an industry and enter a keyword, then click Search."
@@ -162,19 +184,18 @@ export default function AnalyzerGetInfo() {
           onSubmit={handleSearchClick}
         />
 
-        {/* Validation + network feedback */}
+        {/* Validation (business) */}
         {searchErr && (
           <div className="mt-3 rounded-md bg-amber-50 text-amber-800 p-3 text-sm">{searchErr}</div>
         )}
 
-        {/* API failure → friendly message with Feedback link */}
+        {/* API failure → consistent global error UI with feedback link */}
         {isError && (
-          <div className="mt-3 rounded-md bg-red-50 text-red-700 p-3 text-sm">
-            We're having an issue right now. Please try again later or let us know via{" "}
-            <Link to="/Feedback" className="underline font-medium">
-              Feedback
-            </Link>
-            .
+          <div className="mt-3">
+            <GlobalError
+              feedbackHref="/feedback"
+              message="We're having an issue right now. Please try again later, or send us feedback."
+            />
           </div>
         )}
 
@@ -224,7 +245,7 @@ export default function AnalyzerGetInfo() {
         )}
       </section>
 
-      {/* 2) Preferred location (single) */}
+      {/* Preferred location (single) */}
       <section className="mt-10">
         <SelectQuestion
           mode="single"
@@ -234,12 +255,11 @@ export default function AnalyzerGetInfo() {
           value={region ? [region] : []}
           onChange={(arr) => setRegion(arr[0] ?? "")}
           columns={2}
-          helperText="This helps us surface more relevant roles."
           name="preferred-location"
         />
       </section>
 
-      {/* 3) Interested industries (multi) */}
+      {/* Interested industries (multi) */}
       <section className="mt-10">
         <SelectQuestion
           title="3. Which industries interest you? (multi-select)"
@@ -255,25 +275,20 @@ export default function AnalyzerGetInfo() {
 
       {/* Footer actions with instant tooltip */}
       <footer className="mt-10 flex items-center justify-end gap-3">
-        <button
-          type="button"
-          onClick={goPrev}
-          className="h-11 px-5 rounded-full border border-black/15 bg-white text-ink"
-        >
+        <Button variant="ghost" size="md" onClick={goPrev} aria-label="Go back to previous step">
           Back
-        </button>
+        </Button>
 
         <div className="relative group">
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="md"
             onClick={handleSubmitAndNext}
             disabled={nextDisabled}
-            className={`h-11 px-6 rounded-full font-semibold ${
-              nextDisabled ? "bg-gray-300 text-white cursor-not-allowed" : "bg-primary text-white"
-            }`}
+            aria-label={nextDisabled ? "Disabled. Complete required fields." : "Go to next step"}
           >
             Next
-          </button>
+          </Button>
 
           {/* Instant tooltip on hover/focus when disabled */}
           {nextDisabled && (
@@ -300,5 +315,14 @@ export default function AnalyzerGetInfo() {
         <p className="mt-2 text-xs text-amber-700">Complete: {nextBlockers.join(" • ")}</p>
       )}
     </AnalyzerLayout>
+  );
+}
+
+export default function AnalyzerGetInfo(): React.ReactElement {
+  // Route-level boundary isolates failures within this page
+  return (
+    <ErrorBoundary feedbackHref="/feedback">
+      <PageBody />
+    </ErrorBoundary>
   );
 }
