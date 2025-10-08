@@ -1,0 +1,17 @@
+
+/* Default look: plain white header (inherits card border from variant="outlined") */
+.section-box--default .ant-card-head {
+  background: #fff;
+}
+
+/* Question look: gentle blue header with a light divider */
+.section-box--question .ant-card-head {
+  background: #f6f9ff;
+  border-bottom: 1px solid rgba(22, 119, 255, 0.15);
+}
+/* Optional footer separator under the body content */
+.section-box__footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border, #f0f0f0);
+}

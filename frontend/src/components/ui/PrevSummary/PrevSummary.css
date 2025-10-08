@@ -1,0 +1,19 @@
+/* Make the card fill the left column while honoring a max width if needed */
+.prev-summary-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure long strings/arrays wrap correctly inside description items */
+.prev-summary-card .ant-descriptions-item-content,
+.prev-wrap {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Friendly wrapping for Ant Design tags inside the card */
+.prev-summary-card .ant-tag {
+  margin-bottom: 4px;
+}

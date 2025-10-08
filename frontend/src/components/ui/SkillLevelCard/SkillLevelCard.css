@@ -1,0 +1,13 @@
+
+.sl-card__level {
+  margin-bottom: 6px;
+}
+
+.sl-card__list {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.sl-card__empty {
+  margin: 0;
+}

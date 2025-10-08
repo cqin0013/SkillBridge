@@ -1,0 +1,100 @@
+
+/* iOS safe area for sticky padding */
+:root {
+    --pa-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Container: right-aligned actions, with reveal/hide transitions */
+.page-actions {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: .75rem;
+    margin-top: 1.25rem;
+    margin-bottom: 8px;
+
+opacity: 1;
+    transform: translateY(0);
+    transition: opacity .16s ease, transform .16s ease;
+}
+
+/* Optional sticky mode: affix the bar to the bottom with a soft glass effect */
+.page-actions.is-sticky {
+    position: sticky;
+    bottom: 0;
+    z-index: 40;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .72), #fff 60%);
+    backdrop-filter: blur(6px);
+    padding: .6rem 0 calc(.6rem + var(--pa-safe-bottom));
+    border-top: 1px solid var(--color-border, #e5e7eb);
+}
+
+/* Reveal/hide states toggled by the component */
+.page-actions.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+}
+.page-actions.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Layout helpers */
+.page-actions__spacer {
+flex: 1 1 auto;
+}
+.page-actions__buttons {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+/* Tooltip trigger wrapper around disabled buttons */
+.page-actions__tooltip-wrap {
+    display: inline-block;
+}
+.page-actions__tooltip-wrap[aria-disabled="true"] {
+cursor: not-allowed;
+}
+/* Let hover land on the wrapper, so Tooltip still triggers for disabled buttons */
+.page-actions__tooltip-wrap .ant-btn[disabled] {
+pointer-events: none;
+}
+
+/* In sticky mode, keep buttons flat (AntD buttons may have shadows) */
+.page-actions.is-sticky .ant-btn {
+box-shadow: none;
+}
+
+/* Small screens (styling only; logic handled via your hook) */
+@media (max-width:520px) {
+    .page-actions {
+        gap: .5rem;
+    margin-top: 1rem;
+    }
+  .page-actions__buttons {
+      gap: .5rem;
+    flex-wrap: wrap;
+    }
+}
+
+
+
+/* Ant Design Tooltip look & feel override (scoped by overlayClassName) */
+.pa-tooltip .ant-tooltip-inner {
+    background: #111 !important;
+    color: #fff !important;
+    font-size: 12.5px;
+    line-height: 1.25;
+    padding: 8px 10px;
+    min-width: max-content;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+}
+.pa-tooltip .ant-tooltip-arrow:before {
+background: #111 !important;
+}
+.pa-tooltip .ant-tooltip-inner * {
+color: inherit !important;
+}
