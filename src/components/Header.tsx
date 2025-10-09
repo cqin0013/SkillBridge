@@ -1,12 +1,8 @@
+// src/components/layout/Header.tsx
 /**
- * Site Header (responsive navigation bar)
- *
- * Routes aligned with App.tsx:
- * - Home: "/"
- * - Analyzer: "/analyzer"
- * - Insight: "/insight"
- * - Glossary: "/glossary"
- * - Profile: "/profile"
+ * Responsive Site Header with lazy GSAP loading.
+ * - GSAP and ScrollTrigger are loaded on demand to keep initial bundle small.
+ * - Types use return-type inference (no gsap.core.* in types).
  */
 
 import {
@@ -22,28 +18,49 @@ import {
 } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import clsx from "clsx";
-import gsap from "gsap";
-import type { ScrollTrigger as ScrollTriggerClass } from "gsap/ScrollTrigger";
 import { prefetchRoute } from "../lib/utils/prefetch";
+
+// ----- Types (compile-time only) -----
+
+// Use function return types to define GSAP timeline/tween types
+type GsapObj = typeof import("gsap")["gsap"];
+type GsapTimeline = ReturnType<GsapObj["timeline"]>;
+type GsapTween = ReturnType<GsapObj["to"]>;
+
+
+// ----- Lazy loaders with module cache -----
+type GSAPModule = typeof import("gsap");
+type STModule = typeof import("gsap/ScrollTrigger");
+type STType = typeof import("gsap/ScrollTrigger")["ScrollTrigger"];
+type STInstance = ReturnType<STType["create"]>;
+let _gsap: GSAPModule | null = null;
+let _st: STModule | null = null;
+
+async function loadGsap(): Promise<GSAPModule> {
+  if (_gsap) return _gsap;
+  _gsap = await import("gsap");
+  return _gsap;
+}
+async function loadScrollTrigger(): Promise<STModule> {
+  if (_st) return _st;
+  const [gsapMod, stMod] = await Promise.all([loadGsap(), import("gsap/ScrollTrigger")]);
+  gsapMod.gsap.registerPlugin(stMod.ScrollTrigger);
+  _st = stMod;
+  return stMod;
+}
 
 // -----------------------------------------------------------------------------
 // Config tokens
 // -----------------------------------------------------------------------------
-
-const HEADER_H = "h-16";                 // header height token (~64px)
-const NAV_SIZE = "text-sm lg:text-base"; // smaller font on mobile
+const HEADER_H = "h-16";
+const NAV_SIZE = "text-sm lg:text-base";
 const LOGO_SRC = "/StrangerThink.png";
 const BRAND = "SkillBridge";
-
-// Shared class tokens for nav items
-const NAV_ITEM_BASE =
-  "no-underline decoration-transparent rounded-md px-3 py-2 transition";
+const NAV_ITEM_BASE = "no-underline decoration-transparent rounded-md px-3 py-2 transition";
 const NAV_ITEM_FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:rounded-lg";
 const NAV_ITEM_HOVER =
   "hover:underline hover:decoration-1 hover:decoration-dashed hover:decoration-primary/60 hover:underline-offset-[6px]";
-
-/** Static paths consistent with App.tsx */
 const NAV_ITEMS = [
   { label: "Analyzer", to: "/analyzer" },
   { label: "Insight", to: "/insight" },
@@ -51,15 +68,9 @@ const NAV_ITEMS = [
   { label: "Profile", to: "/profile" },
 ] as const;
 
-// Map GSAP ScrollTrigger static and instance types
-type ScrollTriggerStatic = typeof ScrollTriggerClass;
-type ScrollTriggerInstance = InstanceType<ScrollTriggerStatic>;
-
 // -----------------------------------------------------------------------------
-// Small utilities
+// Utils
 // -----------------------------------------------------------------------------
-
-/** Read prefers-reduced-motion safely */
 function getPrefersReduced(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -68,25 +79,24 @@ function getPrefersReduced(): boolean {
 // -----------------------------------------------------------------------------
 // Subcomponents
 // -----------------------------------------------------------------------------
-
-/** Brand (logo + wordmark). Links to "/" per App.tsx. */
 const Brand = memo(function Brand({ fgClass }: { fgClass: string }) {
   const liftIn = (el: HTMLElement): void => {
-    if (!getPrefersReduced()) gsap.to(el, { y: -2, duration: 0.18, ease: "power2.out" });
+    if (getPrefersReduced()) return;
+    loadGsap().then(({ gsap }) => gsap.to(el, { y: -2, duration: 0.18, ease: "power2.out" }));
   };
   const liftOut = (el: HTMLElement): void => {
-    if (!getPrefersReduced()) gsap.to(el, { y: 0, duration: 0.2, ease: "power2.out" });
+    if (getPrefersReduced()) return;
+    loadGsap().then(({ gsap }) => gsap.to(el, { y: 0, duration: 0.2, ease: "power2.out" }));
   };
 
   return (
     <Link
       to="/"
-      className={clsx("flex items-center gap-2")}
+      className="flex items-center gap-2"
       aria-label={`${BRAND} home`}
       onMouseEnter={(e) => liftIn(e.currentTarget)}
       onMouseLeave={(e) => liftOut(e.currentTarget)}
     >
-      {/* Decorative logo */}
       <img
         src={LOGO_SRC}
         alt=""
@@ -95,14 +105,11 @@ const Brand = memo(function Brand({ fgClass }: { fgClass: string }) {
         height={40}
         className="h-10 w-10 rounded-md object-contain lg:h-12 lg:w-12"
       />
-      <span className={clsx("font-bold text-xl lg:text-2xl leading-none", fgClass)}>
-        {BRAND}
-      </span>
+      <span className={clsx("font-bold text-xl lg:text-2xl leading-none", fgClass)}>{BRAND}</span>
     </Link>
   );
 });
 
-/** Desktop nav with active indicator */
 const DesktopNav = memo(function DesktopNav({
   fgClass,
   indicatorColor,
@@ -117,9 +124,10 @@ const DesktopNav = memo(function DesktopNav({
       "px-1 pb-1",
       "no-underline decoration-transparent",
       NAV_SIZE,
-      !isActive && "hover:underline hover:decoration-1 hover:decoration-dashed hover:decoration-primary hover:underline-offset-[6px]",
+      !isActive &&
+        "hover:underline hover:decoration-1 hover:decoration-dashed hover:decoration-primary hover:underline-offset-[6px]",
       "active:underline active:decoration-1 active:decoration-dashed active:decoration-primary active:underline-offset-[6px]",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded"
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded",
     );
 
   type EffectiveConnection = { saveData?: boolean; effectiveType?: string };
@@ -136,10 +144,12 @@ const DesktopNav = memo(function DesktopNav({
   const prefetched = useRef<Set<string>>(new Set());
 
   const liftIn = (el: HTMLElement): void => {
-    if (!getPrefersReduced()) gsap.to(el, { y: -2, duration: 0.16, ease: "power2.out" });
+    if (getPrefersReduced()) return;
+    loadGsap().then(({ gsap }) => gsap.to(el, { y: -2, duration: 0.16, ease: "power2.out" }));
   };
   const liftOut = (el: HTMLElement): void => {
-    if (!getPrefersReduced()) gsap.to(el, { y: 0, duration: 0.18, ease: "power2.out" });
+    if (getPrefersReduced()) return;
+    loadGsap().then(({ gsap }) => gsap.to(el, { y: 0, duration: 0.18, ease: "power2.out" }));
   };
 
   return (
@@ -162,7 +172,6 @@ const DesktopNav = memo(function DesktopNav({
         </NavLink>
       ))}
 
-      {/* Active indicator bar */}
       <span
         id="nav-indicator"
         aria-hidden="true"
@@ -179,9 +188,17 @@ type MobileMenuProps = {
   fgClass: string;
 };
 
-/** Mobile drawer */
 const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef, fgClass }: MobileMenuProps) {
   if (!open) return null;
+
+  const hoverUp = (el: HTMLElement): void => {
+    if (getPrefersReduced()) return;
+    loadGsap().then(({ gsap }) => gsap.to(el, { y: -2, duration: 0.16, ease: "power2.out" }));
+  };
+  const hoverDown = (el: HTMLElement): void => {
+    if (getPrefersReduced()) return;
+    loadGsap().then(({ gsap }) => gsap.to(el, { y: 0, duration: 0.18, ease: "power2.out" }));
+  };
 
   return (
     <div
@@ -190,14 +207,13 @@ const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef, fgClass }
         "lg:hidden fixed top-16 right-3 z-50 w-[180px]",
         "rounded-xl border border-transparent",
         "bg-white/80 p-2 shadow-md",
-        "max-h-[min(65vh,420px)] overflow-auto"
+        "max-h-[min(65vh,420px)] overflow-auto",
       )}
       role="dialog"
       aria-modal="true"
       aria-label="Main menu"
     >
       <div className={clsx("flex flex-col gap-1", NAV_SIZE)}>
-        {/* Home */}
         <NavLink
           to="/"
           className={({ isActive }): string =>
@@ -205,21 +221,16 @@ const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef, fgClass }
               NAV_ITEM_BASE,
               NAV_ITEM_FOCUS,
               fgClass,
-              isActive ? "border-b-2 border-current" : clsx(NAV_ITEM_HOVER, "hover:bg-white/10")
+              isActive ? "border-b-2 border-current" : clsx(NAV_ITEM_HOVER, "hover:bg-white/10"),
             )
           }
-          onPointerEnter={(e) => {
-            if (!getPrefersReduced()) gsap.to(e.currentTarget, { y: -2, duration: 0.16, ease: "power2.out" });
-          }}
-          onPointerLeave={(e) => {
-            if (!getPrefersReduced()) gsap.to(e.currentTarget, { y: 0, duration: 0.18, ease: "power2.out" });
-          }}
+          onPointerEnter={(e) => hoverUp(e.currentTarget as HTMLElement)}
+          onPointerLeave={(e) => hoverDown(e.currentTarget as HTMLElement)}
           onClick={onClose}
         >
           <span className="font-bold">Home</span>
         </NavLink>
 
-        {/* Other items */}
         {NAV_ITEMS.map((it) => (
           <NavLink
             key={it.to}
@@ -229,15 +240,11 @@ const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef, fgClass }
                 NAV_ITEM_BASE,
                 NAV_ITEM_FOCUS,
                 fgClass,
-                isActive ? "border-b-2 border-current" : clsx(NAV_ITEM_HOVER, "hover:bg-white/10")
+                isActive ? "border-b-2 border-current" : clsx(NAV_ITEM_HOVER, "hover:bg-white/10"),
               )
             }
-            onPointerEnter={(e) => {
-              if (!getPrefersReduced()) gsap.to(e.currentTarget, { y: -2, duration: 0.16, ease: "power2.out" });
-            }}
-            onPointerLeave={(e) => {
-              if (!getPrefersReduced()) gsap.to(e.currentTarget, { y: 0, duration: 0.18, ease: "power2.out" });
-            }}
+            onPointerEnter={(e) => hoverUp(e.currentTarget as HTMLElement)}
+            onPointerLeave={(e) => hoverDown(e.currentTarget as HTMLElement)}
             onClick={onClose}
           >
             <span className="font-bold">{it.label}</span>
@@ -248,7 +255,6 @@ const MobileMenu = memo(function MobileMenu({ open, onClose, panelRef, fgClass }
   );
 });
 
-/** Hamburger button */
 const Burger = memo(
   forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { barClass: string }>(
     function Burger(props, ref) {
@@ -263,7 +269,7 @@ const Burger = memo(
             "lg:hidden rounded-md border border-gray-200 px-3 py-2",
             "transition-colors duration-150 ease-out",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
-            props.className
+            props.className,
           )}
           aria-label="Toggle menu"
         >
@@ -272,18 +278,14 @@ const Burger = memo(
           <span className={clsx("mt-1 block h-0.5 w-5 transition-transform duration-200", barClass, expanded && "-translate-y-1 -rotate-45")} />
         </button>
       );
-    }
-  )
+    },
+  ),
 );
 
 // -----------------------------------------------------------------------------
 // Main Header
 // -----------------------------------------------------------------------------
-
-type HeaderProps = {
-  transparent?: boolean;
-  className?: string;
-};
+type HeaderProps = { transparent?: boolean; className?: string };
 
 export default function Header({ transparent = false, className }: HeaderProps) {
   const [open, setOpen] = useState<boolean>(false);
@@ -291,7 +293,6 @@ export default function Header({ transparent = false, className }: HeaderProps) 
 
   const { pathname } = useLocation();
 
-  /** Home detection uses "/" to match App.tsx */
   const onHome = pathname === "/";
   const fgClass = onHome ? "text-white" : "text-black";
   const indicatorColor = onHome ? "bg-white" : "bg-black";
@@ -300,27 +301,27 @@ export default function Header({ transparent = false, className }: HeaderProps) 
   const rootRef = useRef<HTMLElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const drawerTl = useRef<gsap.core.Timeline | null>(null);
+  const drawerTl = useRef<GsapTimeline | null>(null);
 
-  const stRef = useRef<ScrollTriggerStatic | null>(null);
   const menuId = useId();
   const close = useCallback((): void => setOpen(false), []);
 
-  // Lazy-load ScrollTrigger
+  // Load ScrollTrigger after mount
   useEffect(() => {
     let alive = true;
     (async () => {
-      if (typeof window === "undefined" || stRef.current) return;
-      const mod = await import("gsap/ScrollTrigger");
-      if (!alive) return;
-      gsap.registerPlugin(mod.ScrollTrigger);
-      stRef.current = mod.ScrollTrigger;
-      setStReady(true);
+      if (typeof window === "undefined" || stReady) return;
+      try {
+        await loadScrollTrigger();
+        if (alive) setStReady(true);
+      } catch {
+        /* ignore */
+      }
     })();
     return () => {
       alive = false;
     };
-  }, []);
+  }, [stReady]);
 
   // Close drawer on route change
   useEffect(() => {
@@ -372,20 +373,23 @@ export default function Header({ transparent = false, className }: HeaderProps) 
 
   // Scroll-triggered hide/reveal header
   useLayoutEffect(() => {
-    const ST = stRef.current;
     const el = rootRef.current;
-    if (!stReady || !ST || !el) return;
+    if (!stReady || !el) return;
 
-    const ctx = gsap.context(() => {
-      const show = (): gsap.core.Tween =>
+    let trigger: STInstance | null = null;
+
+    (async () => {
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([loadGsap(), loadScrollTrigger()]);
+
+      const show = (): GsapTween =>
         gsap.to(el, { yPercent: 0, duration: 0.18, ease: "power2.out" });
-      const hide = (): gsap.core.Tween =>
+      const hide = (): GsapTween =>
         gsap.to(el, { yPercent: -100, duration: 0.22, ease: "power2.out" });
 
-      const trigger = ST.create({
+      trigger = ScrollTrigger.create({
         start: 0,
         end: "max",
-        onUpdate(self: ScrollTriggerInstance) {
+        onUpdate(self) {
           if (getPrefersReduced()) return;
           const atTop = typeof window !== "undefined" && window.scrollY <= 0;
           if (atTop) {
@@ -396,55 +400,64 @@ export default function Header({ transparent = false, className }: HeaderProps) 
           else show();
         },
         onRefresh() {
-          if (typeof window !== "undefined" && window.scrollY <= 0) {
-            show();
-          }
+          if (typeof window !== "undefined" && window.scrollY <= 0) show();
         },
       });
+    })();
 
-      return () => trigger.kill();
-    }, rootRef);
-
-    return () => ctx.revert();
+    return () => {
+      if (trigger) trigger.kill();
+    };
   }, [stReady]);
 
-  // Place active indicator under current desktop link
+  // Position active indicator under current desktop link
   useLayoutEffect(() => {
     const nav = document.getElementById("desktop-nav");
     const indicator = document.getElementById("nav-indicator") as HTMLSpanElement | null;
     if (!nav || !indicator) return;
 
-    const positionTo = (target: HTMLElement | null): void => {
-      if (!target) {
-        gsap.set(indicator, { width: 0 });
-        return;
-      }
-      const navBox = nav.getBoundingClientRect();
-      const box = target.getBoundingClientRect();
-      const x = box.left - navBox.left;
-      const w = box.width;
-      gsap.to(indicator, { x, width: w, duration: 0.25, ease: "expo.out" });
-    };
-
-    const active = nav.querySelector('a[aria-current="page"]') as HTMLElement | null;
-    positionTo(active);
+    (async () => {
+      const { gsap } = await loadGsap();
+      const positionTo = (target: HTMLElement | null): void => {
+        if (!target) {
+          gsap.set(indicator, { width: 0 });
+          return;
+        }
+        const navBox = nav.getBoundingClientRect();
+        const box = target.getBoundingClientRect();
+        const x = box.left - navBox.left;
+        const w = box.width;
+        gsap.to(indicator, { x, width: w, duration: 0.25, ease: "expo.out" });
+      };
+      const active = nav.querySelector('a[aria-current="page"]') as HTMLElement | null;
+      positionTo(active);
+    })();
   }, [pathname]);
 
-  // Build drawer timeline once
+  // Drawer timeline build once
   useLayoutEffect(() => {
     const panel = panelRef.current;
     if (!panel) return;
 
-    const tl = gsap.timeline({ paused: true });
-    tl.fromTo(
-      panel,
-      { y: -8, opacity: 0, scale: 0.985 },
-      { y: 0, opacity: 1, scale: 1, duration: 0.18, ease: "power2.out" }
-    );
+    let tl: GsapTimeline | null = null;
+    let alive = true;
 
-    drawerTl.current = tl;
+    (async () => {
+      const { gsap } = await loadGsap();
+      if (!alive) return;
+      tl = gsap
+        .timeline({ paused: true })
+        .fromTo(
+          panel,
+          { y: -8, opacity: 0, scale: 0.985 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.18, ease: "power2.out" },
+        );
+      drawerTl.current = tl;
+    })();
+
     return () => {
-      tl.kill();
+      alive = false;
+      if (tl) tl.kill();
       drawerTl.current = null;
     };
   }, []);
@@ -466,14 +479,14 @@ export default function Header({ transparent = false, className }: HeaderProps) 
         (transparent || onHome)
           ? "bg-transparent border-transparent"
           : "bg-white/80 border-gray-200 backdrop-blur supports-[backdrop-filter]:bg-white/60",
-        className
+        className,
       )}
     >
       <div
         className={clsx(
           "mx-auto flex items-center justify-between px-2 sm:px-3",
           "max-w-screen-2xl",
-          HEADER_H
+          HEADER_H,
         )}
       >
         <Brand fgClass={fgClass} />
@@ -488,12 +501,7 @@ export default function Header({ transparent = false, className }: HeaderProps) 
       </div>
 
       <div id={menuId}>
-        <MobileMenu
-          open={open}
-          onClose={close}
-          panelRef={panelRef}
-          fgClass="text-black"
-        />
+        <MobileMenu open={open} onClose={close} panelRef={panelRef} fgClass="text-black" />
       </div>
     </header>
   );
