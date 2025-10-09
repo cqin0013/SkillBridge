@@ -7,4 +7,5 @@ import AnalyzerRoutes from "./AnalyzerRoutes";
 export default function AnalyzerEntry() {
   useStepSync(); // side effect only
   return <AnalyzerRoutes />;
+
 }

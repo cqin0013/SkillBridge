@@ -1,7 +1,7 @@
 // src/routes/AnalyzerRoutes.tsx
 // Child routes under parent "/analyzer/*" must be relative.
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import AnalyzerIntro from "./AnalyzerIntro";
 import AnalyzerGetInfo from "./AnalyzerGetInfo";
 import AnalyzerAbility from "./AnalyzerAbility";
@@ -11,6 +11,7 @@ import AnalyzerTraining from "./AnalyzerTraining";
 
 export default function AnalyzerRoutes() {
   return (
+    <>
     <Routes>
       {/* When visiting "/analyzer", go to "intro" */}
       <Route index element={<Navigate to="intro" replace />} />
@@ -31,5 +32,7 @@ export default function AnalyzerRoutes() {
       {/* Fallback inside "/analyzer/*" */}
       <Route path="*" element={<Navigate to="intro" replace />} />
     </Routes>
+    <Outlet />
+    </>
   );
 }
