@@ -3,7 +3,7 @@
 type RoutePath = "/Analyzer" | "/Profile" | "/Insight" | "/Glossary";
 
 const loaders: Record<RoutePath, () => Promise<unknown>> = {
-  "/Analyzer": () => import("../../pages/Analyzer/AnalyzerIntro"),
+  "/Analyzer": () => import("../../pages/Analyzer/AnalyzerEntry"),
   "/Profile": () => import("../../pages/Profile"),
   "/Insight": () => import("../../pages/Insight"),
   "/Glossary": () => import("../../pages/Glossary"),

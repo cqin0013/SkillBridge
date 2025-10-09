@@ -2,7 +2,6 @@
 import { Suspense, lazy, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
-import AnalyzerEntry from "./pages/Analyzer/AnalyzerEntry";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -13,6 +12,7 @@ const Feedback = lazy(() => import("./pages/Feedback"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const AnalyzerEntry = lazy(() => import("./pages/Analyzer/AnalyzerEntry"));
 
 function Spinner() {
   return (
