@@ -27,8 +27,8 @@ const limiter = rateLimit({
  *           schema:
  *             type: object
  *             properties:
- *               name:     { type: string, example: "Your name" }
- *               email:    { type: string, example: "you@example.com" }
+ *               name:     { type: string, example: "Qinyi Liu" }
+ *               email:    { type: string, example: "Qinyi@example.com" }
  *               category: { type: string, example: "Bug report" }
  *               message:  { type: string, example: "Describe the issue..." }
  *               agree:    { type: boolean, example: true }
