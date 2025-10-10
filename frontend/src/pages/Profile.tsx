@@ -204,9 +204,9 @@ export default function Profile(): React.ReactElement {
     const fromRedux: Array<{ name: string; code?: string; aType: "knowledge" | "tech" | "skill" }> =
       // @ts-expect-error: optional chaining across unknown slice keys
       (analyzer.skillGap?.unmatched?.abilities ??
-        // @ts-expect-error
+        // @ts-expect-error: accessing potential unmatchedAbilities field not in type definition
         analyzer.unmatchedAbilities ??
-        // @ts-expect-error
+        // @ts-expect-error: accessing nested abilities property that may not exist in type
         analyzer.selectedJobUnmatched?.abilities ??
         []) as Array<{ name: string; code?: string; aType: "knowledge" | "tech" | "skill" }>;
 

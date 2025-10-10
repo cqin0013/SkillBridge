@@ -1,6 +1,7 @@
 // src/components/analyzer/SkillRoadmapWithSchedule.tsx
 import React, { useMemo, useState } from "react";
 import AbilityPicker, { type AbilityCategory } from "../AbilityPicker";
+import SkillTypeCategoryPicker from "./SkillTypeCategoryPicker";
 
 /** Ability type union aligned with AnalyzerAbilities */
 export type AType = "knowledge" | "tech" | "skill";
@@ -294,6 +295,7 @@ const SkillRoadmapWithSchedule: React.FC<SkillRoadmapWithScheduleProps> = ({
   };
 
   const [open, setOpen] = useState(false);
+  const [addSkillOpen, setAddSkillOpen] = useState(false);
   const [showLess, setShowLess] = useState(false);
 
   // Reuse the same category data as AnalyzerAbilities
@@ -338,6 +340,13 @@ const SkillRoadmapWithSchedule: React.FC<SkillRoadmapWithScheduleProps> = ({
           <p className="mt-1 text-sm text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded-xl border border-primary bg-primary text-white px-3 py-1.5 text-sm hover:bg-primary/90"
+            onClick={() => setAddSkillOpen(true)}
+          >
+            + Add Skill
+          </button>
           <button
             type="button"
             className="rounded-xl border px-3 py-1.5 text-sm hover:bg-gray-50"
@@ -414,6 +423,28 @@ const SkillRoadmapWithSchedule: React.FC<SkillRoadmapWithScheduleProps> = ({
           startCol: text.startCol,
           endCol: text.endCol,
         }}
+      />
+
+      {/* Add Skill modal */}
+      <SkillTypeCategoryPicker
+        open={addSkillOpen}
+        onClose={() => setAddSkillOpen(false)}
+        onConfirm={(newSkills) => {
+          // Add new skills to existing value
+          const updated = [...value];
+          newSkills.forEach((skill) => {
+            const key = identityOf(skill);
+            // Only add if not already present
+            if (!updated.some((v) => identityOf(v) === key)) {
+              updated.push(skill);
+            }
+          });
+          onChange(updated);
+          setAddSkillOpen(false);
+        }}
+        buildKnowledgeCats={buildKnowledgeCats}
+        buildTechSkillCats={buildTechSkillCats}
+        buildSkillCats={buildSkillCats}
       />
     </section>
   );
