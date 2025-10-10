@@ -27,6 +27,7 @@ import cookieParser from 'cookie-parser';
 
 import { fileURLToPath } from 'url';
 import path from 'node:path';
+import contactRouter from './routes/contact.router.js';
 
 //------------------------=======================================
 import initAnzscoTrainingRoutes from './anzsco.training.router.js';
@@ -504,6 +505,8 @@ app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/
 
 app.use("/api", buildRouter(pool));
 app.use('/', initRankRoutes(pool));
+
+app.use('/', contactRouter);
 
 
 

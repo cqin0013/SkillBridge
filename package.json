@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "express-rate-limit": "^8.1.0",
+    "nodemailer": "^7.0.9",
+    "zod": "^4.1.12"
+  },
+
+  "scripts": {
+    "start": "node backend/index.js",
+    "dev": "node backend/index.js"
+  }
+}
