@@ -4,18 +4,17 @@
 // - Re-search always refetches even with the same params.
 // - Next enabled only when all three questions are completed.
 // - On Next, persist to Redux and pass router state as fallback to the next step.
+// - Cap selected roles to MAX_ROLES with tooltip and helper messages.
 
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
 
 import ErrorBoundary from "../../components/common/ErrorBoundary";
-import GlobalError from "../../components/common/GlobalError";
 import AnalyzerLayout from "../../layouts/AnalyzerLayout";
-import ComboSearchQuestion from "../../components/analyzer/ComboSearchQuestion";
 import SelectQuestion from "../../components/analyzer/SelectQuestion";
-import SearchResults from "../../components/analyzer/SearchResults";
 import Button from "../../components/ui/Button";
+import SearchComboWithResults from "../../components/analyzer/SearchComboWithResults";
 
 import { useStepNav } from "../../hooks/useRouteStep";
 import { industryOptions, industryNameOf } from "../../data/industries";
@@ -31,6 +30,9 @@ import {
 } from "../../store/analyzerSlice";
 import type { RootState } from "../../store";
 import type { AnalyzerRouteState } from "../../types/routes";
+
+// ---- Maximum selected roles allowed on this step ----
+const MAX_ROLES = 5;
 
 // Hook param uses industry full name
 type SearchParams = { industry: string; keyword: string; limit?: number } | null;
@@ -79,6 +81,7 @@ function PageBody(): React.ReactElement {
 
   // Click "Search" → validate + commit snapshot; always refetch even if params unchanged
   const handleSearchClick = (): void => {
+    // Allow searching even if cap reached; user just cannot add more.
     const k = keyword.trim();
     const industryFullName = industryNameOf(industryCode);
 
@@ -106,6 +109,7 @@ function PageBody(): React.ReactElement {
 
   // Add/remove role (id = ANZSCO code; title = occupation title)
   const handleAddRole = (occ: AnzscoOccupation): void => {
+    if (draftRoles.length >= MAX_ROLES) return; // cap
     setDraftRoles((prev) =>
       prev.some((x) => x.id === occ.code) ? prev : prev.concat({ id: occ.code, title: occ.title })
     );
@@ -136,20 +140,24 @@ function PageBody(): React.ReactElement {
     dispatch(setInterestedIndustryCodes(industries));
     dispatch(setChosenRoles(draftRoles));
 
-// Router-state fallback for the next page (Abilities)
-const state: AnalyzerRouteState = {
-  roles: draftRoles.length ? draftRoles : undefined,
-  region: region || undefined,                 
-  industries: interests.length ? interests : undefined,
-};
+    const state: AnalyzerRouteState = {
+      roles: draftRoles.length ? draftRoles : undefined,
+      region: region || undefined,
+      industries: interests.length ? interests : undefined,
+    };
 
-goNext(state);
-
+    goNext(state);
   };
 
   // Flags for empty-result messaging
-  const noResults =
-    !isFetching && !isError && params && Array.isArray(uiResults) && uiResults.length === 0;
+  const noResults = Boolean(
+    !isFetching && !isError && params && Array.isArray(uiResults) && uiResults.length === 0
+  );
+
+  // Derived flags for cap
+  const reachedCap = draftRoles.length >= MAX_ROLES;
+  const addDisabledReason =
+    "You have reached the limit of 5 roles. Remove one to add another.";
 
   return (
     <AnalyzerLayout
@@ -162,65 +170,39 @@ goNext(state);
         features: [
           "Search requires a keyword of at least 2 characters.",
           "Industry must be selected to enable search.",
+          "Select up to five roles only.",
         ],
-        tips: ["Your selections will be saved for later steps."],
+        tips: [
+          "Select at most five roles. Pick the most representative work experiences to avoid unnecessary analysis noise.",
+        ],
       }}
     >
-      {/* Search form */}
-      <section className="mt-2">
-        <ComboSearchQuestion
-          title="1. Your previous industry and role search"
-          subtitle="Choose an industry and enter a keyword, then click Search."
-          selectLabel="Industry"
-          selectPlaceholder="All industries"
-          selectOptions={industryOptions} // value = code (A..T)
-          selectValue={industryCode}
-          onSelectChange={setIndustryCode}
-          inputLabel="Keyword"
-          inputPlaceholder="Type a role keyword (e.g., analyst)"
-          inputValue={keyword}
-          onInputChange={setKeyword}
-          buttonLabel="Search roles"
-          onSubmit={handleSearchClick}
-        />
-
-        {/* Validation (business) */}
-        {searchErr && (
-          <div className="mt-3 rounded-md bg-amber-50 text-amber-800 p-3 text-sm">{searchErr}</div>
-        )}
-
-        {/* API failure → consistent global error UI with feedback link */}
-        {isError && (
-          <div className="mt-3">
-            <GlobalError
-              feedbackHref="/feedback"
-              message="We're having an issue right now. Please try again later, or send us feedback."
-            />
-          </div>
-        )}
-
-        {/* No results for this industry/keyword */}
-        {noResults && (
-          <div className="mt-3 rounded-md bg-blue-50 text-blue-900 p-3 text-sm">
-            No roles found for this keyword in the selected industry. Try another industry or
-            keyword.
-          </div>
-        )}
-
-        {isFetching && <div className="mt-3 text-sm text-ink-soft">Searching…</div>}
-
-        {/* Results */}
-        <SearchResults<AnzscoOccupation>
-          items={uiResults}
-          pickedIds={pickedIds}
-          onAdd={handleAddRole}
-          onRemove={handleRemoveRole}
-        />
-      </section>
+      {/* Unified form + results */}
+      <SearchComboWithResults
+        industryOptions={industryOptions}
+        industryCode={industryCode}
+        onIndustryChange={setIndustryCode}
+        keyword={keyword}
+        onKeywordChange={setKeyword}
+        onSearch={handleSearchClick}
+        searchError={searchErr}
+        results={uiResults}
+        isFetching={isFetching}
+        isError={isError}
+        noResults={noResults}
+        pickedIds={pickedIds}
+        onAdd={handleAddRole}
+        onRemove={handleRemoveRole}
+        maxSelectable={MAX_ROLES}
+        selectedCount={draftRoles.length}
+        addDisabledReason={addDisabledReason}
+      />
 
       {/* Selected roles preview (chips) */}
       <section className="mt-6">
-        <h3 className="text-sm font-semibold text-ink">Selected roles ({draftRoles.length})</h3>
+        <h3 className="text-sm font-semibold text-ink">
+          Selected roles ({draftRoles.length}/{MAX_ROLES})
+        </h3>
         {draftRoles.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">Nothing selected yet.</p>
         ) : (
@@ -235,13 +217,19 @@ goNext(state);
                   type="button"
                   onClick={() => handleRemoveRole(r.id)}
                   aria-label={`Remove ${r.title}`}
-                  className="h-5 w-5 grid place-items-center rounded-full border border-black/20 bg-white text-ink hover:bg-black/5"
+                  className="h-5 w-5 grid place-items-center rounded-full border border-black/20 bg-white text-ink hover:bg-black/5 text-xs leading-none"
+
                 >
                   <span aria-hidden>×</span>
                 </button>
               </span>
             ))}
           </div>
+        )}
+        {reachedCap && (
+          <p className="mt-2 text-xs text-ink-soft">
+            You have selected the maximum of {MAX_ROLES}. Remove one to add another.
+          </p>
         )}
       </section>
 
@@ -273,7 +261,7 @@ goNext(state);
         />
       </section>
 
-      {/* Footer actions with instant tooltip */}
+      {/* Footer actions */}
       <footer className="mt-10 flex items-center justify-end gap-3">
         <Button variant="ghost" size="md" onClick={goPrev} aria-label="Go back to previous step">
           Back
@@ -290,7 +278,6 @@ goNext(state);
             Next
           </Button>
 
-          {/* Instant tooltip on hover/focus when disabled */}
           {nextDisabled && (
             <div
               role="tooltip"
@@ -310,7 +297,6 @@ goNext(state);
         </div>
       </footer>
 
-      {/* Always-on lightweight hint below when disabled */}
       {nextDisabled && (
         <p className="mt-2 text-xs text-amber-700">Complete: {nextBlockers.join(" • ")}</p>
       )}

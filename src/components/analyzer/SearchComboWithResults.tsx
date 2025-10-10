@@ -1,72 +1,81 @@
-﻿// src/components/analyzer/SearchComboWithResults.tsx
+// src/components/analyzer/SearchComboWithResults.tsx
 import React from "react";
 import type { AnzscoOccupation } from "../../types/domain";
+import Button from "../ui/Button";
 
-/** Option for industry select */
+/** Generic option for the industry select */
 export type Option = { value: string; label: string };
 
-/** Props: note the readonly array */
-type Props = {
+export type SearchComboWithResultsProps = {
+  /** Industry select options (read-only to avoid accidental mutation) */
   industryOptions: readonly Option[];
+  /** Controlled industry code value */
   industryCode: string;
+  /** Update industry code in parent */
   onIndustryChange: (code: string) => void;
 
+  /** Controlled keyword value */
   keyword: string;
+  /** Update keyword in parent */
   onKeywordChange: (kw: string) => void;
 
+  /** Click search handler provided by parent */
   onSearch: () => void;
+
+  /** Validation or business error near the form */
   searchError?: string;
 
+  /** Result list from parent hook */
   results: readonly AnzscoOccupation[];
+  /** Query flags from parent */
   isFetching: boolean;
   isError: boolean;
+  /** True when no results for current params */
   noResults: boolean;
 
+  /** Already picked ids to highlight/disable */
   pickedIds: readonly string[];
+  /** Add one result (guarded by parent cap) */
   onAdd: (occ: AnzscoOccupation) => void;
+  /** Remove by code */
   onRemove: (code: string) => void;
 
+  /** Cap UI hints */
   maxSelectable: number;
   selectedCount: number;
   addDisabledReason?: string;
 };
 
-/**
- * SearchComboWithResults
- * Unified block: industry select + keyword + search + results.
- * Pure presentational; no internal state mutation of props.
- */
-const SearchComboWithResults: React.FC<Props> = (props) => {
-  const {
-    industryOptions,
-    industryCode,
-    onIndustryChange,
-    keyword,
-    onKeywordChange,
-    onSearch,
-    searchError,
-    results,
-    isFetching,
-    isError,
-    noResults,
-    pickedIds,
-    onAdd,
-    onRemove,
-    maxSelectable,
-    selectedCount,
-    addDisabledReason,
-  } = props;
-
+const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
+  industryOptions,
+  industryCode,
+  onIndustryChange,
+  keyword,
+  onKeywordChange,
+  onSearch,
+  searchError,
+  results,
+  isFetching,
+  isError,
+  noResults,
+  pickedIds,
+  onAdd,
+  onRemove,
+  maxSelectable,
+  selectedCount,
+  addDisabledReason,
+}) => {
   const reachedCap = selectedCount >= maxSelectable;
 
   return (
     <section className="mt-2">
-      {/* Form */}
+      {/* Form block */}
       <div className="grid gap-3 sm:grid-cols-[240px_minmax(0,1fr)_auto]">
+        {/* Industry select */}
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium">Industry</span>
           <select
-            className="h-10 rounded-lg border px-3"
+            className="h-10 rounded-lg border border-border px-3"
             value={industryCode}
             onChange={(e) => onIndustryChange(e.target.value)}
             aria-label="Industry"
@@ -80,10 +89,11 @@ const SearchComboWithResults: React.FC<Props> = (props) => {
           </select>
         </label>
 
+        {/* Keyword input */}
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium">Keyword</span>
           <input
-            className="h-10 rounded-lg border px-3"
+            className="h-10 rounded-lg border border-border px-3"
             placeholder="Type a role keyword (e.g., analyst)"
             value={keyword}
             onChange={(e) => onKeywordChange(e.target.value)}
@@ -91,25 +101,21 @@ const SearchComboWithResults: React.FC<Props> = (props) => {
           />
         </label>
 
+        {/* Search button: use primary brand color */}
         <div className="self-end">
-          <button
-            type="button"
-            className="h-10 rounded-lg border px-4 font-medium"
-            onClick={onSearch}
-            aria-label="Search roles"
-          >
+          <Button variant="primary" size="md" onClick={onSearch} aria-label="Search roles">
             Search roles
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Validation or helper messages */}
       {searchError && (
         <div className="mt-3 rounded-md bg-amber-50 text-amber-800 p-3 text-sm">{searchError}</div>
       )}
       {reachedCap && (
         <div
-          className="mt-2 inline-flex items-center gap-2 rounded-md border border-black/10 bg-black/5 px-2 py-1 text-xs text-ink"
+          className="mt-2 inline-flex items-center gap-2 rounded-md border border-border bg-black/5 px-2 py-1 text-xs text-ink"
           title={addDisabledReason}
         >
           Limit reached: {maxSelectable} roles selected. Remove one before adding another.
@@ -127,40 +133,56 @@ const SearchComboWithResults: React.FC<Props> = (props) => {
       )}
       {isFetching && <div className="mt-3 text-sm text-ink-soft">Searching…</div>}
 
-      {/* Results */}
-      <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {/* Results grid */}
+      <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {results.map((it) => {
           const picked = pickedIds.includes(it.code);
           const disableAdd = reachedCap && !picked;
+          const hasDesc =
+            typeof (it as { description?: string }).description === "string" &&
+            ((it as { description?: string }).description ?? "").trim().length > 0;
+
           return (
             <li key={it.code}>
-              <article className="rounded-lg border p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-sm font-medium">{it.title}</div>
-                    <div className="text-xs text-gray-600">{it.code}</div>
+              <article className="h-full rounded-xl border border-border p-4 shadow-card">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    {/* Title + code */}
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-ink">{it.title}</h4>
+                      <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-ink-soft">
+                        {it.code}
+                      </span>
+                    </div>
+                    {/* Optional description */}
+                    {hasDesc && (
+                      <p className="mt-1 line-clamp-3 text-xs leading-5 text-ink-soft">
+                        {(it as { description?: string }).description}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
+
+                  <div className="shrink-0">
                     {!picked ? (
-                      <button
-                        type="button"
-                        className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50 disabled:opacity-60"
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => onAdd(it)}
                         disabled={disableAdd}
                         title={disableAdd ? addDisabledReason : "Add"}
                         aria-label="Add role"
                       >
                         Add
-                      </button>
+                      </Button>
                     ) : (
-                      <button
-                        type="button"
-                        className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => onRemove(it.code)}
                         aria-label="Remove role"
                       >
                         Remove
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
