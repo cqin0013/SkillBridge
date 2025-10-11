@@ -1,19 +1,17 @@
 ﻿// src/lib/utils/prefetch.ts
 
-type RoutePath = "/Analyzer" | "/Profile" | "/Insight" | "/Glossary";
+type RoutePath = "/Analyzer" | "/Profile" | "/Insight";
 
 const loaders: Record<RoutePath, () => Promise<unknown>> = {
   "/Analyzer": () => import("../../pages/Analyzer/AnalyzerEntry"),
   "/Profile": () => import("../../pages/Profile"),
   "/Insight": () => import("../../pages/Insight"),
-  "/Glossary": () => import("../../pages/Glossary"),
 };
 
 const ALIASES: Readonly<Record<string, RoutePath>> = {
   "/analyzer": "/Analyzer",
   "/profile": "/Profile",
   "/insight": "/Insight",
-  "/glossary": "/Glossary",
 };
 
 const done = new Set<RoutePath>();

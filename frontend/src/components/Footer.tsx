@@ -31,7 +31,6 @@ type QuickLink = { label: string; to: string }
 const QUICK_LINKS: QuickLink[] = [
   { label: "Analyzer", to: "/analyzer" },
   { label: "Insight", to: "/insight" },
-  { label: "Glossary", to: "/glossary" },
   { label: "Profile", to: "/profile" },
 
 ]
