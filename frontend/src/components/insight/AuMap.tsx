@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { geoConicConformal, geoIdentity, geoPath, geoBounds, type GeoProjection } from "d3-geo";
 import { scaleQuantize } from "d3-scale";
-import type { StateProps } from "../../types/stateProp";
+import type { StateProps } from "../../types/state";
 
 export interface AuSvgMapProps {
   /** Normalized GeoJSON: feature.properties has {code,name} */

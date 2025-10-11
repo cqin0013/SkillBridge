@@ -1,80 +1,183 @@
+// frontend/src/pages/Insight.tsx
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import type { FeatureCollection, Geometry } from "geojson";
+
 import rawGeo from "../assets/au-states.json";
 import { normalizeAuStates } from "../lib/utils/normalizeAuState";
-import type { StateProps } from "../types/stateProp";
-import AuSvgMap from "../components/insight/AuMap";
-import { useShortage } from "../hooks/queries/useShortage";         
-import type { ShortageRes } from "../types/shortage";
 
-/** Normalize once at module load. */
-const geo: FeatureCollection<Geometry, StateProps> = normalizeAuStates(
+import AuSvgMap from "../components/insight/AuMap";
+import { useShortage } from "../hooks/queries/useShortage";
+import type { ShortageRes } from "../types/shortage";
+import type { RootState } from "../store";
+
+import {
+  type StateCode,
+  getStateCode,
+  initializeStateValues,type StateProps,
+} from "../types/state";
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const GEO_DATA: FeatureCollection<Geometry, StateProps> = normalizeAuStates(
   rawGeo as FeatureCollection<Geometry, Record<string, unknown>>
 );
 
-/** Known state codes */
-const STATE_CODES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"] as const;
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
+/**
+ * Convert API shortage response to map-compatible state values
+ */
+function transformShortageData(res?: ShortageRes): Record<StateCode, number> {
+  const stateValues = initializeStateValues(0);
 
-/** Convert API payload into { NSW: number, ... } with 0 fallback */
-function toValues(res?: ShortageRes): Record<string, number> {
-  const zeros: Record<string, number> = Object.fromEntries(STATE_CODES.map((c) => [c, 0]));
-  if (!res || typeof res.shortage !== "object" || res.shortage === null) return zeros;
+  if (!res) return stateValues;
 
-  const out = { ...zeros };
-  for (const k of STATE_CODES) {
-    const v = res.shortage[k];
-    if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
+  // Handle modern API format: latest_by_state array
+  if (Array.isArray(res.latest_by_state)) {
+    res.latest_by_state.forEach((entry) => {
+      const stateCode = getStateCode(entry.state);
+      const value = entry.nsc_emp;
+      
+      if (stateCode && typeof value === "number" && Number.isFinite(value)) {
+        stateValues[stateCode] = value;
+      }
+    });
+    return stateValues;
   }
-  return out;
+
+  // Handle legacy API format: shortage object
+  if (res.shortage && typeof res.shortage === "object") {
+    Object.entries(res.shortage).forEach(([key, value]) => {
+      const stateCode = getStateCode(key);
+      if (stateCode && typeof value === "number" && Number.isFinite(value)) {
+        stateValues[stateCode] = value;
+      }
+    });
+  }
+
+  return stateValues;
 }
 
-/** Preferred source: route ':anzsco' → Redux 'profile.targetAnzsco' */
+/**
+ * Custom hook to get target ANZSCO code
+ */
 function useTargetAnzsco(): string {
   const params = useParams<{ anzsco?: string }>();
-  const fromRoute = params.anzsco ?? "";
-  type RootState = { profile?: { targetAnzsco?: string } };
-  const fromRedux = useSelector((s: RootState) => s.profile?.targetAnzsco ?? "");
+  const fromRoute = params.anzsco?.trim() ?? "";
+
+  const fromRedux = useSelector(
+    (state: RootState) => state.analyzer?.selectedJob?.code?.trim() ?? ""
+  );
+
   return fromRoute || fromRedux || "";
 }
 
-export default function InsightSvg(): React.ReactElement {
-  // 1) get code
-  const anzscoCode = useTargetAnzsco();
+/**
+ * Check if any state has non-zero shortage value
+ */
+function hasShortageData(values: Record<StateCode, number>): boolean {
+  return Object.values(values).some((value) => value > 0);
+}
 
-  // 2) query (disabled if empty)
+// ============================================================================
+// UI Components
+// ============================================================================
+
+function InfoBanner({
+  anzscoCode,
+  isFetching,
+  isError,
+  hasData,
+}: {
+  anzscoCode: string;
+  isFetching: boolean;
+  isError: boolean;
+  hasData: boolean;
+}) {
+  if (hasData) return null;
+
+  let message: string;
+
+  if (!anzscoCode) {
+    message = "No target job selected. Please choose a job in Profile or complete the Analyzer flow.";
+  } else if (isFetching) {
+    message = "Loading target job shortage data…";
+  } else if (isError) {
+    message = "Failed to load shortage data. Please try again later.";
+  } else {
+    message = "No shortage data available for this occupation. All states show zero.";
+  }
+
+  return (
+    <div
+      className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+      role="status"
+      aria-live="polite"
+    >
+      {isFetching && (
+        <div className="flex items-center gap-2">
+          <div
+            className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"
+            aria-hidden="true"
+          />
+          <span>{message}</span>
+        </div>
+      )}
+      {!isFetching && <span>{message}</span>}
+    </div>
+  );
+}
+
+function handleStateSelect(stateCode: string, value: number): void {
+  console.log(`Selected state: ${stateCode}, Employment value: ${value}`);
+}
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+export default function Insight(): React.ReactElement {
+  const anzscoCode = useTargetAnzsco();
   const { data, isFetching, isError } = useShortage(anzscoCode);
 
-  // 3) values with 0 fallback
-  const values = useMemo(() => toValues(data), [data]);
+  const stateValues = useMemo(
+    () => transformShortageData(data),
+    [data]
+  );
 
-  // 4) banner condition
-  const hasNonZero = useMemo(() => Object.values(values).some((v) => v > 0), [values]);
+  const hasData = useMemo(
+    () => hasShortageData(stateValues),
+    [stateValues]
+  );
 
-  const memoGeo = useMemo(() => geo, []);
+  const geoData = useMemo(() => GEO_DATA, []);
 
   return (
     <div className="px-4 py-6 space-y-4">
-      {!hasNonZero && (
-        <div className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-          {anzscoCode
-            ? (isFetching
-                ? "Loading target job data…"
-                : isError
-                  ? "Failed to load. Showing zeros."
-                  : "No positive values returned. Showing zeros.")
-            : "请先在 Profile 选择一个 target job，或去 Analyzer 页面选择职位。当前地图以 0 值（灰色）展示。"}
-        </div>
-      )}
+      <h1 className="sr-only">Skill Shortage Insights</h1>
 
-      <AuSvgMap
-        geo={memoGeo}
-        values={values}  // 若数据没到，组件会把缺失当 0 并显示灰色
-        className="w-[340px] sm:w-[520px] md:w-[720px] lg:w-[900px]"
-        onSelect={(code, v) => console.log("clicked:", code, v)}
+      <InfoBanner
+        anzscoCode={anzscoCode}
+        isFetching={isFetching}
+        isError={isError}
+        hasData={hasData}
       />
+
+      <div className="flex justify-center">
+        <AuSvgMap
+          geo={geoData}
+          values={stateValues}
+          className="w-[340px] sm:w-[520px] md:w-[720px] lg:w-[900px]"
+          onSelect={handleStateSelect}
+          aria-label="Interactive map of Australian skill shortages by state"
+        />
+      </div>
     </div>
   );
 }

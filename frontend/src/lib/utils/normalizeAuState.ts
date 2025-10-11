@@ -1,5 +1,5 @@
 import type { Feature, FeatureCollection, Geometry, GeoJsonProperties } from "geojson";
-import type { StateProps } from "../../types/stateProp";
+import type { StateProps } from "../../types/state";
 
 /** ABS STE_CODE21 -> abbreviation. OT (9) intentionally omitted. */
 const STE_TO_ABBR: Record<string, string> = {

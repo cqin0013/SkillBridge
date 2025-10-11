@@ -1,15 +1,6 @@
-// src/lib/api/apiClient.ts
-/**
- * Universal API client
- *
- * - Supports GET and POST requests (JSON-based)
- * - Uses base URL from VITE_API_BASE or relative path (proxy mode)
- * - Handles arrays in query params as repeated keys (?x=a&x=b)
- * - Logs requests in dev mode
- */
+// frontend/src/lib/api/apiClient.ts
 
-import { httpGet, httpPost } from "../services/https";
-
+import { httpGet, httpPost, type RequestOptions } from "../services/https";
 /** Primitive query types; undefined keys are skipped. */
 type QueryPrimitive = string | number | boolean | undefined;
 
@@ -58,25 +49,27 @@ function logRequest(method: "GET" | "POST", url: string): void {
  * Perform a JSON GET request.
  * Automatically serializes query parameters.
  */
-export function getJSON<T>(path: string, q?: Query): Promise<T> {
+export function getJSON<T>(path: string, q?: Query, options?: RequestOptions): Promise<T> {
   const url = buildUrl(path, q);
   logRequest("GET", url);
-  return httpGet<T>(url);
+  return httpGet<T>(url, options);
 }
 
 /**
  * Perform a JSON POST request.
  * Body is serialized to JSON by httpPost.
  * Optional query parameters can be appended.
+ * Options allow custom timeout and headers.
  */
 export function postJSON<TReq, TRes>(
   path: string,
   body: TReq,
-  q?: Query
+  q?: Query,
+  options?: RequestOptions  // ✅ 添加 options 参数
 ): Promise<TRes> {
   const url = buildUrl(path, q);
   logRequest("POST", url);
-  return httpPost<TReq, TRes>(url, body);
+  return httpPost<TReq, TRes>(url, body, options);  // ✅ 传递 options
 }
 
 /** Optional: log base URL when running in dev mode */
