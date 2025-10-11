@@ -149,13 +149,17 @@ export default function HelpToggleSmall({
           id={id}
           role="tooltip"
           className={clsx(
-            "absolute z-[100] max-w-xs rounded-md border border-gray-200 bg-white px-3 py-2 text-xs leading-relaxed text-ink shadow-lg",
+            "absolute z-[100] max-w-md rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 shadow-lg",
+            "text-sm leading-relaxed text-ink",
+            "break-words hyphens-auto",
             "animate-in fade-in-0 zoom-in-95",
             placementBox
           )}
         >
           {/* Tooltip content */}
-          {text}
+          <div className="space-y-1">
+            {text}
+          </div>
 
           {/* Small arrow */}
           <span

@@ -71,7 +71,6 @@ const SearchComboWithResults: React.FC<Props> = (props) => {
             onChange={(e) => onIndustryChange(e.target.value)}
             aria-label="Industry"
           >
-            <option value="">All industries</option>
             {industryOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}

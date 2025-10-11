@@ -55,8 +55,7 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
 
   // English-only input validator: allow empty, letters, spaces, apostrophes, hyphens
   const trimmed = keyword.trim();
-  const englishOk =
-    trimmed === "" || /^[A-Za-z][A-Za-z\s'-]*$/.test(trimmed);
+  const englishOk = trimmed === "" || /^[A-Za-z][A-Za-z\s'-]*$/.test(trimmed);
 
   return (
     <section className="mt-2">
@@ -71,7 +70,6 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
             onChange={(e) => onIndustryChange(e.target.value)}
             aria-label="Industry"
           >
-            <option value="">All industries</option>
             {industryOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
@@ -100,7 +98,8 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
             onClick={onSearch}
             aria-label="Search roles"
             disabled={!englishOk}
-            title={!englishOk ? "Please enter English letters only." : undefined}
+            // Instant tooltip when disabled
+            tooltipWhenDisabled={!englishOk ? "Please enter English letters only." : undefined}
           >
             Search roles
           </Button>
@@ -146,7 +145,7 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
 
       {noResults && englishOk && !isFetching && (
         <div className="mt-3 rounded-md bg-blue-50 text-blue-900 p-3 text-sm">
-          This industry does not contain roles matching your keyword. Please verify your input or try a different industry. 
+          This industry does not contain roles matching your keyword. Please verify your input or try a different industry.
         </div>
       )}
 
@@ -197,8 +196,14 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
                         size="sm"
                         onClick={() => onAdd(it)}
                         disabled={disableAdd}
-                        title={disableAdd ? addDisabledReason : "Add"}
                         aria-label="Add role"
+                        // Instant tooltip when disabled by cap
+                        tooltipWhenDisabled={
+                          disableAdd
+                            ? (addDisabledReason ??
+                              `Limit reached: maximum ${maxSelectable} roles. Remove one before adding.`)
+                            : undefined
+                        }
                       >
                         Add
                       </Button>

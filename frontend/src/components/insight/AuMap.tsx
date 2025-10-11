@@ -14,26 +14,18 @@ export interface AuSvgMapProps {
   onSelect?(code: string, value: number): void;
 }
 
-/** Color constants */
-const GRAY_ZERO = "#CBD5E1";   // zero or missing
-const PRIMARY = "#5E75A4";     // theme color
-/** Light → dark tints ending at PRIMARY */
+/** Color palette for the choropleth map */
+const GRAY_ZERO = "#CBD5E1";   // 0 or missing values
+const PRIMARY = "#5E75A4";     // theme primary color
 const RAMP: ReadonlyArray<string> = ["#E9EEF6", "#C9D3E6", "#A9BDD9", "#89A4C7", "#6D8CB6", PRIMARY];
 
-/**
- * Responsive plain-SVG choropleth.
- * - ResizeObserver to fit projection to container width
- * - Auto-detects planar vs lon/lat coordinates
- * - 0 = gray; >0 = themed quantized colors
- * - Includes legend and selected-state readout
- */
 export default function AuSvgMap({
   geo,
   values,
   className = "w-[340px] sm:w-[520px] md:w-[720px] lg:w-[900px]",
   onSelect,
 }: AuSvgMapProps): React.ReactElement {
-  /** Observe container size for responsive viewBox */
+  // Observe container width for responsive viewBox scaling
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 900, h: 620 });
 
@@ -42,14 +34,14 @@ export default function AuSvgMap({
     const el = wrapRef.current;
     const ro = new ResizeObserver((entries) => {
       const w = Math.max(320, Math.floor(entries[0].contentRect.width));
-      const h = Math.floor((11 / 16) * w); // keep ~16:11 aspect
+      const h = Math.floor((11 / 16) * w); // maintain ~16:11 aspect ratio
       setSize({ w, h });
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  /** Auto-detect coordinate system and build projection */
+  // Auto-detect coordinate system and build appropriate projection
   const projection: GeoProjection = useMemo(() => {
     const [[x0, y0], [x1, y1]] = geoBounds(geo);
     const looksPlanar = Math.abs(x1 - x0) > 200 || Math.abs(y1 - y0) > 200;
@@ -60,39 +52,50 @@ export default function AuSvgMap({
 
   const path = useMemo(() => geoPath(projection), [projection]);
 
-  /** Color scale only for positive values; zero stays gray */
+  // Calculate min/max for positive values to build color scale
   const [minPos, maxPos] = useMemo(() => {
     const positive = Object.values(values).filter((v) => v > 0);
     return positive.length ? [Math.min(...positive), Math.max(...positive)] : [0, 0];
   }, [values]);
 
+  // Color scale maps positive values to the color ramp
   const color = useMemo(
     () => scaleQuantize<string>().domain([minPos, maxPos]).range(RAMP),
     [minPos, maxPos]
   );
 
+  // Track currently selected state
   const [active, setActive] = useState<{ code: string; name: string; value: number } | null>(null);
-
   const features: ReadonlyArray<Feature<Geometry, StateProps>> = geo.features;
 
   return (
-    <div ref={wrapRef} className={`mx-auto ${className}`}>
+    <div ref={wrapRef} className={`mx-auto relative ${className}`}>
+      {/* Selected state info card - positioned at top-right corner */}
+      {active && (
+        <div className="absolute top-0 right-0 z-10 bg-white border border-slate-300 rounded-lg shadow-lg px-4 py-3 min-w-[180px]">
+          <div className="text-sm font-semibold text-slate-700">{active.name}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Code: {active.code}</div>
+          <div className="text-lg font-bold text-primary mt-1">{active.value}</div>
+        </div>
+      )}
+
       <svg
         viewBox={`0 0 ${size.w} ${size.h}`}
-        width="100%"
-        height="auto"
+        className="w-full h-auto block"
         preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label="Australia choropleth"
       >
         <rect width={size.w} height={size.h} fill="#ffffff" />
+        
+        {/* State polygons with interactive fills */}
         <g>
           {features.map((f) => {
             const code = f.properties.code;
             const name = f.properties.name;
             const d = path(f) ?? "";
-            const raw = values[code];                  // incoming value
-            const v = Number.isFinite(raw) ? raw : 0;  // fallback to 0
+            const raw = values[code];
+            const v = Number.isFinite(raw) ? raw : 0;
             const fill = v > 0 && minPos !== maxPos ? color(v) : v > 0 ? PRIMARY : GRAY_ZERO;
 
             return (
@@ -114,10 +117,11 @@ export default function AuSvgMap({
           })}
         </g>
 
-        {/* Labels at centroid with bbox fallback */}
+        {/* State code labels at centroid positions */}
         <g>
           {features.map((f) => {
             let [cx, cy] = geoPath(projection).centroid(f);
+            // Fallback to bounding box center if centroid is invalid
             if (!Number.isFinite(cx) || !Number.isFinite(cy)) {
               const [[bx0, by0], [bx1, by1]] = geoPath(projection).bounds(f);
               cx = (bx0 + bx1) / 2;
@@ -142,7 +146,7 @@ export default function AuSvgMap({
         </g>
       </svg>
 
-      {/* Legend + selected info */}
+      {/* Legend and instructions */}
       <div className="mt-3 flex flex-col items-center gap-2 text-sm text-slate-700">
         <div className="flex items-center gap-3">
           <span className="text-slate-600">Legend:</span>
@@ -159,15 +163,11 @@ export default function AuSvgMap({
           <span className="inline-block w-3 h-3 align-middle mr-1 rounded" style={{ background: PRIMARY }} />
           larger value → deeper primary.
         </div>
-        <div className="mt-1 min-h-[24px]">
-          {active ? (
-            <span>
-              {active.name} ({active.code}): <span className="font-semibold">{active.value}</span>
-            </span>
-          ) : (
-            <span className="text-slate-500">Click a state to view its value.</span>
-          )}
-        </div>
+        {!active && (
+          <div className="mt-1 text-slate-500 text-xs">
+            Click a state to view its value.
+          </div>
+        )}
       </div>
     </div>
   );
