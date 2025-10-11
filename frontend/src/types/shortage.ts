@@ -28,8 +28,7 @@ export interface ShortageYearlyTrend {
 }
 
 export interface ShortageRes {
-  query: ShortageQuery;
-  latest_by_state: ShortageLatestByState[];
-  stats_by_state: ShortageStatsByState[];
-  yearly_trend: ShortageYearlyTrend[];
+  anzsco_code: string;
+  anzsco_title?: string;
+  shortage: Record<string, number>; // e.g. { NSW: 62, VIC: 58, ... }
 }

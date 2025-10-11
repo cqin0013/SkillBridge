@@ -11,9 +11,9 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import { skillCategories } from "../../../data/skill.static";
-import { knowledgeCategories } from "../../../data/knowledge.static";
-import { techSkillCategories } from "../../../data/techskill.static";
+import { skillCategories } from "../../data/skill.static";
+import { knowledgeCategories } from "../../data/knowledge.static";
+import { techSkillCategories } from "../../data/techskill.static";
 
 // Ability types matching your project structure
 type AbilityType = "skill" | "knowledge" | "tech";

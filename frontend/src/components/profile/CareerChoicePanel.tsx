@@ -1,17 +1,19 @@
 // src/components/analyzer/profile/CareerChoicePanel.tsx
+// Career choice panel for selecting past jobs, target job, and region.
+// Uses RoleLite format ({ id, title }) consistently for both pastJobs and targetJob.
+// The parent (Profile.tsx) handles conversion between UI format and Redux format.
+
 import React, { useMemo, useState } from "react";
 import { Briefcase, Target as TargetIcon, MapPin, X } from "lucide-react";
-import type { AnzscoOccupation } from "../../../types/domain";
-import SearchComboWithResults from "../SearchComboWithResults";
-import type { RoleLite, SelectedJob } from "../../../store/analyzerSlice";
-
-type SelectedJobValue = Exclude<SelectedJob, null>;
+import type { AnzscoOccupation } from "../../types/domain";
+import SearchComboWithResults from "../analyzer/SearchComboWithResults";
+import type { RoleLite } from "../../store/analyzerSlice";
 
 /** A strongly-typed shape of the panel state */
 export type CareerChoiceState = {
-  pastJobs: RoleLite[];
-  targetJob: SelectedJobValue | null;
-  region: string; // region string in English
+  pastJobs: RoleLite[];        // Past occupations (up to 5)
+  targetJob: RoleLite | null;  // Target occupation (single selection)
+  region: string;              // Region string in English
 };
 
 /** Minimal option shape reused by the search combo */
@@ -73,12 +75,20 @@ type EditorState =
   | { kind: "editRegion" };
 
 /**
- * Desktop: show all three sections inside ONE bordered box, laid out as a table:
- * - Past 37.5% | Target 25% | Region 37.5%
+ * Career Choice Panel Component
+ * 
+ * Desktop layout: Shows all three sections in one bordered box as a table
+ * - Past (37.5%) | Target (25%) | Region (37.5%)
  * - Vertical separators between columns
- * Mobile/tablet: stacked vertically with spacing between rows
- * Editors: enlarged modal; show selected chips under search with remove button
- * Data rule: store occupation code for APIs but show the readable title
+ * 
+ * Mobile/tablet: Stacked vertically with spacing between rows
+ * 
+ * Editors: Enlarged modal dialogs with search functionality
+ * - Show selected chips under search with remove buttons
+ * 
+ * Data format: Uses RoleLite ({ id, title }) consistently for both past and target jobs
+ * - id stores the ANZSCO code for API calls
+ * - title stores the readable occupation name for display
  */
 export default function CareerChoicePanel(props: CareerChoicePanelProps) {
   const {
@@ -90,6 +100,7 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
     labels,
   } = props;
 
+  // Default text labels with fallbacks
   const text = useMemo(
     () => ({
       pastJobs: labels?.pastJobs ?? "Past",
@@ -110,22 +121,34 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
 
   const [editor, setEditor] = useState<EditorState>({ kind: "idle" });
 
-  /** Save helpers that persist RoleLite / SelectedJob entries */
+  /**
+   * Update past jobs with deduplication and max 5 limit.
+   * Uses Map to ensure uniqueness by id.
+   */
   const updatePast = (next: RoleLite[]) => {
     const unique = Array.from(new Map(next.map((role) => [role.id, role])).values()).slice(0, 5);
     onChange({ ...value, pastJobs: unique });
   };
 
-  const updateTarget = (next: SelectedJobValue | null) => {
+  /**
+   * Update target job (single selection).
+   */
+  const updateTarget = (next: RoleLite | null) => {
     onChange({ ...value, targetJob: next });
   };
 
+  /**
+   * Save region selection and close editor.
+   */
   const saveRegion = (next: string) => {
     onChange({ ...value, region: next });
     setEditor({ kind: "idle" });
   };
 
-  /** Chips renderer for summary */
+  /**
+   * Chips renderer for displaying selected items in summary view.
+   * Shows "None" if empty, otherwise renders chips with occupation titles.
+   */
   const Chips: React.FC<{ items: RoleLite[] }> = ({ items }) => {
     if (items.length === 0) return <span className="text-ink-soft">{text.empty}</span>;
     return (
@@ -142,33 +165,49 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
     );
   };
 
+  /**
+   * Convert AnzscoOccupation from search results to RoleLite format.
+   * Maps code → id and title → title for consistent data structure.
+   */
   const toRoleLite = (occ: AnzscoOccupation): RoleLite => ({
     id: occ.code,
     title: occ.title || occ.code,
   });
 
-  const toSelectedJob = (occ: AnzscoOccupation): SelectedJobValue => ({
-    code: occ.code,
-    title: occ.title || occ.code,
-  });
-
+  /**
+   * Add a past job from search results.
+   */
   const addPast = (occ: AnzscoOccupation): void => {
     const next = [...value.pastJobs, toRoleLite(occ)];
     updatePast(next);
   };
+
+  /**
+   * Remove a past job by id.
+   */
   const removePast = (id: string): void => {
     const next = value.pastJobs.filter((role) => role.id !== id);
     updatePast(next);
   };
 
+  /**
+   * Set target job from search results (single selection).
+   */
   const addTarget = (occ: AnzscoOccupation): void => {
-    updateTarget(toSelectedJob(occ));
+    updateTarget(toRoleLite(occ));
   };
+
+  /**
+   * Clear target job selection.
+   */
   const removeTarget = (): void => {
     updateTarget(null);
   };
 
-  /** Selected chips row under the search */
+  /**
+   * Render selected items as removable chips below the search component.
+   * Used in both past jobs and target job editors.
+   */
   const SelectedChipsRow: React.FC<{
     picked: Array<{ id: string; title: string }>;
     onRemove: (id: string) => void;
@@ -203,143 +242,141 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
     );
   };
 
-  return (
-    <section className="space-y-4">
-      {/* Single box that contains all three segments */}
-      <div className="rounded-xl border border-border p-4 shadow-card">
-        {/* Desktop: table-like layout with three columns; Mobile: stacked rows with spacing */}
-        {/* Mobile/Tablet stacked */}
-        <div className="flex lg:hidden flex-col gap-4">
-          {/* Past */}
-          <div className="flex items-center gap-2 min-w-0">
-            <Briefcase className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            <span className="text-xs font-semibold shrink-0 text-ink">{text.pastJobs}:</span>
-            <div className="flex-1 min-w-0">
-              <Chips items={value.pastJobs} />
-            </div>
-            <button
-              type="button"
-              className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
-              onClick={() => setEditor({ kind: "editPast" })}
-              aria-label={`Edit ${text.pastJobs}`}
-            >
-              {text.edit}
-            </button>
+return (
+  <section className="space-y-4">
+    {/* Single box containing all three segments (Past | Target | Region) */}
+    <div className="rounded-xl border border-border p-4 shadow-card">
+      
+      {/* Mobile/Tablet: Stacked layout */}
+      <div className="flex lg:hidden flex-col gap-4">
+        {/* Past Jobs Section */}
+        <div className="flex items-center gap-2 min-w-0">
+          <Briefcase className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <span className="text-xs font-semibold shrink-0 text-ink">{text.pastJobs}:</span>
+          <div className="flex-1 min-w-0">
+            <Chips items={value.pastJobs} />
           </div>
-
-          <div className="h-px bg-border" />
-
-          {/* Target */}
-          <div className="flex items-center gap-2 min-w-0">
-            <TargetIcon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            <span className="text-xs font-semibold shrink-0 text-ink">{text.targetJob}:</span>
-            <div className="flex-1 min-w-0 text-sm truncate text-ink">
-              {value.targetJob ? value.targetJob.title : <span className="text-ink-soft">{text.empty}</span>}
-            </div>
-            <button
-              type="button"
-              className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
-              onClick={() => setEditor({ kind: "editTarget" })}
-              aria-label={`Edit ${text.targetJob}`}
-            >
-              {text.edit}
-            </button>
-          </div>
-
-          <div className="h-px bg-border" />
-
-          {/* Region */}
-          <div className="flex items-center gap-2 min-w-0">
-            <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            <span className="text-xs font-semibold shrink-0 text-ink">{text.region}:</span>
-            <div className="flex-1 min-w-0 text-sm truncate text-ink">{value.region}</div>
-            <button
-              type="button"
-              className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
-              onClick={() => setEditor({ kind: "editRegion" })}
-              aria-label={`Edit ${text.region}`}
-            >
-              {text.edit}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
+            onClick={() => setEditor({ kind: "editPast" })}
+            aria-label={`Edit ${text.pastJobs}`}
+          >
+            {text.edit}
+          </button>
         </div>
 
-        {/* Desktop: true table for precise 37.5% | 25% | 37.5% with vertical separators */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full table-fixed border-collapse">
-            <colgroup>
-              <col style={{ width: "37.5%" }} />
-              <col style={{ width: "25%" }} />
-              <col style={{ width: "37.5%" }} />
-            </colgroup>
-            <tbody>
-              <tr className="align-top">
-                {/* Past */}
-                <td className="pr-4">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Briefcase className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                    <span className="text-xs font-semibold shrink-0 text-ink">{text.pastJobs}:</span>
-                    <div className="flex-1 min-w-0">
-                      <Chips items={value.pastJobs} />
-                    </div>
-                    <button
-                      type="button"
-                      className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
-                      onClick={() => setEditor({ kind: "editPast" })}
-                      aria-label={`Edit ${text.pastJobs}`}
-                    >
-                      {text.edit}
-                    </button>
-                  </div>
-                </td>
+        <div className="h-px bg-border" />
 
-                {/* Vertical separator */}
-                <td className="pl-4 pr-4 border-l border-border">
-                  {/* Target */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    <TargetIcon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                    <span className="text-xs font-semibold shrink-0 text-ink">{text.targetJob}:</span>
-                    <div className="flex-1 min-w-0 text-sm truncate text-ink">
-                      {value.targetJob ? value.targetJob.title : <span className="text-ink-soft">{text.empty}</span>}
-                    </div>
-                    <button
-                      type="button"
-                      className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
-                      onClick={() => setEditor({ kind: "editTarget" })}
-                      aria-label={`Edit ${text.targetJob}`}
-                    >
-                      {text.edit}
-                    </button>
-                  </div>
-                </td>
+        {/* Target Job Section */}
+        <div className="flex items-center gap-2 min-w-0">
+          <TargetIcon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <span className="text-xs font-semibold shrink-0 text-ink">{text.targetJob}:</span>
+          <div className="flex-1 min-w-0 text-sm truncate text-ink">
+            {value.targetJob ? value.targetJob.title : <span className="text-ink-soft">{text.empty}</span>}
+          </div>
+          <button
+            type="button"
+            className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
+            onClick={() => setEditor({ kind: "editTarget" })}
+            aria-label={`Edit ${text.targetJob}`}
+          >
+            {text.edit}
+          </button>
+        </div>
 
-                {/* Vertical separator */}
-                <td className="pl-4 border-l border-border">
-                  {/* Region */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                    <span className="text-xs font-semibold shrink-0 text-ink">{text.region}:</span>
-                    <div className="flex-1 min-w-0 text-sm truncate text-ink">{value.region}</div>
-                    <button
-                      type="button"
-                      className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
-                      onClick={() => setEditor({ kind: "editRegion" })}
-                      aria-label={`Edit ${text.region}`}
-                    >
-                      {text.edit}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="h-px bg-border" />
+
+        {/* Region Section */}
+        <div className="flex items-center gap-2 min-w-0">
+          <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <span className="text-xs font-semibold shrink-0 text-ink">{text.region}:</span>
+          <div className="flex-1 min-w-0 text-sm truncate text-ink">
+            {value.region || <span className="text-ink-soft">{text.empty}</span>}
+          </div>
+          <button
+            type="button"
+            className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
+            onClick={() => setEditor({ kind: "editRegion" })}
+            aria-label={`Edit ${text.region}`}
+          >
+            {text.edit}
+          </button>
         </div>
       </div>
 
-      {/* Past jobs editor popup: multi-select (cap 5). Wider and taller for long results */}
+      {/* Desktop: Table-like layout with three columns */}
+      <table className="hidden lg:table w-full">
+        <tbody>
+          <tr>
+            {/* Past Jobs Column (37.5%) */}
+            <td className="pr-4 align-top" style={{ width: "36.5%" }}>
+              <div className="flex items-start gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Briefcase className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="text-xs font-semibold shrink-0 text-ink">{text.pastJobs}:</span>
+                  <div className="flex-1 min-w-0">
+                    <Chips items={value.pastJobs} />
+                  </div>
+                  <button
+                    type="button"
+                    className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
+                    onClick={() => setEditor({ kind: "editPast" })}
+                    aria-label={`Edit ${text.pastJobs}`}
+                  >
+                    {text.edit}
+                  </button>
+                </div>
+              </div>
+            </td>
+
+            {/* Target Job Column (25%) with left border */}
+            <td className="pl-4 pr-4 border-l border-border">
+              <div className="flex items-center gap-2 min-w-0">
+                <TargetIcon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <span className="text-xs font-semibold shrink-0 text-ink">{text.targetJob}:</span>
+                <div className="flex-1 min-w-0 text-sm truncate text-ink">
+                  {value.targetJob ? value.targetJob.title : <span className="text-ink-soft">{text.empty}</span>}
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
+                  onClick={() => setEditor({ kind: "editTarget" })}
+                  aria-label={`Edit ${text.targetJob}`}
+                >
+                  {text.edit}
+                </button>
+              </div>
+            </td>
+
+            {/* Region Column (37.5%) with left border */}
+            <td className="pl-4 border-l border-border">
+              <div className="flex items-center gap-2 min-w-0">
+                <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <span className="text-xs font-semibold shrink-0 text-ink">{text.region}:</span>
+                <div className="flex-1 min-w-0 text-sm truncate text-ink">
+                  {value.region || <span className="text-ink-soft">{text.empty}</span>}
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-lg bg-primary text-ink-invert px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 shadow-sm"
+                  onClick={() => setEditor({ kind: "editRegion" })}
+                  aria-label={`Edit ${text.region}`}
+                >
+                  {text.edit}
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+      {/* Past Jobs Editor Modal (Multi-select, max 5) */}
       {editor.kind === "editPast" && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-modal w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            {/* Sticky header */}
             <div className="sticky top-0 bg-white border-b border-border p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xl font-heading font-bold text-ink">Edit {text.pastJobs}</h3>
@@ -355,6 +392,8 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
               </div>
               <p className="text-sm text-ink-soft">{text.pastJobsHelp}</p>
             </div>
+
+            {/* Search and results */}
             <div className="p-6">
               <SearchComboWithResults
                 industryOptions={occupationSearch.industryOptions}
@@ -376,7 +415,7 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
                 addDisabledReason="Limit reached: 5 roles selected."
               />
 
-              {/* Show selected names under the search with removable chips */}
+              {/* Show selected items as removable chips */}
               <SelectedChipsRow
                 picked={value.pastJobs.map((role) => ({ id: role.id, title: role.title }))}
                 onRemove={removePast}
@@ -387,10 +426,11 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
         </div>
       )}
 
-      {/* Target job editor popup: single-select (cap 1). Wider and taller */}
+      {/* Target Job Editor Modal (Single-select) */}
       {editor.kind === "editTarget" && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-modal w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            {/* Sticky header */}
             <div className="sticky top-0 bg-white border-b border-border p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xl font-heading font-bold text-ink">Edit {text.targetJob}</h3>
@@ -406,6 +446,8 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
               </div>
               <p className="text-sm text-ink-soft">{text.targetJobHelp}</p>
             </div>
+
+            {/* Search and results */}
             <div className="p-6">
               <SearchComboWithResults
                 industryOptions={occupationSearch.industryOptions}
@@ -419,7 +461,7 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
                 isFetching={occupationSearch.isFetching}
                 isError={occupationSearch.isError}
                 noResults={occupationSearch.noResults}
-                pickedIds={value.targetJob ? [value.targetJob.code] : []}
+                pickedIds={value.targetJob ? [value.targetJob.id] : []}
                 onAdd={addTarget}
                 onRemove={() => removeTarget()}
                 maxSelectable={1}
@@ -427,9 +469,9 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
                 addDisabledReason="You can only choose one target occupation."
               />
 
-              {/* Single selected target shown as removable chip */}
+              {/* Show single selected target as removable chip */}
               <SelectedChipsRow
-                picked={value.targetJob ? [{ id: value.targetJob.code, title: value.targetJob.title }] : []}
+                picked={value.targetJob ? [{ id: value.targetJob.id, title: value.targetJob.title }] : []}
                 onRemove={() => removeTarget()}
                 max={1}
               />
@@ -438,7 +480,7 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
         </div>
       )}
 
-      {/* Region single-select editor */}
+      {/* Region Editor Modal (Single-select from predefined options) */}
       <SelectQuestion
         title={`Edit ${text.region}`}
         open={editor.kind === "editRegion"}
@@ -451,13 +493,3 @@ export default function CareerChoicePanel(props: CareerChoicePanelProps) {
     </section>
   );
 }
-
-
-
-
-
-
-
-
-
-

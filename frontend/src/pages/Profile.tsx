@@ -1,6 +1,7 @@
-// src/pages/Profile.tsx
+// frontend/src/pages/Profile.tsx
 // Page: Profile
-// English comments explain why each change is made.
+// Handles career profile management with Redux state and route fallback.
+// Converts between Redux format ({ code, title }) and UI format ({ id, title }) where needed.
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -12,9 +13,10 @@ import { useAppDispatch } from "../store/hooks";
 import CareerChoicePanel, {
   type CareerChoiceState,
   type OccupationSearchInputs,
-} from "../components/analyzer/profile/CareerChoicePanel";
-import SkillRoadMap, { type SkillRoadmapItem } from "../components/analyzer/profile/SkillRoadMap";
-import TrainingAdviceList, { type TrainingAdvice } from "../components/analyzer/profile/TrainingAdviceList";
+} from "../components/profile/CareerChoicePanel";
+import SkillRoadMap, { type SkillRoadmapItem } from "../components/profile/SkillRoadMap";
+import TrainingAdviceList, { type TrainingAdvice } from "../components/profile/TrainingAdviceList";
+import VetGlossarySearch from "../components/profile/VetGlossarySearch";
 import HelpToggleSmall from "../components/ui/HelpToggleSmall";
 
 // Redux actions
@@ -64,6 +66,10 @@ type CourseItem = {
 
 type SelectedJobValue = Exclude<SelectedJob, null>;
 
+/**
+ * Normalize roles from various formats into RoleLite[] with { id, title }.
+ * Handles both string arrays and object arrays.
+ */
 const normalizeRoles = (
   roles: Array<RoleLite | string> | null | undefined
 ): RoleLite[] => {
@@ -75,13 +81,16 @@ const normalizeRoles = (
     const id = (typeof role === "string" ? role : role.id ?? "").trim();
     if (!id || seen.has(id)) return;
     seen.add(id);
-    const title =
-      typeof role === "string" ? role : role.title || id;
+    const title = typeof role === "string" ? role : role.title || id;
     cleaned.push({ id, title });
   });
   return cleaned;
 };
 
+/**
+ * Normalize selected job from various formats into { code, title } | null.
+ * This is the Redux format used throughout the app for API calls.
+ */
 const normalizeSelectedJob = (
   job: SelectedJob | string | null | undefined
 ): SelectedJobValue | null => {
@@ -89,7 +98,7 @@ const normalizeSelectedJob = (
   if (typeof job === "string") {
     const code = job.trim();
     if (!code) return null;
-    return { code, title: job };
+    return { code, title: code };
   }
   const code = (job.code ?? "").trim();
   if (!code) return null;
@@ -333,7 +342,10 @@ export default function Profile(): React.ReactElement {
       dispatch(setPreferredRegion(routeState.region));
     }
     if (!analyzer.selectedJob && routeState.selectedJob) {
-      dispatch(setSelectedJob(routeState.selectedJob));
+      const normalized = normalizeSelectedJob(routeState.selectedJob);
+      if (normalized) {
+        dispatch(setSelectedJob(normalized));
+      }
     }
     if (!analyzer.trainingAdvice && routeState.training) {
       dispatch(setTrainingAdvice(routeState.training));
@@ -376,9 +388,9 @@ export default function Profile(): React.ReactElement {
 
   /**
    * On every page open, merge UNMATCHED abilities into the initial list.
-   * - Models "retest adds new abilities only" by appending anything missing.
-   * - Convert to roadmap items, then de-duplicate with safe keys.
-   * - Key is built from the merged abilities to refresh initial state when content changes.
+   * Models "retest adds new abilities only" by appending anything missing.
+   * Convert to roadmap items, then de-duplicate with safe keys.
+   * Key is built from the merged abilities to refresh initial state when content changes.
    */
   const mergedInitial = useMemo(() => {
     const unmatchedRedux = uniqueAbilities(collapseUnmatchedBuckets(analyzer.selectedJobUnmatched));
@@ -414,11 +426,14 @@ export default function Profile(): React.ReactElement {
     return { key, items: mergedItems };
   }, [abilitySource, analyzer.selectedJobUnmatched, routeState?.unmatched]);
 
-  /** Career choice state (past jobs, target, region) - Redux first, fallback to route */
+  /**
+   * Career choice state (past jobs, target, region) - Redux first, fallback to route.
+   * Convert Redux format ({ code, title }) to UI format ({ id, title }) for CareerChoicePanel.
+   */
   const careerChoiceValue = useMemo((): CareerChoiceState => {
     // Priority 1: Redux
     const pastJobsRedux = normalizeRoles(analyzer.chosenRoles);
-  const targetJobRedux = normalizeSelectedJob(analyzer.selectedJob);
+    const targetJobRedux = normalizeSelectedJob(analyzer.selectedJob);
     const regionRedux = analyzer.preferredRegion || "";
 
     // Priority 2: Route state (fallback)
@@ -426,22 +441,36 @@ export default function Profile(): React.ReactElement {
     const targetJobRoute = normalizeSelectedJob(routeState?.selectedJob);
     const regionRoute = routeState?.region || "";
 
-    const pastJobs: RoleLite[] = pastJobsRedux.length > 0 ? pastJobsRedux : pastJobsRoute;
+    const pastJobs = pastJobsRedux.length > 0 ? pastJobsRedux : pastJobsRoute;
 
-    const result: CareerChoiceState = {
+    // Convert Redux format { code, title } to UI format { id, title }
+    const targetJobSource = targetJobRedux ?? targetJobRoute;
+    const targetJob = targetJobSource 
+      ? { id: targetJobSource.code, title: targetJobSource.title }
+      : null;
+
+    return {
       pastJobs,
-      targetJob: targetJobRedux ?? targetJobRoute,
+      targetJob,
       region: regionRedux || regionRoute,
     };
-    return result;
   }, [analyzer, routeState]);
 
+  /**
+   * Handle career choice changes from the panel.
+   * Convert UI format ({ id, title }) back to Redux format ({ code, title }).
+   */
   const onCareerChoiceChange = (next: CareerChoiceState): void => {
     // Persist changes back to Redux
     const normalizedRoles = normalizeRoles(next.pastJobs);
     dispatch(setChosenRoles(normalizedRoles));
 
-    dispatch(setSelectedJob(normalizeSelectedJob(next.targetJob)));
+    // Convert UI format { id, title } to Redux format { code, title }
+    const targetJobForRedux = next.targetJob
+      ? { code: next.targetJob.id, title: next.targetJob.title }
+      : null;
+    dispatch(setSelectedJob(targetJobForRedux));
+    
     dispatch(setPreferredRegion(next.region));
   };
 
@@ -513,6 +542,14 @@ export default function Profile(): React.ReactElement {
     isFetching,
     isError,
     noResults: !isFetching && normalizedResults.length === 0,
+  };
+
+  // Ref for scrolling to VET Terminology section
+  const vetTerminologyRef = React.useRef<HTMLDivElement>(null);
+
+  // Handler to scroll to VET Terminology section
+  const scrollToVetTerminology = () => {
+    vetTerminologyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -589,11 +626,49 @@ export default function Profile(): React.ReactElement {
                   );
                 }}
               />
+
+              {/* Help prompt to guide users to VET Terminology section */}
+              {trainingItems.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-border">
+                  <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <svg 
+                      className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm text-blue-900 mb-2">
+                        <strong>Confused by course terminology?</strong> Try our VET Terminology Dictionary below to look up unfamiliar terms.
+                      </p>
+                      <button
+                        onClick={scrollToVetTerminology}
+                        className="text-sm font-semibold text-blue-700 hover:text-blue-800 underline transition"
+                      >
+                        Go to VET Terminology →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+          </section>
+
+          {/* VET Terminology Section */}
+          <section ref={vetTerminologyRef}>
+            <h2 className="text-2xl font-heading font-bold text-ink mb-4">VET Terminology</h2>
+            <VetGlossarySearch />
           </section>
         </div>
       </div>
     </div>
   );
 }
-

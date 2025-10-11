@@ -6,7 +6,7 @@
 
 import React from "react";
 import type { ReactElement } from "react";
-import Button from "../../../components/ui/Button"; // uses primary/ghost variants :contentReference[oaicite:2]{index=2}
+import Button from "../ui/Button"; // uses primary/ghost variants :contentReference[oaicite:2]{index=2}
 
 type TriggerMode = "button" | "circle";
 

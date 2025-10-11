@@ -1,12 +1,12 @@
-// src/hooks/queries/useShortage.ts
 import { useQuery } from "@tanstack/react-query";
 import { getShortageByAnzsco } from "../../lib/api/jobData/getShortageByAnzsco";
 import type { ShortageRes } from "../../types/shortage";
 
-export function useShortage(anzscoCode: string, prefix4?: string) {
+/** Fetch shortage data by full ANZSCO code using POST JSON body */
+export function useShortage(anzscoCode: string) {
   return useQuery<ShortageRes>({
-    queryKey: ["shortage", anzscoCode, prefix4 ?? "ALL"],
-    queryFn: () => getShortageByAnzsco(anzscoCode, prefix4),
+    queryKey: ["shortage", anzscoCode],
+    queryFn: () => getShortageByAnzsco(anzscoCode),
     enabled: Boolean(anzscoCode),
     staleTime: 5 * 60 * 1000,
   });

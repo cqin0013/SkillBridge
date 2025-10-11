@@ -53,6 +53,11 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
 }) => {
   const reachedCap = selectedCount >= maxSelectable;
 
+  // English-only input validator: allow empty, letters, spaces, apostrophes, hyphens
+  const trimmed = keyword.trim();
+  const englishOk =
+    trimmed === "" || /^[A-Za-z][A-Za-z\s'-]*$/.test(trimmed);
+
   return (
     <section className="mt-2">
       {/* Form block */}
@@ -89,16 +94,32 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
 
         {/* Search button */}
         <div className="self-end">
-          <Button variant="primary" size="md" onClick={onSearch} aria-label="Search roles">
+          <Button
+            variant="primary"
+            size="md"
+            onClick={onSearch}
+            aria-label="Search roles"
+            disabled={!englishOk}
+            title={!englishOk ? "Please enter English letters only." : undefined}
+          >
             Search roles
           </Button>
         </div>
       </div>
 
-      {/* Helper messages */}
-      {searchError && (
-        <div className="mt-3 rounded-md bg-amber-50 text-amber-800 p-3 text-sm">{searchError}</div>
+      {/* Validation or helper messages */}
+      {!englishOk && (
+        <div className="mt-3 rounded-md bg-amber-50 text-amber-900 p-3 text-sm">
+          Please enter English letters only.
+        </div>
       )}
+
+      {searchError && (
+        <div className="mt-3 rounded-md bg-amber-50 text-amber-800 p-3 text-sm">
+          {searchError}
+        </div>
+      )}
+
       {reachedCap && (
         <div
           className="mt-2 inline-flex items-center gap-2 rounded-md border border-border bg-black/5 px-2 py-1 text-xs text-ink"
@@ -107,16 +128,28 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
           Limit reached: {maxSelectable} roles selected. Remove one before adding another.
         </div>
       )}
+
       {isError && (
         <div className="mt-3 rounded-md bg-red-50 text-red-900 p-3 text-sm">
-          Failed to search. Please try again.
+          Our system may be having an issue right now. Please try again later or{" "}
+          <a
+            href="/feedback"
+            className="underline underline-offset-2 font-medium"
+            target="_blank"
+            rel="noreferrer"
+          >
+            send feedback
+          </a>
+          .
         </div>
       )}
-      {noResults && (
+
+      {noResults && englishOk && !isFetching && (
         <div className="mt-3 rounded-md bg-blue-50 text-blue-900 p-3 text-sm">
-          No roles found. Try another industry or keyword.
+          This industry does not contain roles matching your keyword. Please verify your input or try a different industry. 
         </div>
       )}
+
       {isFetching && <div className="mt-3 text-sm text-ink-soft">Searching…</div>}
 
       {/* Results grid */}
@@ -125,15 +158,14 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
           const picked = pickedIds.includes(it.code);
           const disableAdd = reachedCap && !picked;
 
-          // English: Safely coerce optional description to a string to avoid TS18048.
+          // Coerce optional description safely
           const rawDesc = (it as { description?: unknown }).description;
-          const desc: string =
-            typeof rawDesc === "string" ? rawDesc : "";
+          const desc: string = typeof rawDesc === "string" ? rawDesc : "";
           const hasDesc = desc.trim().length > 0;
 
           return (
             <li key={it.code}>
-              {/* English: Let text wrap and break long words so it adapts to width. */}
+              {/* Text wraps to fit container */}
               <article className="h-auto rounded-xl border border-border p-4 shadow-card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 max-w-full">
