@@ -13,14 +13,13 @@
 import React, { useMemo, type PropsWithChildren, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import clsx from "clsx";
+import type { RoleLite } from "../store/analyzerSlice";
 
 import ProgressBar from "../components/analyzer/ProgressBar";
 import SelectedSummaryDock from "../components/analyzer/SelectedSummaryDock";
 import HelpToggle, { type HelpContent as HelpToggleContent } from "../components/ui/HelpToggle";
 import { useRouteStep } from "../hooks/useRouteStep";
 import type { RootState } from "../store";
-
-export type RoleLite = { id: string; title: string };
 
 export type SummaryDrafts = {
   region?: string;

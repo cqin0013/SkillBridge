@@ -1,453 +1,663 @@
-// src/components/analyzer/SkillRoadmapWithSchedule.tsx
+// src/components/analyzer/profile/SkillRoadMap.tsx
 import React, { useMemo, useState } from "react";
-import AbilityPicker, { type AbilityCategory } from "../AbilityPicker";
-import SkillTypeCategoryPicker from "./SkillTypeCategoryPicker";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Calendar,
+  TrendingUp,
+  Clock,
+  AlertCircle,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
+import { skillCategories } from "../../../data/skill.static";
+import { knowledgeCategories } from "../../../data/knowledge.static";
+import { techSkillCategories } from "../../../data/techskill.static";
 
-/** Ability type union aligned with AnalyzerAbilities */
-export type AType = "knowledge" | "tech" | "skill";
+// Ability types matching your project structure
+type AbilityType = "skill" | "knowledge" | "tech";
 
-/** Base ability item */
-export type AbilityLite = { name: string; code?: string; aType: AType };
-
-/** Ability with schedule fields (ISO yyyy-mm-dd, inclusive) */
-export type AbilityWithSchedule = AbilityLite & {
-  start?: string;
-  end?: string;
+export type SkillRoadmapItem = {
+  id: string;
+  abilityType: AbilityType;
+  category: string;
+  skill: string;
+  code?: string; // English: kept in type for data integrity, but intentionally NOT rendered in UI per requirement.
+  startDate?: string;
+  endDate?: string;
 };
 
-/** Public props */
-export type SkillRoadmapWithScheduleProps = {
-  /** Current abilities with schedule */
-  value: AbilityWithSchedule[];
-  /** Save handler after editing */
-  onChange: (next: AbilityWithSchedule[]) => void;
-
-  /** Category builders reused from AnalyzerAbilities */
-  buildKnowledgeCats: () => AbilityCategory[];
-  buildTechSkillCats: () => AbilityCategory[];
-  buildSkillCats: () => AbilityCategory[];
-
-  /** Optional UI labels */
-  labels?: {
-    title?: string;
-    subtitle?: string;
-    edit?: string;
-    save?: string;
-    cancel?: string;
-    showLess?: string;
-    showFull?: string;
-    totals?: string;
-    ongoing?: string;
-    upcoming?: string;
-    expired?: string;
-    kLabel?: string;
-    tLabel?: string;
-    sLabel?: string;
-    scheduleTitle?: string;
-    startCol?: string;
-    endCol?: string;
-  };
+type StatusInfo = {
+  status: "not-started" | "in-progress" | "completed";
+  label: string;
+  color: string;
+  icon: typeof Clock;
 };
 
-/** Build stable identity to dedupe items across lists */
-const identityOf = (it: AbilityLite): string => `${it.aType}|${it.code ?? it.name}`;
-
-/** Parse yyyy-mm-dd to Date (00:00), return undefined if invalid */
-const parseDate = (s?: string): Date | undefined => {
-  if (!s) return undefined;
-  const d = new Date(`${s}T00:00:00`);
-  return Number.isNaN(d.getTime()) ? undefined : d;
+type SkillRoadMapProps = {
+  initialSkills?: SkillRoadmapItem[];
+  onChange?: (next: SkillRoadmapItem[]) => void;
 };
 
-/** Status buckets used in Show less view */
-type Status = "ongoing" | "upcoming" | "expired";
-/** Rules:
- * - upcoming: start > today
- * - expired: end < today
- * - ongoing: otherwise (includes missing dates)
- */
-const statusOf = (a: AbilityWithSchedule, today: Date): Status => {
-  const start = parseDate(a.start);
-  const end = parseDate(a.end);
-  // strip time to compare date-only
-  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  if (start && start > t) return "upcoming";
-  if (end && end < t) return "expired";
-  return "ongoing";
+// Create stable ids for new items
+const createId = (): string =>
+  `skill-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+// Parse string date to Date if valid
+const parseDateStrict = (value?: string): Date | undefined => {
+  if (!value) return undefined;
+  const dt = new Date(value);
+  return Number.isNaN(dt.getTime()) ? undefined : dt;
 };
 
-/** Small chips for full view */
-const Chips: React.FC<{ items: string[] }> = ({ items }) => {
-  if (!items.length) return <span className="text-gray-500">None</span>;
-  return (
-    <div className="flex flex-wrap gap-2">
-      {items.map((s) => (
-        <span key={s} className="rounded-full border px-2 py-0.5 text-xs">{s}</span>
-      ))}
-    </div>
+// Format date for UI
+const formatDateLabel = (value?: string): string => {
+  const dt = parseDateStrict(value);
+  return dt ? dt.toLocaleDateString() : "Not scheduled";
+};
+
+// Ensure each item has an id
+const normalizeInitial = (items?: SkillRoadmapItem[]): SkillRoadmapItem[] =>
+  (items ?? []).map((item) => ({
+    ...item,
+    id: item.id ?? createId(),
+  }));
+
+const SkillRoadMap: React.FC<SkillRoadMapProps> = ({
+  initialSkills,
+  onChange,
+}) => {
+  const [skills, setSkills] = useState<SkillRoadmapItem[]>(() =>
+    normalizeInitial(initialSkills)
   );
-};
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSkill, setEditingSkill] = useState<SkillRoadmapItem | null>(
+    null
+  );
+  const [collapsed, setCollapsed] = useState<boolean>(false);
 
-/** Unified editor: one modal with tabs + schedule table */
-const UnifiedAbilityEditor: React.FC<{
-  open: boolean;
-  onClose: () => void;
-  current: AbilityWithSchedule[];
-  cats: { knowledge: AbilityCategory[]; tech: AbilityCategory[]; skill: AbilityCategory[] };
-  onConfirmAll: (next: AbilityWithSchedule[]) => void;
-  labels: {
-    save: string; cancel: string; scheduleTitle: string; startCol: string; endCol: string;
-  };
-}> = ({ open, onClose, current, cats, onConfirmAll, labels }) => {
-  const [tab, setTab] = useState<AType>("skill");
-
-  // Split selected names by type for the picker
-  const initialNamesByType = useMemo(() => {
-    const k: string[] = [], t: string[] = [], s: string[] = [];
-    current.forEach((x) => {
-      if (x.aType === "knowledge") k.push(x.name);
-      else if (x.aType === "tech") t.push(x.name);
-      else s.push(x.name);
-    });
-    return { k, t, s };
-  }, [current]);
-
-  const [selK, setSelK] = useState<string[]>(initialNamesByType.k);
-  const [selT, setSelT] = useState<string[]>(initialNamesByType.t);
-  const [selS, setSelS] = useState<string[]>(initialNamesByType.s);
-
-  // Schedule map keyed by identity
-  const [schedule, setSchedule] = useState<Record<string, { start?: string; end?: string }>>(() => {
-    const acc: Record<string, { start?: string; end?: string }> = {};
-    current.forEach((x) => { acc[identityOf(x)] = { start: x.start, end: x.end }; });
-    return acc;
+  // Local form state for add/edit
+  const [formData, setFormData] = useState({
+    abilityType: "" as AbilityType | "",
+    category: "",
+    skill: "",
+    code: "",
+    startDate: "",
+    endDate: "",
   });
 
-  const handleConfirmNames = (names: string[], aType: AType): void => {
-    if (aType === "knowledge") setSelK(names);
-    if (aType === "tech") setSelT(names);
-    if (aType === "skill") setSelS(names);
+  // Propagate changes upward
+  const syncSkills = (next: SkillRoadmapItem[]) => {
+    setSkills(next);
+    onChange?.(next);
   };
 
-  // Merge selected names with schedule map
-  const mergedList = useMemo<AbilityWithSchedule[]>(() => {
-    const list: AbilityWithSchedule[] = [
-      ...selK.map((n) => ({ name: n, aType: "knowledge" as const })),
-      ...selT.map((n) => ({ name: n, aType: "tech" as const })),
-      ...selS.map((n) => ({ name: n, aType: "skill" as const })),
-    ];
-    const map = new Map<string, AbilityWithSchedule>();
-    list.forEach((m) => {
-      const key = identityOf(m);
-      map.set(key, { ...m, ...(schedule[key] ?? {}) });
+  // Get category options based on ability type
+  const getCategoryOptions = (type: AbilityType | ""): string[] => {
+    if (!type) return [];
+    if (type === "skill") {
+      return ["content", "process", "crossFunctional"];
+    } else if (type === "knowledge") {
+      return [
+        "management",
+        "production",
+        "technical",
+        "science",
+        "health",
+        "education",
+        "culture",
+        "public",
+        "communication",
+      ];
+    } else if (type === "tech") {
+      return [
+        "business",
+        "productivity",
+        "development",
+        "database",
+        "education",
+        "industry",
+        "network",
+        "system",
+        "security",
+        "communication",
+        "management",
+      ];
+    }
+    return [];
+  };
+
+  // Get skill options based on type and category
+  const getSkillOptions = (type: AbilityType | "", category: string) => {
+    if (!type || !category) return [];
+
+    if (type === "skill") {
+      if (category === "content") return skillCategories.content;
+      if (category === "process") return skillCategories.process;
+      if (category === "crossFunctional") {
+        return [
+          ...skillCategories.crossFunctional.resourceManagement,
+          ...skillCategories.crossFunctional.technical,
+        ];
+      }
+    } else if (type === "knowledge") {
+      return knowledgeCategories[category as keyof typeof knowledgeCategories] || [];
+    } else if (type === "tech") {
+      return techSkillCategories[category as keyof typeof techSkillCategories] || [];
+    }
+    return [];
+  };
+
+  // Compute status for a single item
+  const getSkillStatus = (startDate?: string, endDate?: string): StatusInfo => {
+    const start = parseDateStrict(startDate);
+       const end = parseDateStrict(endDate);
+
+    if (!start || !end) {
+      return {
+        status: "not-started",
+        label: "Not scheduled",
+        color: "bg-gray-100 text-ink-soft border-border",
+        icon: Clock,
+      };
+    }
+
+    const today = new Date();
+
+    if (today < start) {
+      return {
+        status: "not-started",
+        label: "Not Started",
+        color: "bg-gray-100 text-ink-soft border-border",
+        icon: Clock,
+      };
+    } else if (today >= start && today <= end) {
+      return {
+        status: "in-progress",
+        label: "In Progress",
+        color: "bg-primary/10 text-primary border-primary",
+        icon: TrendingUp,
+      };
+    } else {
+      return {
+        status: "completed",
+        label: "Date Passed",
+        color: "bg-accent/20 text-black border-accent",
+        icon: AlertCircle,
+      };
+    }
+  };
+
+  // Summary counts for collapsed view
+  const summary = useMemo(() => {
+    const total = skills.length;
+
+    // Count items with no schedule at all
+    const notScheduled = skills.reduce((acc, s) => {
+      const start = parseDateStrict(s.startDate);
+      const end = parseDateStrict(s.endDate);
+      return acc + (!start || !end ? 1 : 0);
+    }, 0);
+
+    // Count in-progress and date-passed
+    let inProgress = 0;
+    let datePassed = 0;
+    for (const s of skills) {
+      const st = getSkillStatus(s.startDate, s.endDate).status;
+      if (st === "in-progress") inProgress += 1;
+      if (st === "completed") datePassed += 1;
+    }
+
+    return { total, notScheduled, inProgress, datePassed };
+  }, [skills]);
+
+  // Handlers for add/edit/delete
+  const handleAddSkill = () => {
+    if (
+      formData.abilityType &&
+      formData.category &&
+      formData.skill &&
+      formData.startDate &&
+      formData.endDate
+    ) {
+      const newSkill: SkillRoadmapItem = {
+        id: createId(),
+        abilityType: formData.abilityType as AbilityType,
+        category: formData.category,
+        skill: formData.skill,
+        // English: do NOT render code in UI, but keep it in state if present.
+        code: formData.code?.trim() ? formData.code.trim() : undefined,
+        startDate: formData.startDate || undefined,
+        endDate: formData.endDate || undefined,
+      };
+      syncSkills([...skills, newSkill]);
+      resetForm();
+      setShowAddModal(false);
+    }
+  };
+
+  const handleEditSkill = () => {
+    if (
+      editingSkill &&
+      formData.abilityType &&
+      formData.category &&
+      formData.skill &&
+      formData.startDate &&
+      formData.endDate
+    ) {
+      syncSkills(
+        skills.map((skill) =>
+          skill.id === editingSkill.id
+            ? {
+                ...skill,
+                abilityType: formData.abilityType as AbilityType,
+                category: formData.category,
+                skill: formData.skill,
+                code: formData.code?.trim() ? formData.code.trim() : undefined, // kept but not shown
+                startDate: formData.startDate || undefined,
+                endDate: formData.endDate || undefined,
+              }
+            : skill
+        )
+      );
+      resetForm();
+      setShowEditModal(false);
+      setEditingSkill(null);
+    }
+  };
+
+  const handleRemoveSkill = (id: string) => {
+    syncSkills(skills.filter((skill) => skill.id !== id));
+  };
+
+  const openEditModal = (skill: SkillRoadmapItem) => {
+    setEditingSkill(skill);
+    setFormData({
+      abilityType: skill.abilityType,
+      category: skill.category,
+      skill: skill.skill,
+      code: skill.code || "",
+      startDate: skill.startDate ?? "",
+      endDate: skill.endDate ?? "",
     });
-    return Array.from(map.values());
-  }, [selK, selT, selS, schedule]);
-
-  const onChangeDate = (key: string, field: "start" | "end", v: string): void => {
-    setSchedule((prev) => ({ ...prev, [key]: { ...(prev[key] ?? {}), [field]: v || undefined } }));
+    setShowEditModal(true);
   };
 
-  const pickerProps = useMemo(() => {
-    if (tab === "knowledge") {
-      return {
-        title: "Edit knowledge by category",
-        categories: cats.knowledge,
-        initiallySelected: selK,
-        onConfirm: (picked: string[]) => handleConfirmNames(picked, "knowledge"),
-      };
-    }
-    if (tab === "tech") {
-      return {
-        title: "Edit tech skills by category",
-        categories: cats.tech,
-        initiallySelected: selT,
-        onConfirm: (picked: string[]) => handleConfirmNames(picked, "tech"),
-      };
-    }
-    return {
-      title: "Edit skills by category",
-      categories: cats.skill,
-      initiallySelected: selS,
-      onConfirm: (picked: string[]) => handleConfirmNames(picked, "skill"),
-    };
-  }, [tab, cats, selK, selT, selS]);
+  const resetForm = () => {
+    setFormData({
+      abilityType: "",
+      category: "",
+      skill: "",
+      code: "",
+      startDate: "",
+      endDate: "",
+    });
+  };
 
-  if (!open) return null;
+  // Responsive modal scaffold
+  const Modal = ({
+    show,
+    title,
+    children,
+  }: {
+    show: boolean;
+    onClose: () => void;
+    title: string;
+    children: React.ReactNode;
+  }) => {
+    if (!show) return null;
+    return (
+      <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-3 sm:p-4">
+        <div className="bg-white rounded-xl shadow-modal w-full max-h-[92vh] overflow-y-auto
+                        max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
+          <div className="p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-heading font-bold text-ink mb-3 sm:mb-4">
+              {title}
+            </h2>
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Responsive form content
+  const FormContent = ({
+    onSubmit,
+    submitLabel,
+  }: {
+    onSubmit: () => void;
+    submitLabel: string;
+  }) => {
+   
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-ink mb-2">
+            Ability Type
+          </label>
+          <select
+            value={formData.abilityType}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                abilityType: e.target.value as AbilityType | "",
+                category: "",
+                skill: "",
+                code: "",
+              })
+            }
+            className="w-full p-2.5 sm:p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 text-ink"
+          >
+            <option value="">Select Type</option>
+            <option value="skill">Skill</option>
+            <option value="knowledge">Knowledge</option>
+            <option value="tech">Tech Skill</option>
+          </select>
+        </div>
+
+        {formData.abilityType && (
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">
+              Category
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value, skill: "", code: "" })
+              }
+              className="w-full p-2.5 sm:p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 text-ink"
+            >
+              <option value="">Select Category</option>
+              {getCategoryOptions(formData.abilityType).map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {formData.category && (
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">
+              Skill
+            </label>
+            <select
+              value={formData.skill}
+              onChange={(e) => {
+                const selectedOption = getSkillOptions(
+                  formData.abilityType,
+                  formData.category
+                ).find((opt) => opt.name === e.target.value);
+                setFormData({
+                  ...formData,
+                  skill: e.target.value,
+                  code: selectedOption?.code || "",
+                });
+              }}
+              className="w-full p-2.5 sm:p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 text-ink"
+            >
+              <option value="">Select Skill</option>
+              {getSkillOptions(formData.abilityType, formData.category).map((opt) => (
+                <option key={opt.code || opt.name} value={opt.name}>
+                  {opt.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={formData.startDate}
+              onChange={(e) =>
+                setFormData({ ...formData, startDate: e.target.value })
+              }
+              className="w-full p-2.5 sm:p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 text-ink"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">
+              End Date
+            </label>
+            <input
+              type="date"
+              value={formData.endDate}
+              onChange={(e) =>
+                setFormData({ ...formData, endDate: e.target.value })
+              }
+              className="w-full p-2.5 sm:p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 text-ink"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 pt-2 sm:pt-4">
+          <button
+            onClick={onSubmit}
+            className="w-full sm:flex-1 bg-primary text-ink-invert py-2.5 sm:py-3 px-4 rounded-full font-semibold hover:bg-primary/90 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+          >
+            {submitLabel}
+          </button>
+          <button
+            onClick={() => {
+              resetForm();
+              setShowAddModal(false);
+              setShowEditModal(false);
+              setEditingSkill(null);
+            }}
+            className="w-full sm:flex-1 bg-transparent text-ink border border-border py-2.5 sm:py-3 px-4 rounded-full font-semibold hover:bg-black/10 transition focus:outline-none focus:ring-2 focus:ring-black/20"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 p-4 sm:p-8">
-      <div className="w-full max-w-5xl rounded-2xl bg-white p-4 sm:p-6">
-        {/* Tabs + actions */}
-        <div className="mb-3 flex items-center gap-2">
-          {(["skill", "tech", "knowledge"] as AType[]).map((k) => (
+    <div className="bg-white p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 items-start sm:items-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-ink">
+            Skill Roadmap
+          </h1>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            {skills.length > 0 && (
+              <button
+                onClick={() => setCollapsed((v) => !v)}
+                className="flex items-center gap-1.5 sm:gap-2 border border-border text-ink px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-black/5 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-black/20 text-sm sm:text-base"
+                title={collapsed ? "Show all" : "Show less"}
+              >
+                {collapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+                {collapsed ? "Show all" : "Show less"}
+              </button>
+            )}
+
             <button
-              key={k}
-              type="button"
-              className={`rounded-xl border px-3 py-1.5 text-sm ${tab === k ? "bg-gray-900 text-white" : "hover:bg-gray-50"}`}
-              onClick={() => setTab(k)}
-              aria-current={tab === k ? "page" : undefined}
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-1.5 sm:gap-2 bg-primary text-ink-invert px-4 sm:px-6 py-2 sm:py-3 rounded-full hover:bg-primary/90 transition shadow-card font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm sm:text-base"
             >
-              {k === "skill" ? "Skills" : k === "tech" ? "Tech Skills" : "Knowledge"}
+              <Plus size={18} className="sm:hidden" />
+              <Plus size={20} className="hidden sm:block" />
+              Add Skill
             </button>
-          ))}
-          <div className="grow" />
-          <button type="button" className="rounded-xl border px-3 py-1.5 text-sm" onClick={() => onConfirmAll(mergedList)}>
-            {labels.save}
-          </button>
-          <button type="button" className="rounded-xl border px-3 py-1.5 text-sm" onClick={onClose}>
-            {labels.cancel}
-          </button>
+          </div>
         </div>
 
-        {/* Category picker (same UX as AnalyzerAbilities) */}
-        <AbilityPicker
-          open
-          onClose={onClose}
-          title={pickerProps.title}
-          categories={pickerProps.categories}
-          initiallySelected={pickerProps.initiallySelected}
-          onConfirm={pickerProps.onConfirm}
-        />
+        {/* Collapsed summary */}
+        {collapsed && skills.length > 0 ? (
+          <div className="bg-white rounded-xl shadow-card border border-border p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-heading font-semibold text-ink mb-3 sm:mb-4">
+              Summary
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="rounded-lg border border-border p-3 sm:p-4">
+                <div className="text-xs sm:text-sm text-ink-soft mb-1">Total</div>
+                <div className="text-xl sm:text-2xl font-bold text-ink">
+                  {summary.total}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-ink-soft mb-1">
+                  <AlertCircle size={14} />
+                  <span>Date Passed</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-ink">
+                  {summary.datePassed}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-ink-soft mb-1">
+                  <Clock size={14} />
+                  <span>Not Scheduled</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-ink">
+                  {summary.notScheduled}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-ink-soft mb-1">
+                  <TrendingUp size={14} />
+                  <span>In Progress</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-ink">
+                  {summary.inProgress}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Expanded list
+          <>
+            {skills.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-card border border-border p-8 sm:p-12 text-center">
+                <Calendar
+                  size={56}
+                  className="mx-auto mb-3 text-ink-soft/40 sm:hidden"
+                />
+                <Calendar
+                  size={64}
+                  className="mx-auto mb-4 text-ink-soft/40 hidden sm:block"
+                />
+                <h2 className="text-lg sm:text-2xl font-heading font-semibold text-ink mb-2">
+                  Not selected yet
+                </h2>
+                <p className="text-ink-soft mb-4 sm:mb-6 text-sm sm:text-base">
+                  Start building your learning roadmap by adding your first skill
+                </p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-primary text-ink-invert px-5 sm:px-6 py-2 sm:py-2.5 rounded-full hover:bg-primary/90 transition font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm sm:text-base"
+                >
+                  Add Your First Skill
+                </button>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:gap-4 grid-cols-1">
+                {skills.map((skill) => {
+                  const statusInfo = getSkillStatus(
+                    skill.startDate,
+                    skill.endDate
+                  );
+                  const StatusIcon = statusInfo.icon;
 
-        {/* Schedule editor */}
-        <div className="mt-4">
-          <div className="mb-2 text-sm font-medium">{labels.scheduleTitle}</div>
-          <div className="max-h-[320px] overflow-auto rounded-xl border">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-2 text-left">Type</th>
-                  <th className="px-3 py-2 text-left">Skill</th>
-                  <th className="px-3 py-2 text-left">{labels.startCol}</th>
-                  <th className="px-3 py-2 text-left">{labels.endCol}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mergedList.map((row) => {
-                  const key = identityOf(row);
-                  const cur = schedule[key] ?? {};
                   return (
-                    <tr key={key} className="border-t">
-                      <td className="px-3 py-2">{row.aType}</td>
-                      <td className="px-3 py-2">{row.name}</td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="date"
-                          className="w-[11rem] rounded border px-2 py-1"
-                          value={cur.start ?? ""}
-                          onChange={(e) => onChangeDate(key, "start", e.target.value)}
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="date"
-                          className="w-[11rem] rounded border px-2 py-1"
-                          value={cur.end ?? ""}
-                          onChange={(e) => onChangeDate(key, "end", e.target.value)}
-                        />
-                      </td>
-                    </tr>
+                    // English: One-skill-per-row layout; title is the main heading and wraps long text.
+                    <div
+                      key={skill.id}
+                      className="bg-white rounded-xl shadow-card border border-border p-4 sm:p-5 hover:shadow-lg transition"
+                    >
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          {/* English: Title shows ONLY the skill name, wraps naturally, no truncate, no code. */}
+                          <h3 className="text-base sm:text-lg lg:text-xl font-heading font-bold text-ink leading-snug whitespace-normal break-words">
+                            {skill.skill}
+                          </h3>
+
+                          {/* English: Secondary line keeps compact meta; can wrap if narrow. */}
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs sm:text-sm text-ink-soft">
+                            <span className="capitalize font-medium">
+                              {skill.abilityType}
+                            </span>
+                            <span>→</span>
+                            <span className="capitalize">{skill.category}</span>
+
+                            <span
+                              className={`ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-medium border ${statusInfo.color}`}
+                            >
+                              <StatusIcon size={12} />
+                              {statusInfo.label}
+                            </span>
+
+                            <span className="flex items-center gap-1">
+                              <Calendar size={14} className="opacity-70" />
+                              <span>Start: {formatDateLabel(skill.startDate)}</span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar size={14} className="opacity-70" />
+                              <span>End: {formatDateLabel(skill.endDate)}</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Actions keep the circle size but readable icons */}
+                        <div className="flex gap-1.5 sm:gap-2">
+                          <button
+                            onClick={() => openEditModal(skill)}
+                            className="p-1.5 sm:p-2 text-primary hover:bg-primary/10 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary/40"
+                            title="Edit skill"
+                          >
+                            <Edit2 size={18} className="sm:hidden" />
+                            <Edit2 size={20} className="hidden sm:block" />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveSkill(skill.id)}
+                            className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-red-300"
+                            title="Remove skill"
+                          >
+                            <Trash2 size={18} className="sm:hidden" />
+                            <Trash2 size={20} className="hidden sm:block" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
-                {mergedList.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-3 py-6 text-center text-gray-500">No items selected</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-2 text-xs text-gray-500">Empty start/end is treated as ongoing.</p>
-        </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Modals */}
+        <Modal
+          show={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          title="Add New Skill"
+        >
+          <FormContent onSubmit={handleAddSkill} submitLabel="Add Skill" />
+        </Modal>
+
+        <Modal
+          show={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="Edit Skill"
+        >
+          <FormContent onSubmit={handleEditSkill} submitLabel="Update Skill" />
+        </Modal>
       </div>
     </div>
   );
 };
 
-/** Main component with Show less / Show full and unified editor */
-const SkillRoadmapWithSchedule: React.FC<SkillRoadmapWithScheduleProps> = ({
-  value,
-  onChange,
-  buildKnowledgeCats,
-  buildTechSkillCats,
-  buildSkillCats,
-  labels,
-}) => {
-  const text = {
-    title: labels?.title ?? "Skill roadmap",
-    subtitle: labels?.subtitle ?? "One editor with per-skill start/end dates.",
-    edit: labels?.edit ?? "Edit",
-    save: labels?.save ?? "Save",
-    cancel: labels?.cancel ?? "Cancel",
-    showLess: labels?.showLess ?? "Show less",
-    showFull: labels?.showFull ?? "Show full",
-    totals: labels?.totals ?? "Totals",
-    ongoing: labels?.ongoing ?? "Ongoing",
-    upcoming: labels?.upcoming ?? "Upcoming",
-    expired: labels?.expired ?? "Expired",
-    kLabel: labels?.kLabel ?? "Knowledge",
-    tLabel: labels?.tLabel ?? "Tech Skills",
-    sLabel: labels?.sLabel ?? "Skills",
-    scheduleTitle: labels?.scheduleTitle ?? "Set start/end dates",
-    startCol: labels?.startCol ?? "Start",
-    endCol: labels?.endCol ?? "End",
-  };
-
-  const [open, setOpen] = useState(false);
-  const [addSkillOpen, setAddSkillOpen] = useState(false);
-  const [showLess, setShowLess] = useState(false);
-
-  // Reuse the same category data as AnalyzerAbilities
-  const cats = useMemo(
-    () => ({
-      knowledge: buildKnowledgeCats(),
-      tech: buildTechSkillCats(),
-      skill: buildSkillCats(),
-    }),
-    [buildKnowledgeCats, buildTechSkillCats, buildSkillCats]
-  );
-
-  // Full view grouping
-  const groups = useMemo(() => {
-    const knowledge: string[] = [], tech: string[] = [], skill: string[] = [];
-    value.forEach((x) => {
-      if (x.aType === "knowledge") knowledge.push(x.name);
-      else if (x.aType === "tech") tech.push(x.name);
-      else skill.push(x.name);
-    });
-    return { knowledge, tech, skill };
-  }, [value]);
-
-  // Counters for Show less view
-  const today = new Date();
-  const counters = useMemo(() => {
-    let ongoing = 0, upcoming = 0, expired = 0;
-    value.forEach((v) => {
-      const st = statusOf(v, today);
-      if (st === "ongoing") ongoing += 1;
-      else if (st === "upcoming") upcoming += 1;
-      else expired += 1;
-    });
-    return { total: value.length, ongoing, upcoming, expired };
-  }, [value, today]);
-
-  return (
-    <section className="rounded-2xl border p-4 sm:p-6">
-      <header className="mb-4 flex items-start gap-2">
-        <div className="grow">
-          <h2 className="text-base font-semibold sm:text-lg">{text.title}</h2>
-          <p className="mt-1 text-sm text-gray-600">{text.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="rounded-xl border border-primary bg-primary text-white px-3 py-1.5 text-sm hover:bg-primary/90"
-            onClick={() => setAddSkillOpen(true)}
-          >
-            + Add Skill
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border px-3 py-1.5 text-sm hover:bg-gray-50"
-            onClick={() => setShowLess((s) => !s)}
-          >
-            {showLess ? text.showFull : text.showLess}
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border px-3 py-1.5 text-sm hover:bg-gray-50"
-            onClick={() => setOpen(true)}
-          >
-            {text.edit}
-          </button>
-        </div>
-      </header>
-
-      {showLess ? (
-        // Compact counters only
-        <div className="rounded-xl border p-3">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{text.totals}</div>
-              <div className="text-lg font-semibold">{counters.total}</div>
-            </div>
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{text.ongoing}</div>
-              <div className="text-lg font-semibold">{counters.ongoing}</div>
-            </div>
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{text.upcoming}</div>
-              <div className="text-lg font-semibold">{counters.upcoming}</div>
-            </div>
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{text.expired}</div>
-              <div className="text-lg font-semibold">{counters.expired}</div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        // Full grouped view
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border p-3">
-            <div className="mb-2 text-sm font-medium">{text.kLabel}</div>
-            <Chips items={groups.knowledge} />
-          </div>
-          <div className="rounded-xl border p-3">
-            <div className="mb-2 text-sm font-medium">{text.tLabel}</div>
-            <Chips items={groups.tech} />
-          </div>
-          <div className="rounded-xl border p-3">
-            <div className="mb-2 text-sm font-medium">{text.sLabel}</div>
-            <Chips items={groups.skill} />
-          </div>
-        </div>
-      )}
-
-      {/* Editor modal */}
-      <UnifiedAbilityEditor
-        open={open}
-        onClose={() => setOpen(false)}
-        current={value}
-        cats={cats}
-        onConfirmAll={(next) => {
-          const map = new Map<string, AbilityWithSchedule>();
-          next.forEach((n) => map.set(identityOf(n), n)); // dedupe keep latest schedule
-          onChange(Array.from(map.values()));
-          setOpen(false);
-        }}
-        labels={{
-          save: text.save,
-          cancel: text.cancel,
-          scheduleTitle: text.scheduleTitle,
-          startCol: text.startCol,
-          endCol: text.endCol,
-        }}
-      />
-
-      {/* Add Skill modal */}
-      <SkillTypeCategoryPicker
-        open={addSkillOpen}
-        onClose={() => setAddSkillOpen(false)}
-        onConfirm={(newSkills) => {
-          // Add new skills to existing value
-          const updated = [...value];
-          newSkills.forEach((skill) => {
-            const key = identityOf(skill);
-            // Only add if not already present
-            if (!updated.some((v) => identityOf(v) === key)) {
-              updated.push(skill);
-            }
-          });
-          onChange(updated);
-          setAddSkillOpen(false);
-        }}
-        buildKnowledgeCats={buildKnowledgeCats}
-        buildTechSkillCats={buildTechSkillCats}
-        buildSkillCats={buildSkillCats}
-      />
-    </section>
-  );
-};
-
-export default SkillRoadmapWithSchedule;
+export default SkillRoadMap;

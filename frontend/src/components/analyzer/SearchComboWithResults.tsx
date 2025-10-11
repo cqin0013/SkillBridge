@@ -1,4 +1,4 @@
-// src/components/analyzer/SearchComboWithResults.tsx
+﻿// src/components/analyzer/SearchComboWithResults.tsx
 import React from "react";
 import type { AnzscoOccupation } from "../../types/domain";
 import Button from "../ui/Button";
@@ -7,40 +7,26 @@ import Button from "../ui/Button";
 export type Option = { value: string; label: string };
 
 export type SearchComboWithResultsProps = {
-  /** Industry select options (read-only to avoid accidental mutation) */
   industryOptions: readonly Option[];
-  /** Controlled industry code value */
   industryCode: string;
-  /** Update industry code in parent */
   onIndustryChange: (code: string) => void;
 
-  /** Controlled keyword value */
   keyword: string;
-  /** Update keyword in parent */
   onKeywordChange: (kw: string) => void;
 
-  /** Click search handler provided by parent */
   onSearch: () => void;
 
-  /** Validation or business error near the form */
   searchError?: string;
 
-  /** Result list from parent hook */
   results: readonly AnzscoOccupation[];
-  /** Query flags from parent */
   isFetching: boolean;
   isError: boolean;
-  /** True when no results for current params */
   noResults: boolean;
 
-  /** Already picked ids to highlight/disable */
   pickedIds: readonly string[];
-  /** Add one result (guarded by parent cap) */
   onAdd: (occ: AnzscoOccupation) => void;
-  /** Remove by code */
   onRemove: (code: string) => void;
 
-  /** Cap UI hints */
   maxSelectable: number;
   selectedCount: number;
   addDisabledReason?: string;
@@ -101,7 +87,7 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
           />
         </label>
 
-        {/* Search button: use primary brand color */}
+        {/* Search button */}
         <div className="self-end">
           <Button variant="primary" size="md" onClick={onSearch} aria-label="Search roles">
             Search roles
@@ -109,7 +95,7 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
         </div>
       </div>
 
-      {/* Validation or helper messages */}
+      {/* Helper messages */}
       {searchError && (
         <div className="mt-3 rounded-md bg-amber-50 text-amber-800 p-3 text-sm">{searchError}</div>
       )}
@@ -138,26 +124,36 @@ const SearchComboWithResults: React.FC<SearchComboWithResultsProps> = ({
         {results.map((it) => {
           const picked = pickedIds.includes(it.code);
           const disableAdd = reachedCap && !picked;
-          const hasDesc =
-            typeof (it as { description?: string }).description === "string" &&
-            ((it as { description?: string }).description ?? "").trim().length > 0;
+
+          // English: Safely coerce optional description to a string to avoid TS18048.
+          const rawDesc = (it as { description?: unknown }).description;
+          const desc: string =
+            typeof rawDesc === "string" ? rawDesc : "";
+          const hasDesc = desc.trim().length > 0;
 
           return (
             <li key={it.code}>
-              <article className="h-full rounded-xl border border-border p-4 shadow-card">
+              {/* English: Let text wrap and break long words so it adapts to width. */}
+              <article className="h-auto rounded-xl border border-border p-4 shadow-card">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+                  <div className="min-w-0 max-w-full">
                     {/* Title + code */}
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-semibold text-ink">{it.title}</h4>
-                      <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-ink-soft">
+                    <div className="flex items-start gap-2">
+                      <h4
+                        className="text-sm font-semibold text-ink break-words whitespace-normal leading-5"
+                        title={it.title}
+                      >
+                        {it.title}
+                      </h4>
+                      <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-ink-soft shrink-0">
                         {it.code}
                       </span>
                     </div>
+
                     {/* Optional description */}
                     {hasDesc && (
-                      <p className="mt-1 line-clamp-3 text-xs leading-5 text-ink-soft">
-                        {(it as { description?: string }).description}
+                      <p className="mt-2 text-xs leading-5 text-ink-soft break-words whitespace-normal">
+                        {desc}
                       </p>
                     )}
                   </div>

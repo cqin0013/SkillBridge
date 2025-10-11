@@ -4,9 +4,7 @@
 
 import type { SummaryBuilder, SummaryItem, SummaryRoot } from "./types";
 import { registerSummaryBuilder } from "./registry";
-
-// Shape of the job stored under analyzer
-type SelectedJob = { code: string; title: string } | null;
+import type { SelectedJob } from "../store/analyzerSlice";
 
 // Extend root so we can read analyzer.selectedJob safely.
 type RootWithJob = SummaryRoot & {
