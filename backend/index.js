@@ -27,6 +27,7 @@ import cookieParser from 'cookie-parser';
 
 import { fileURLToPath } from 'url';
 import path from 'node:path';
+import contactRouter from './routes/contact.router.js';
 
 //------------------------=======================================
 import initAnzscoTrainingRoutes from './anzsco.training.router.js';
@@ -40,6 +41,7 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.json({ limit: '1mb' }));
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
