@@ -4,6 +4,9 @@ import { createClient } from 'redis';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 
+/** 默认缓存时长：7 天（单位：秒） */
+export const DEFAULT_TTL_SEC = 7 * 24 * 60 * 60; // 604800
+
 // 单例 Redis 客户端
 export const redis = createClient({ url: REDIS_URL });
 redis.on('error', (e) => console.error('[redis] error:', e));
@@ -16,20 +19,24 @@ export const json = {
   },
   async set(key, val, ttlSec) {
     const raw = JSON.stringify(val);
-    if (ttlSec) return redis.set(key, raw, { EX: ttlSec });
-    return redis.set(key, raw);
+    const ttl = (typeof ttlSec === 'number' && ttlSec > 0) ? ttlSec : DEFAULT_TTL_SEC;
+    return redis.set(key, raw, { EX: ttl });
   },
-  async del(key) { return redis.del(key); },
+  async del(key) {
+    return redis.del(key);
+  },
 };
 
 // 防击穿：同一 key 并发只让一个请求做“源查询”
 export async function withSingleFlight(key, ttlSec, worker, lockTtlSec = 10) {
   const lockKey = `sbridg:lock:${key}`;
   const got = await redis.set(lockKey, '1', { NX: true, EX: lockTtlSec });
+  const effectiveTtl = (typeof ttlSec === 'number' && ttlSec > 0) ? ttlSec : DEFAULT_TTL_SEC;
+
   if (got) {
     try {
       const val = await worker();
-      await json.set(key, val, ttlSec);
+      await json.set(key, val, effectiveTtl);
       return val;
     } finally {
       await redis.del(lockKey);
@@ -43,7 +50,7 @@ export async function withSingleFlight(key, ttlSec, worker, lockTtlSec = 10) {
     }
     // 超时兜底：自己算并写入
     const val = await worker();
-    await json.set(key, val, ttlSec);
+    await json.set(key, val, effectiveTtl);
     return val;
   }
 }
@@ -58,15 +65,13 @@ export function stableHashSelections(selections) {
   return crypto.createHash('sha1').update(s).digest('base64url');
 }
 
-
 /** 清空整个 Redis（含所有前缀：会话 + 业务缓存），慎用！ */
 export async function flushAll() {
-  // node-redis v4 支持
   return redis.flushAll();
 }
 
 /** 按 pattern 删除一批 key（更安全的做法，可用于清理业务缓存） */
-export async function delByPattern(pattern = "*", count = 200) {
+export async function delByPattern(pattern = '*', count = 200) {
   let n = 0;
   for await (const key of redis.scanIterator({ MATCH: pattern, COUNT: count })) {
     await redis.del(key);

@@ -1,5 +1,7 @@
 import express from "express";
-import { json as cache, withSingleFlight } from '../cache.js';
+
+import { json as cache, withSingleFlight, flushAll, delByPattern } from "../cache.js";
+
 
 /**
  * @openapi
@@ -317,7 +319,7 @@ export default function buildRouter(pool) {
 
       // 2) 构造缓存 Key（按前4位聚合）
       const cacheKey = `sb:shortage:by-anzsco:v1:${prefix4}`;
-      const TTL_SEC = 12 * 60 * 60; // 12 小时
+      const TTL_SEC = 7 * 24 * 60 * 60; // 24*7 小时
 
       // 3) 先查缓存
       const cached = await cache.get(cacheKey);
@@ -354,5 +356,173 @@ export default function buildRouter(pool) {
       return res.status(500).json({ error: "internal_error" });
     }
   });
+
+
+
+
+  
+/**---------------------------------------------------------------------------------
+ * 预热：把 temp_nero_extract 中所有出现过的 4 位前缀，全部算一遍并写入 Redis
+ * POST /admin/shortage/prewarm
+ * body 可选：{ ttlSec?: number, concurrency?: number, dryRun?: boolean, onlyMiss?: boolean }
+ * 保护建议：配合简单的 Header 校验（见下）
+ */
+/**
+ * @openapi
+ * /api/admin/shortage/prewarm:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Prewarm cache for all 4-digit ANZSCO prefixes
+ *     x-summary-zh: 预热所有 4 位 ANZSCO 前缀的缓存
+ *     description: |
+ *       扫描 `temp_nero_extract` 中所有出现过的 4 位前缀，逐一计算
+ *       `/api/shortage/by-anzsco` 的结果并写入 Redis。
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ttlSec: { type: integer, example: 43200, description: "缓存 TTL（秒），默认 12 小时" }
+ *               concurrency: { type: integer, example: 4, description: "并发 worker 数（1-8），默认 4" }
+ *               dryRun: { type: boolean, example: false, description: "只列出将处理的前缀，不实际落库" }
+ *               onlyMiss: { type: boolean, example: true, description: "仅处理未命中缓存的前缀" }
+ *     responses:
+ *       200:
+ *         description: 预热结果摘要
+ *       401:
+ *         description: 未授权（缺少或错误的 x-admin-secret）
+ */
+router.post("/admin/shortage/prewarm", async (req, res) => {
+  try {
+    // --- 简单保护（可选）：要求携带 x-admin-secret 与 .env 中的 ADMIN_SECRET 一致 ---
+    const adminSecret = process.env.ADMIN_SECRET;
+    if (adminSecret && req.headers["x-admin-secret"] !== adminSecret) {
+      return res.status(401).json({ error: "unauthorized" });
+    }
+
+    const TTL_SEC = Number(req.body?.ttlSec ?? 12 * 60 * 60); // 默认 12 小时
+    const CONCURRENCY = Math.max(1, Math.min(8, Number(req.body?.concurrency ?? 4)));
+    const DRY_RUN = !!req.body?.dryRun;   // 只列出将要预热的前缀，不实际落库
+    const ONLY_MISS = !!req.body?.onlyMiss; // 只处理缓存未命中的前缀
+
+    // 1) 拉取所有 distinct 4 位前缀
+    const conn = await pool.getConnection();
+    let prefixes = [];
+    try {
+      const SQL_PREFIXES = `
+        SELECT DISTINCT LEFT(TRIM(CAST(anzsco_code AS CHAR)), 4) AS prefix4
+        FROM temp_nero_extract
+        WHERE anzsco_code IS NOT NULL
+          AND TRIM(CAST(anzsco_code AS CHAR)) <> ''
+          AND CHAR_LENGTH(TRIM(CAST(anzsco_code AS CHAR))) >= 4
+      `;
+      const [rows] = await conn.query(SQL_PREFIXES);
+      prefixes = rows
+        .map(r => String(r.prefix4 ?? "").trim())
+        .filter(p => /^\d{4}$/.test(p))
+        .sort();
+    } finally {
+      conn.release();
+    }
+
+    // 2) 并发分批处理
+    const cacheKeyOf = (p4) => `sb:shortage:by-anzsco:v1:${p4}`;
+
+    // 计算一个前缀
+    const computeOne = async (p4) => {
+      const key = cacheKeyOf(p4);
+      if (ONLY_MISS) {
+        const hit = await cache.get(key);
+        if (hit) return { prefix4: p4, skipped: "HIT" };
+      }
+      if (DRY_RUN) return { prefix4: p4, skipped: "DRY_RUN" };
+
+      // single-flight 防击穿：如果多个并发同时跑，以第一个为准
+      const payload = await withSingleFlight(key, TTL_SEC, async () => {
+        const conn = await pool.getConnection();
+        try {
+          const [latest] = await conn.query(SQL_LATEST_BY_STATE, [p4]);
+          const [stats]  = await conn.query(SQL_STATS_BY_STATE,  [p4]);
+          const [yearly] = await conn.query(SQL_YEARLY_TREND,    [p4]);
+          return {
+            query: { input_code: p4, match_prefix4: p4 },
+            latest_by_state: latest,
+            stats_by_state:  stats,
+            yearly_trend:    yearly
+          };
+        } finally {
+          conn.release();
+        }
+      });
+      return { prefix4: p4, wrote: true, size: JSON.stringify(payload).length };
+    };
+
+    // 简单的并发控制（不引第三方库）
+    const results = [];
+    let idx = 0;
+    const workers = Array.from({ length: CONCURRENCY }, async () => {
+      while (idx < prefixes.length) {
+        const cur = prefixes[idx++];
+        try {
+          results.push(await computeOne(cur));
+        } catch (e) {
+          results.push({ prefix4: cur, error: e?.message || String(e) });
+        }
+      }
+    });
+    await Promise.all(workers);
+
+    const summary = {
+      total_prefixes: prefixes.length,
+      ttlSec: TTL_SEC,
+      concurrency: CONCURRENCY,
+      dryRun: DRY_RUN,
+      onlyMiss: ONLY_MISS,
+      wrote: results.filter(r => r.wrote).length,
+      skipped_hit: results.filter(r => r.skipped === "HIT").length,
+      skipped_dry: results.filter(r => r.skipped === "DRY_RUN").length,
+      errors: results.filter(r => r.error).length,
+      sample: results.slice(0, 10) // 返回前 10 条看看
+    };
+    res.set("X-Prewarm-Total", String(prefixes.length));
+    return res.json({ ok: true, summary });
+  } catch (err) {
+    console.error("[/admin/shortage/prewarm] error:", err);
+    return res.status(500).json({ error: "internal_error" });
+  }
+});
+
+/**
+ * @openapi
+ * /api/admin/redis/flush-all:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Flush all keys in Redis (DANGEROUS)
+ *     x-summary-zh: 清空 Redis 全部键（危险操作）
+ *     description: |
+ *       调用 FLUSHALL 清空 Redis，包括 session 前缀 sbridg:* 与所有业务缓存。
+ *       生产环境慎用。
+ *     responses:
+ *       200: { description: 已清空 }
+ *       401: { description: 未授权（缺少或错误的 x-admin-secret） }
+ */
+router.post("/admin/redis/flush-all", async (req, res) => {
+  try {
+    const adminSecret = process.env.ADMIN_SECRET;
+    if (adminSecret && req.headers["x-admin-secret"] !== adminSecret) {
+      return res.status(401).json({ error: "unauthorized" });
+    }
+    await flushAll(); // 注意：会把 session 也清掉
+    return res.json({ ok: true, flushed: "ALL" });
+  } catch (err) {
+    console.error("[/admin/redis/flush-all] error:", err);
+    return res.status(500).json({ error: "internal_error" });
+  }
+});
+
   return router;  // ★★★ 别忘了返回 router ★★★
+
 }
+
