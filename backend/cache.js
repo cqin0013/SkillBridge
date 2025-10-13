@@ -57,3 +57,28 @@ export function stableHashSelections(selections) {
   const s = JSON.stringify(norm);
   return crypto.createHash('sha1').update(s).digest('base64url');
 }
+
+
+
+/** 删除指定模式的 key（使用 SCAN，安全不会阻塞） */
+export async function delByPattern(pattern, count = 1000) {
+  let deleted = 0;
+  const pipeline = [];
+  for await (const key of redis.scanIterator({ MATCH: pattern, COUNT: count })) {
+    pipeline.push(key);
+    if (pipeline.length >= 1000) {
+      deleted += await redis.del(pipeline);
+      pipeline.length = 0;
+    }
+  }
+  if (pipeline.length) {
+    deleted += await redis.del(pipeline);
+  }
+  return deleted;
+}
+
+/** 清空缓存（慎用） */
+export async function flushAll() {
+  await redis.sendCommand(['FLUSHALL']);
+  return 'OK';
+}
