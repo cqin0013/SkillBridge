@@ -1,7 +1,7 @@
 {
   "1111": {
     "anzscoCode": "1111",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Chief Executives and Managing Directors",
     "fiveYearGrowthRate": 5.77,
     "tenYearGrowthRate": 12.83,
     "growthRanking": "271 out of 667",
@@ -15,7 +15,7 @@
   },
   "1112": {
     "anzscoCode": "1112",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "General Managers",
     "fiveYearGrowthRate": 5.53,
     "tenYearGrowthRate": 12.62,
     "growthRanking": "275 out of 667",
@@ -29,7 +29,7 @@
   },
   "1113": {
     "anzscoCode": "1113",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Legislators",
     "fiveYearGrowthRate": 2.49,
     "tenYearGrowthRate": 7.64,
     "growthRanking": "445 out of 667",
@@ -43,7 +43,7 @@
   },
   "1211": {
     "anzscoCode": "1211",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Aquaculture Farmers",
     "fiveYearGrowthRate": 0.74,
     "tenYearGrowthRate": 8.01,
     "growthRanking": "429 out of 667",
@@ -57,7 +57,7 @@
   },
   "1212": {
     "anzscoCode": "1212",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Crop Farmers",
     "fiveYearGrowthRate": 0.14,
     "tenYearGrowthRate": 4.79,
     "growthRanking": "535 out of 667",
@@ -71,7 +71,7 @@
   },
   "1213": {
     "anzscoCode": "1213",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Livestock Farmers",
     "fiveYearGrowthRate": 0.82,
     "tenYearGrowthRate": 4.25,
     "growthRanking": "561 out of 667",
@@ -85,7 +85,7 @@
   },
   "1214": {
     "anzscoCode": "1214",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Mixed Crop and Livestock Farmers",
     "fiveYearGrowthRate": 0.8,
     "tenYearGrowthRate": 4.2,
     "growthRanking": "562 out of 667",
@@ -99,7 +99,7 @@
   },
   "1311": {
     "anzscoCode": "1311",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Advertising, Public Relations and Sales Managers",
     "fiveYearGrowthRate": 9.38,
     "tenYearGrowthRate": 17.57,
     "growthRanking": "179 out of 667",
@@ -113,7 +113,7 @@
   },
   "1321": {
     "anzscoCode": "1321",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Corporate Services Managers",
     "fiveYearGrowthRate": 13.22,
     "tenYearGrowthRate": 23.63,
     "growthRanking": "74 out of 667",
@@ -127,7 +127,7 @@
   },
   "1322": {
     "anzscoCode": "1322",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Finance Managers",
     "fiveYearGrowthRate": 13.35,
     "tenYearGrowthRate": 23.69,
     "growthRanking": "72 out of 667",
@@ -141,7 +141,7 @@
   },
   "1323": {
     "anzscoCode": "1323",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Human Resource Managers",
     "fiveYearGrowthRate": 13.17,
     "tenYearGrowthRate": 23.76,
     "growthRanking": "70 out of 667",
@@ -155,7 +155,7 @@
   },
   "1324": {
     "anzscoCode": "1324",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Policy and Planning Managers",
     "fiveYearGrowthRate": 11.87,
     "tenYearGrowthRate": 21.48,
     "growthRanking": "99 out of 667",
@@ -169,7 +169,7 @@
   },
   "1325": {
     "anzscoCode": "1325",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Research and Development Managers",
     "fiveYearGrowthRate": 13.65,
     "tenYearGrowthRate": 24.3,
     "growthRanking": "63 out of 667",
@@ -183,7 +183,7 @@
   },
   "1331": {
     "anzscoCode": "1331",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Construction Managers",
     "fiveYearGrowthRate": 15.16,
     "tenYearGrowthRate": 23.18,
     "growthRanking": "82 out of 667",
@@ -197,7 +197,7 @@
   },
   "1332": {
     "anzscoCode": "1332",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Engineering Managers",
     "fiveYearGrowthRate": 8.37,
     "tenYearGrowthRate": 16.32,
     "growthRanking": "193 out of 667",
@@ -211,7 +211,7 @@
   },
   "1333": {
     "anzscoCode": "1333",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Importers, Exporters and Wholesalers",
     "fiveYearGrowthRate": 9.86,
     "tenYearGrowthRate": 18.02,
     "growthRanking": "167 out of 667",
@@ -225,7 +225,7 @@
   },
   "1334": {
     "anzscoCode": "1334",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Manufacturers",
     "fiveYearGrowthRate": 4.52,
     "tenYearGrowthRate": 12.45,
     "growthRanking": "280 out of 667",
@@ -239,7 +239,7 @@
   },
   "1335": {
     "anzscoCode": "1335",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Production Managers",
     "fiveYearGrowthRate": 6.75,
     "tenYearGrowthRate": 14.88,
     "growthRanking": "221 out of 667",
@@ -253,7 +253,7 @@
   },
   "1336": {
     "anzscoCode": "1336",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Supply, Distribution and Procurement Managers",
     "fiveYearGrowthRate": 8.84,
     "tenYearGrowthRate": 16.66,
     "growthRanking": "188 out of 667",
@@ -267,7 +267,7 @@
   },
   "1341": {
     "anzscoCode": "1341",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Child Care Centre Managers",
     "fiveYearGrowthRate": 6.35,
     "tenYearGrowthRate": 13.18,
     "growthRanking": "264 out of 667",
@@ -281,7 +281,7 @@
   },
   "1342": {
     "anzscoCode": "1342",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Health and Welfare Services Managers",
     "fiveYearGrowthRate": 16.19,
     "tenYearGrowthRate": 31.71,
     "growthRanking": "14 out of 667",
@@ -295,7 +295,7 @@
   },
   "1343": {
     "anzscoCode": "1343",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "School Principals",
     "fiveYearGrowthRate": 6.22,
     "tenYearGrowthRate": 12.81,
     "growthRanking": "272 out of 667",
@@ -309,7 +309,7 @@
   },
   "1344": {
     "anzscoCode": "1344",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Other Education Managers",
     "fiveYearGrowthRate": 12.56,
     "tenYearGrowthRate": 22.17,
     "growthRanking": "89 out of 667",
@@ -323,7 +323,7 @@
   },
   "1351": {
     "anzscoCode": "1351",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "ICT Managers",
     "fiveYearGrowthRate": 15.17,
     "tenYearGrowthRate": 25.95,
     "growthRanking": "48 out of 667",
@@ -337,7 +337,7 @@
   },
   "1391": {
     "anzscoCode": "1391",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Commissioned Officers (Management)",
     "fiveYearGrowthRate": 7.9,
     "tenYearGrowthRate": 14.92,
     "growthRanking": "219 out of 667",
@@ -351,7 +351,7 @@
   },
   "1392": {
     "anzscoCode": "1392",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Senior Non-commissioned Defence Force Members",
     "fiveYearGrowthRate": 7.42,
     "tenYearGrowthRate": 14.23,
     "growthRanking": "240 out of 667",
@@ -365,7 +365,7 @@
   },
   "1399": {
     "anzscoCode": "1399",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Other Specialist Managers",
     "fiveYearGrowthRate": 11.91,
     "tenYearGrowthRate": 21.47,
     "growthRanking": "100 out of 667",
@@ -379,7 +379,7 @@
   },
   "1411": {
     "anzscoCode": "1411",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Cafe and Restaurant Managers",
     "fiveYearGrowthRate": 3.7,
     "tenYearGrowthRate": 8.94,
     "growthRanking": "394 out of 667",
@@ -393,7 +393,7 @@
   },
   "1412": {
     "anzscoCode": "1412",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Caravan Park and Camping Ground Managers",
     "fiveYearGrowthRate": 1.2,
     "tenYearGrowthRate": 7.14,
     "growthRanking": "464 out of 667",
@@ -407,7 +407,7 @@
   },
   "1413": {
     "anzscoCode": "1413",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Hotel and Motel Managers",
     "fiveYearGrowthRate": 2.65,
     "tenYearGrowthRate": 8.2,
     "growthRanking": "422 out of 667",
@@ -421,7 +421,7 @@
   },
   "1414": {
     "anzscoCode": "1414",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Licensed Club Managers",
     "fiveYearGrowthRate": 3.51,
     "tenYearGrowthRate": 8.58,
     "growthRanking": "408 out of 667",
@@ -435,7 +435,7 @@
   },
   "1419": {
     "anzscoCode": "1419",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Other Accommodation and Hospitality Managers",
     "fiveYearGrowthRate": 3.7,
     "tenYearGrowthRate": 10.93,
     "growthRanking": "314 out of 667",
@@ -449,7 +449,7 @@
   },
   "1421": {
     "anzscoCode": "1421",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Retail Managers",
     "fiveYearGrowthRate": 2.63,
     "tenYearGrowthRate": 6.93,
     "growthRanking": "474 out of 667",
@@ -463,7 +463,7 @@
   },
   "1491": {
     "anzscoCode": "1491",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Amusement, Fitness and Sports Centre Managers",
     "fiveYearGrowthRate": 6.38,
     "tenYearGrowthRate": 12.93,
     "growthRanking": "268 out of 667",
@@ -477,7 +477,7 @@
   },
   "1492": {
     "anzscoCode": "1492",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Call or Contact Centre and Customer Service Managers",
     "fiveYearGrowthRate": 7.39,
     "tenYearGrowthRate": 14.39,
     "growthRanking": "233 out of 667",
@@ -491,7 +491,7 @@
   },
   "1493": {
     "anzscoCode": "1493",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Conference and Event Organisers",
     "fiveYearGrowthRate": 6.85,
     "tenYearGrowthRate": 13.83,
     "growthRanking": "251 out of 667",
@@ -505,7 +505,7 @@
   },
   "1494": {
     "anzscoCode": "1494",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Transport Services Managers",
     "fiveYearGrowthRate": 6.89,
     "tenYearGrowthRate": 13.25,
     "growthRanking": "263 out of 667",
@@ -519,7 +519,7 @@
   },
   "1499": {
     "anzscoCode": "1499",
-    "majorGroupTitle": "Managers",
+    "majorGroupTitle": "Other Hospitality, Retail and Service Managers",
     "fiveYearGrowthRate": 7.78,
     "tenYearGrowthRate": 14.8,
     "growthRanking": "223 out of 667",
@@ -533,7 +533,7 @@
   },
   "2111": {
     "anzscoCode": "2111",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Actors, Dancers and Other Entertainers",
     "fiveYearGrowthRate": 4.16,
     "tenYearGrowthRate": 10.24,
     "growthRanking": "336 out of 667",
@@ -547,7 +547,7 @@
   },
   "2112": {
     "anzscoCode": "2112",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Music Professionals",
     "fiveYearGrowthRate": 3.48,
     "tenYearGrowthRate": 9.11,
     "growthRanking": "386 out of 667",
@@ -561,7 +561,7 @@
   },
   "2113": {
     "anzscoCode": "2113",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Photographers",
     "fiveYearGrowthRate": 6.17,
     "tenYearGrowthRate": 12.38,
     "growthRanking": "281 out of 667",
@@ -575,7 +575,7 @@
   },
   "2114": {
     "anzscoCode": "2114",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Visual Arts and Crafts Professionals",
     "fiveYearGrowthRate": 2.85,
     "tenYearGrowthRate": 8.46,
     "growthRanking": "410 out of 667",
@@ -589,7 +589,7 @@
   },
   "2121": {
     "anzscoCode": "2121",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Artistic Directors, and Media Producers and Presenters",
     "fiveYearGrowthRate": 9.89,
     "tenYearGrowthRate": 19.24,
     "growthRanking": "146 out of 667",
@@ -603,7 +603,7 @@
   },
   "2122": {
     "anzscoCode": "2122",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Authors, and Book and Script Editors",
     "fiveYearGrowthRate": 9.78,
     "tenYearGrowthRate": 18.78,
     "growthRanking": "151 out of 667",
@@ -617,7 +617,7 @@
   },
   "2123": {
     "anzscoCode": "2123",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Film, Television, Radio and Stage Directors",
     "fiveYearGrowthRate": 9.36,
     "tenYearGrowthRate": 18.75,
     "growthRanking": "153 out of 667",
@@ -631,7 +631,7 @@
   },
   "2124": {
     "anzscoCode": "2124",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Journalists and Other Writers",
     "fiveYearGrowthRate": 10.89,
     "tenYearGrowthRate": 20.42,
     "growthRanking": "117 out of 667",
@@ -645,7 +645,7 @@
   },
   "2211": {
     "anzscoCode": "2211",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Accountants",
     "fiveYearGrowthRate": 8.03,
     "tenYearGrowthRate": 16.07,
     "growthRanking": "194 out of 667",
@@ -659,7 +659,7 @@
   },
   "2212": {
     "anzscoCode": "2212",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Auditors, Company Secretaries and Corporate Treasurers",
     "fiveYearGrowthRate": 7.73,
     "tenYearGrowthRate": 15.54,
     "growthRanking": "209 out of 667",
@@ -673,7 +673,7 @@
   },
   "2221": {
     "anzscoCode": "2221",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Financial Brokers",
     "fiveYearGrowthRate": 6.19,
     "tenYearGrowthRate": 12.33,
     "growthRanking": "283 out of 667",
@@ -687,7 +687,7 @@
   },
   "2222": {
     "anzscoCode": "2222",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Financial Dealers",
     "fiveYearGrowthRate": 5.98,
     "tenYearGrowthRate": 12.47,
     "growthRanking": "279 out of 667",
@@ -701,7 +701,7 @@
   },
   "2223": {
     "anzscoCode": "2223",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Financial Investment Advisers and Managers",
     "fiveYearGrowthRate": 6.11,
     "tenYearGrowthRate": 12.25,
     "growthRanking": "284 out of 667",
@@ -715,7 +715,7 @@
   },
   "2231": {
     "anzscoCode": "2231",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Human Resource Professionals",
     "fiveYearGrowthRate": 7.78,
     "tenYearGrowthRate": 15.69,
     "growthRanking": "205 out of 667",
@@ -729,7 +729,7 @@
   },
   "2232": {
     "anzscoCode": "2232",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "ICT Trainers",
     "fiveYearGrowthRate": 9.82,
     "tenYearGrowthRate": 17.94,
     "growthRanking": "170 out of 667",
@@ -743,7 +743,7 @@
   },
   "2233": {
     "anzscoCode": "2233",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Training and Development Professionals",
     "fiveYearGrowthRate": 8.09,
     "tenYearGrowthRate": 16.06,
     "growthRanking": "195 out of 667",
@@ -757,7 +757,7 @@
   },
   "2241": {
     "anzscoCode": "2241",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Actuaries, Mathematicians and Statisticians",
     "fiveYearGrowthRate": 18.72,
     "tenYearGrowthRate": 31.4,
     "growthRanking": "16 out of 667",
@@ -771,7 +771,7 @@
   },
   "2242": {
     "anzscoCode": "2242",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Archivists, Curators and Records Managers",
     "fiveYearGrowthRate": 17.52,
     "tenYearGrowthRate": 30.75,
     "growthRanking": "19 out of 667",
@@ -785,7 +785,7 @@
   },
   "2243": {
     "anzscoCode": "2243",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Economists",
     "fiveYearGrowthRate": 16.89,
     "tenYearGrowthRate": 28.44,
     "growthRanking": "38 out of 667",
@@ -799,7 +799,7 @@
   },
   "2244": {
     "anzscoCode": "2244",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Intelligence and Policy Analysts",
     "fiveYearGrowthRate": 14.81,
     "tenYearGrowthRate": 25.6,
     "growthRanking": "53 out of 667",
@@ -813,7 +813,7 @@
   },
   "2245": {
     "anzscoCode": "2245",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Land Economists and Valuers",
     "fiveYearGrowthRate": 19.64,
     "tenYearGrowthRate": 31.93,
     "growthRanking": "10 out of 667",
@@ -827,7 +827,7 @@
   },
   "2246": {
     "anzscoCode": "2246",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Librarians",
     "fiveYearGrowthRate": 16.86,
     "tenYearGrowthRate": 28.47,
     "growthRanking": "37 out of 667",
@@ -841,7 +841,7 @@
   },
   "2247": {
     "anzscoCode": "2247",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Management and Organisation Analysts",
     "fiveYearGrowthRate": 18.21,
     "tenYearGrowthRate": 30.66,
     "growthRanking": "20 out of 667",
@@ -855,7 +855,7 @@
   },
   "2249": {
     "anzscoCode": "2249",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Other Information and Organisation Professionals",
     "fiveYearGrowthRate": 16.98,
     "tenYearGrowthRate": 29.07,
     "growthRanking": "32 out of 667",
@@ -869,7 +869,7 @@
   },
   "2251": {
     "anzscoCode": "2251",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Advertising and Marketing Professionals",
     "fiveYearGrowthRate": 13.83,
     "tenYearGrowthRate": 24.04,
     "growthRanking": "65 out of 667",
@@ -883,7 +883,7 @@
   },
   "2252": {
     "anzscoCode": "2252",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "ICT Sales Professionals",
     "fiveYearGrowthRate": 15.38,
     "tenYearGrowthRate": 25.63,
     "growthRanking": "52 out of 667",
@@ -897,7 +897,7 @@
   },
   "2253": {
     "anzscoCode": "2253",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Public Relations Professionals",
     "fiveYearGrowthRate": 13.33,
     "tenYearGrowthRate": 23.56,
     "growthRanking": "75 out of 667",
@@ -911,7 +911,7 @@
   },
   "2254": {
     "anzscoCode": "2254",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Technical Sales Representatives",
     "fiveYearGrowthRate": 12.94,
     "tenYearGrowthRate": 23.49,
     "growthRanking": "76 out of 667",
@@ -925,7 +925,7 @@
   },
   "2311": {
     "anzscoCode": "2311",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Air Transport Professionals",
     "fiveYearGrowthRate": 8.43,
     "tenYearGrowthRate": 15.56,
     "growthRanking": "208 out of 667",
@@ -939,7 +939,7 @@
   },
   "2312": {
     "anzscoCode": "2312",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Marine Transport Professionals",
     "fiveYearGrowthRate": 5.67,
     "tenYearGrowthRate": 11.86,
     "growthRanking": "291 out of 667",
@@ -953,7 +953,7 @@
   },
   "2321": {
     "anzscoCode": "2321",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Architects and Landscape Architects",
     "fiveYearGrowthRate": 10.52,
     "tenYearGrowthRate": 19.04,
     "growthRanking": "148 out of 667",
@@ -967,7 +967,7 @@
   },
   "2322": {
     "anzscoCode": "2322",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Surveyors and Spatial Scientists",
     "fiveYearGrowthRate": 9.39,
     "tenYearGrowthRate": 17.82,
     "growthRanking": "171 out of 667",
@@ -981,7 +981,7 @@
   },
   "2323": {
     "anzscoCode": "2323",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Fashion, Industrial and Jewellery Designers",
     "fiveYearGrowthRate": 7.54,
     "tenYearGrowthRate": 15.97,
     "growthRanking": "197 out of 667",
@@ -995,7 +995,7 @@
   },
   "2324": {
     "anzscoCode": "2324",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Graphic and Web Designers, and Illustrators",
     "fiveYearGrowthRate": 9.71,
     "tenYearGrowthRate": 18.41,
     "growthRanking": "159 out of 667",
@@ -1009,7 +1009,7 @@
   },
   "2325": {
     "anzscoCode": "2325",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Interior Designers",
     "fiveYearGrowthRate": 10.88,
     "tenYearGrowthRate": 19.38,
     "growthRanking": "140 out of 667",
@@ -1023,7 +1023,7 @@
   },
   "2326": {
     "anzscoCode": "2326",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Urban and Regional Planners",
     "fiveYearGrowthRate": 8.17,
     "tenYearGrowthRate": 15.78,
     "growthRanking": "204 out of 667",
@@ -1037,7 +1037,7 @@
   },
   "2331": {
     "anzscoCode": "2331",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Chemical and Materials Engineers",
     "fiveYearGrowthRate": 10.5,
     "tenYearGrowthRate": 20.36,
     "growthRanking": "119 out of 667",
@@ -1051,7 +1051,7 @@
   },
   "2332": {
     "anzscoCode": "2332",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Civil Engineering Professionals",
     "fiveYearGrowthRate": 11.28,
     "tenYearGrowthRate": 20.33,
     "growthRanking": "120 out of 667",
@@ -1065,7 +1065,7 @@
   },
   "2333": {
     "anzscoCode": "2333",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Electrical Engineers",
     "fiveYearGrowthRate": 10.69,
     "tenYearGrowthRate": 19.96,
     "growthRanking": "126 out of 667",
@@ -1079,7 +1079,7 @@
   },
   "2334": {
     "anzscoCode": "2334",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Electronics Engineers",
     "fiveYearGrowthRate": 8.81,
     "tenYearGrowthRate": 18.44,
     "growthRanking": "158 out of 667",
@@ -1093,7 +1093,7 @@
   },
   "2335": {
     "anzscoCode": "2335",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Industrial, Mechanical and Production Engineers",
     "fiveYearGrowthRate": 8.56,
     "tenYearGrowthRate": 18.03,
     "growthRanking": "165 out of 667",
@@ -1107,7 +1107,7 @@
   },
   "2336": {
     "anzscoCode": "2336",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Mining Engineers",
     "fiveYearGrowthRate": 9.32,
     "tenYearGrowthRate": 18.56,
     "growthRanking": "156 out of 667",
@@ -1121,7 +1121,7 @@
   },
   "2339": {
     "anzscoCode": "2339",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Other Engineering Professionals",
     "fiveYearGrowthRate": 10.51,
     "tenYearGrowthRate": 20.28,
     "growthRanking": "122 out of 667",
@@ -1135,7 +1135,7 @@
   },
   "2341": {
     "anzscoCode": "2341",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Agricultural and Forestry Scientists",
     "fiveYearGrowthRate": 7.9,
     "tenYearGrowthRate": 15.43,
     "growthRanking": "211 out of 667",
@@ -1149,7 +1149,7 @@
   },
   "2342": {
     "anzscoCode": "2342",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Chemists, and Food and Wine Scientists",
     "fiveYearGrowthRate": 5.93,
     "tenYearGrowthRate": 13.29,
     "growthRanking": "262 out of 667",
@@ -1163,7 +1163,7 @@
   },
   "2343": {
     "anzscoCode": "2343",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Environmental Scientists",
     "fiveYearGrowthRate": 6.54,
     "tenYearGrowthRate": 13.57,
     "growthRanking": "256 out of 667",
@@ -1177,7 +1177,7 @@
   },
   "2344": {
     "anzscoCode": "2344",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Geologists, Geophysicists and Hydrogeologists",
     "fiveYearGrowthRate": 5.62,
     "tenYearGrowthRate": 13.69,
     "growthRanking": "254 out of 667",
@@ -1191,7 +1191,7 @@
   },
   "2345": {
     "anzscoCode": "2345",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Life Scientists",
     "fiveYearGrowthRate": 9.29,
     "tenYearGrowthRate": 17.8,
     "growthRanking": "172 out of 667",
@@ -1205,7 +1205,7 @@
   },
   "2346": {
     "anzscoCode": "2346",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Medical Laboratory Scientists",
     "fiveYearGrowthRate": 11.32,
     "tenYearGrowthRate": 22.66,
     "growthRanking": "86 out of 667",
@@ -1219,7 +1219,7 @@
   },
   "2347": {
     "anzscoCode": "2347",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Veterinarians",
     "fiveYearGrowthRate": 8.37,
     "tenYearGrowthRate": 15.95,
     "growthRanking": "198 out of 667",
@@ -1233,7 +1233,7 @@
   },
   "2349": {
     "anzscoCode": "2349",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Other Natural and Physical Science Professionals",
     "fiveYearGrowthRate": 10.29,
     "tenYearGrowthRate": 21.77,
     "growthRanking": "96 out of 667",
@@ -1247,7 +1247,7 @@
   },
   "2411": {
     "anzscoCode": "2411",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Early Childhood (Pre-primary School) Teachers",
     "fiveYearGrowthRate": 2.99,
     "tenYearGrowthRate": 8.62,
     "growthRanking": "406 out of 667",
@@ -1261,7 +1261,7 @@
   },
   "2412": {
     "anzscoCode": "2412",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Primary School Teachers",
     "fiveYearGrowthRate": 2.92,
     "tenYearGrowthRate": 8.48,
     "growthRanking": "409 out of 667",
@@ -1275,7 +1275,7 @@
   },
   "2413": {
     "anzscoCode": "2413",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Middle School Teachers",
     "fiveYearGrowthRate": 3.03,
     "tenYearGrowthRate": 8.65,
     "growthRanking": "405 out of 667",
@@ -1289,7 +1289,7 @@
   },
   "2414": {
     "anzscoCode": "2414",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Secondary School Teachers",
     "fiveYearGrowthRate": 2.89,
     "tenYearGrowthRate": 8.44,
     "growthRanking": "412 out of 667",
@@ -1303,7 +1303,7 @@
   },
   "2415": {
     "anzscoCode": "2415",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Special Education Teachers",
     "fiveYearGrowthRate": 4.17,
     "tenYearGrowthRate": 10.58,
     "growthRanking": "324 out of 667",
@@ -1317,7 +1317,7 @@
   },
   "2421": {
     "anzscoCode": "2421",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "University Lecturers and Tutors",
     "fiveYearGrowthRate": 13.2,
     "tenYearGrowthRate": 23.75,
     "growthRanking": "71 out of 667",
@@ -1331,7 +1331,7 @@
   },
   "2422": {
     "anzscoCode": "2422",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Vocational Education Teachers",
     "fiveYearGrowthRate": 11.14,
     "tenYearGrowthRate": 21.09,
     "growthRanking": "104 out of 667",
@@ -1345,7 +1345,7 @@
   },
   "2491": {
     "anzscoCode": "2491",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Education Advisers and Reviewers",
     "fiveYearGrowthRate": 7.38,
     "tenYearGrowthRate": 14.82,
     "growthRanking": "222 out of 667",
@@ -1359,7 +1359,7 @@
   },
   "2492": {
     "anzscoCode": "2492",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Private Tutors and Teachers",
     "fiveYearGrowthRate": 6.76,
     "tenYearGrowthRate": 13.89,
     "growthRanking": "249 out of 667",
@@ -1373,7 +1373,7 @@
   },
   "2493": {
     "anzscoCode": "2493",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Teachers of English to Speakers of Other Languages",
     "fiveYearGrowthRate": 7.51,
     "tenYearGrowthRate": 14.91,
     "growthRanking": "220 out of 667",
@@ -1387,7 +1387,7 @@
   },
   "2511": {
     "anzscoCode": "2511",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Nutrition Professionals",
     "fiveYearGrowthRate": 15.63,
     "tenYearGrowthRate": 30.31,
     "growthRanking": "21 out of 667",
@@ -1401,7 +1401,7 @@
   },
   "2512": {
     "anzscoCode": "2512",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Medical Imaging Professionals",
     "fiveYearGrowthRate": 16.36,
     "tenYearGrowthRate": 32.01,
     "growthRanking": "9 out of 667",
@@ -1415,7 +1415,7 @@
   },
   "2513": {
     "anzscoCode": "2513",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Occupational and Environmental Health Professionals",
     "fiveYearGrowthRate": 10.62,
     "tenYearGrowthRate": 19.66,
     "growthRanking": "132 out of 667",
@@ -1429,7 +1429,7 @@
   },
   "2514": {
     "anzscoCode": "2514",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Optometrists and Orthoptists",
     "fiveYearGrowthRate": 16.37,
     "tenYearGrowthRate": 32.02,
     "growthRanking": "8 out of 667",
@@ -1443,7 +1443,7 @@
   },
   "2515": {
     "anzscoCode": "2515",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Pharmacists",
     "fiveYearGrowthRate": 10.79,
     "tenYearGrowthRate": 19.25,
     "growthRanking": "145 out of 667",
@@ -1457,7 +1457,7 @@
   },
   "2519": {
     "anzscoCode": "2519",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Other Health Diagnostic and Promotion Professionals",
     "fiveYearGrowthRate": 14.24,
     "tenYearGrowthRate": 27.61,
     "growthRanking": "40 out of 667",
@@ -1471,7 +1471,7 @@
   },
   "2521": {
     "anzscoCode": "2521",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Chiropractors and Osteopaths",
     "fiveYearGrowthRate": 17.72,
     "tenYearGrowthRate": 33.93,
     "growthRanking": "1 out of 667",
@@ -1485,7 +1485,7 @@
   },
   "2522": {
     "anzscoCode": "2522",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Complementary Health Therapists",
     "fiveYearGrowthRate": 17.05,
     "tenYearGrowthRate": 32.37,
     "growthRanking": "7 out of 667",
@@ -1499,7 +1499,7 @@
   },
   "2523": {
     "anzscoCode": "2523",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Dental Practitioners",
     "fiveYearGrowthRate": 17.63,
     "tenYearGrowthRate": 33.73,
     "growthRanking": "3 out of 667",
@@ -1513,7 +1513,7 @@
   },
   "2524": {
     "anzscoCode": "2524",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Occupational Therapists",
     "fiveYearGrowthRate": 17.21,
     "tenYearGrowthRate": 32.79,
     "growthRanking": "6 out of 667",
@@ -1527,7 +1527,7 @@
   },
   "2525": {
     "anzscoCode": "2525",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Physiotherapists",
     "fiveYearGrowthRate": 17.6,
     "tenYearGrowthRate": 33.62,
     "growthRanking": "4 out of 667",
@@ -1541,7 +1541,7 @@
   },
   "2526": {
     "anzscoCode": "2526",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Podiatrists",
     "fiveYearGrowthRate": 17.67,
     "tenYearGrowthRate": 33.82,
     "growthRanking": "2 out of 667",
@@ -1555,7 +1555,7 @@
   },
   "2527": {
     "anzscoCode": "2527",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Audiologists and Speech Pathologists \\ Therapists",
     "fiveYearGrowthRate": 16.62,
     "tenYearGrowthRate": 31.74,
     "growthRanking": "13 out of 667",
@@ -1569,7 +1569,7 @@
   },
   "2531": {
     "anzscoCode": "2531",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "General Practitioners and Resident Medical Officers",
     "fiveYearGrowthRate": 15.13,
     "tenYearGrowthRate": 29.99,
     "growthRanking": "25 out of 667",
@@ -1583,7 +1583,7 @@
   },
   "2532": {
     "anzscoCode": "2532",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Anaesthetists",
     "fiveYearGrowthRate": 15.19,
     "tenYearGrowthRate": 30.14,
     "growthRanking": "22 out of 667",
@@ -1597,7 +1597,7 @@
   },
   "2533": {
     "anzscoCode": "2533",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Specialist Physicians",
     "fiveYearGrowthRate": 15.1,
     "tenYearGrowthRate": 29.92,
     "growthRanking": "27 out of 667",
@@ -1611,7 +1611,7 @@
   },
   "2534": {
     "anzscoCode": "2534",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Psychiatrists",
     "fiveYearGrowthRate": 14.85,
     "tenYearGrowthRate": 29.44,
     "growthRanking": "29 out of 667",
@@ -1625,7 +1625,7 @@
   },
   "2535": {
     "anzscoCode": "2535",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Surgeons",
     "fiveYearGrowthRate": 15.18,
     "tenYearGrowthRate": 30.1,
     "growthRanking": "23 out of 667",
@@ -1639,7 +1639,7 @@
   },
   "2539": {
     "anzscoCode": "2539",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Other Medical Practitioners",
     "fiveYearGrowthRate": 15.14,
     "tenYearGrowthRate": 30.01,
     "growthRanking": "24 out of 667",
@@ -1653,7 +1653,7 @@
   },
   "2541": {
     "anzscoCode": "2541",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Midwives",
     "fiveYearGrowthRate": 11.12,
     "tenYearGrowthRate": 23.67,
     "growthRanking": "73 out of 667",
@@ -1667,7 +1667,7 @@
   },
   "2542": {
     "anzscoCode": "2542",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Nurse Educators and Researchers",
     "fiveYearGrowthRate": 10.48,
     "tenYearGrowthRate": 21.49,
     "growthRanking": "98 out of 667",
@@ -1681,7 +1681,7 @@
   },
   "2543": {
     "anzscoCode": "2543",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Nurse Managers",
     "fiveYearGrowthRate": 11.23,
     "tenYearGrowthRate": 23.81,
     "growthRanking": "69 out of 667",
@@ -1695,7 +1695,7 @@
   },
   "2544": {
     "anzscoCode": "2544",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Registered Nurses",
     "fiveYearGrowthRate": 11.34,
     "tenYearGrowthRate": 24.02,
     "growthRanking": "67 out of 667",
@@ -1709,7 +1709,7 @@
   },
   "2611": {
     "anzscoCode": "2611",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "ICT Business and Systems Analysts",
     "fiveYearGrowthRate": 14.11,
     "tenYearGrowthRate": 24.52,
     "growthRanking": "62 out of 667",
@@ -1723,7 +1723,7 @@
   },
   "2612": {
     "anzscoCode": "2612",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Multimedia Specialists and Web Developers",
     "fiveYearGrowthRate": 15.15,
     "tenYearGrowthRate": 25.7,
     "growthRanking": "51 out of 667",
@@ -1737,7 +1737,7 @@
   },
   "2613": {
     "anzscoCode": "2613",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Software and Applications Programmers",
     "fiveYearGrowthRate": 14.75,
     "tenYearGrowthRate": 25.26,
     "growthRanking": "55 out of 667",
@@ -1751,7 +1751,7 @@
   },
   "2621": {
     "anzscoCode": "2621",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Database and Systems Administrators, and ICT Security Specialists",
     "fiveYearGrowthRate": 14.25,
     "tenYearGrowthRate": 24.66,
     "growthRanking": "60 out of 667",
@@ -1765,7 +1765,7 @@
   },
   "2631": {
     "anzscoCode": "2631",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Computer Network Professionals",
     "fiveYearGrowthRate": 14.72,
     "tenYearGrowthRate": 25.14,
     "growthRanking": "56 out of 667",
@@ -1779,7 +1779,7 @@
   },
   "2632": {
     "anzscoCode": "2632",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "ICT Support and Test Engineers",
     "fiveYearGrowthRate": 14.95,
     "tenYearGrowthRate": 25.43,
     "growthRanking": "54 out of 667",
@@ -1793,7 +1793,7 @@
   },
   "2633": {
     "anzscoCode": "2633",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Telecommunications Engineering Professionals",
     "fiveYearGrowthRate": 12.89,
     "tenYearGrowthRate": 23.31,
     "growthRanking": "78 out of 667",
@@ -1807,7 +1807,7 @@
   },
   "2711": {
     "anzscoCode": "2711",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Barristers",
     "fiveYearGrowthRate": 11.66,
     "tenYearGrowthRate": 21.22,
     "growthRanking": "102 out of 667",
@@ -1821,7 +1821,7 @@
   },
   "2712": {
     "anzscoCode": "2712",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Judicial and Other Legal Professionals",
     "fiveYearGrowthRate": 11.0,
     "tenYearGrowthRate": 20.75,
     "growthRanking": "109 out of 667",
@@ -1835,7 +1835,7 @@
   },
   "2713": {
     "anzscoCode": "2713",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Solicitors",
     "fiveYearGrowthRate": 12.41,
     "tenYearGrowthRate": 22.34,
     "growthRanking": "87 out of 667",
@@ -1849,7 +1849,7 @@
   },
   "2721": {
     "anzscoCode": "2721",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Counsellors",
     "fiveYearGrowthRate": 15.35,
     "tenYearGrowthRate": 29.12,
     "growthRanking": "31 out of 667",
@@ -1863,7 +1863,7 @@
   },
   "2722": {
     "anzscoCode": "2722",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Ministers of Religion",
     "fiveYearGrowthRate": 12.13,
     "tenYearGrowthRate": 22.14,
     "growthRanking": "90 out of 667",
@@ -1877,7 +1877,7 @@
   },
   "2723": {
     "anzscoCode": "2723",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Psychologists",
     "fiveYearGrowthRate": 16.09,
     "tenYearGrowthRate": 31.43,
     "growthRanking": "15 out of 667",
@@ -1891,7 +1891,7 @@
   },
   "2724": {
     "anzscoCode": "2724",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Social Professionals",
     "fiveYearGrowthRate": 12.25,
     "tenYearGrowthRate": 21.98,
     "growthRanking": "94 out of 667",
@@ -1905,7 +1905,7 @@
   },
   "2725": {
     "anzscoCode": "2725",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Social Workers",
     "fiveYearGrowthRate": 16.4,
     "tenYearGrowthRate": 31.81,
     "growthRanking": "12 out of 667",
@@ -1919,7 +1919,7 @@
   },
   "2726": {
     "anzscoCode": "2726",
-    "majorGroupTitle": "Professionals",
+    "majorGroupTitle": "Welfare, Recreation and Community Arts Workers",
     "fiveYearGrowthRate": 15.17,
     "tenYearGrowthRate": 29.35,
     "growthRanking": "30 out of 667",
@@ -1933,7 +1933,7 @@
   },
   "3111": {
     "anzscoCode": "3111",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Agricultural Technicians",
     "fiveYearGrowthRate": 2.47,
     "tenYearGrowthRate": 7.2,
     "growthRanking": "462 out of 667",
@@ -1947,7 +1947,7 @@
   },
   "3112": {
     "anzscoCode": "3112",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Medical Technicians",
     "fiveYearGrowthRate": 6.24,
     "tenYearGrowthRate": 15.39,
     "growthRanking": "212 out of 667",
@@ -1961,7 +1961,7 @@
   },
   "3113": {
     "anzscoCode": "3113",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Primary Products Inspectors",
     "fiveYearGrowthRate": 0.27,
     "tenYearGrowthRate": 3.51,
     "growthRanking": "581 out of 667",
@@ -1975,7 +1975,7 @@
   },
   "3114": {
     "anzscoCode": "3114",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Science Technicians",
     "fiveYearGrowthRate": 2.04,
     "tenYearGrowthRate": 6.81,
     "growthRanking": "481 out of 667",
@@ -1989,7 +1989,7 @@
   },
   "3121": {
     "anzscoCode": "3121",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Architectural, Building and Surveying Technicians",
     "fiveYearGrowthRate": 8.59,
     "tenYearGrowthRate": 14.72,
     "growthRanking": "225 out of 667",
@@ -2003,7 +2003,7 @@
   },
   "3122": {
     "anzscoCode": "3122",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Civil Engineering Draftspersons and Technicians",
     "fiveYearGrowthRate": 5.95,
     "tenYearGrowthRate": 12.02,
     "growthRanking": "288 out of 667",
@@ -2017,7 +2017,7 @@
   },
   "3123": {
     "anzscoCode": "3123",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Electrical Engineering Draftspersons and Technicians",
     "fiveYearGrowthRate": 4.88,
     "tenYearGrowthRate": 11.38,
     "growthRanking": "305 out of 667",
@@ -2031,7 +2031,7 @@
   },
   "3124": {
     "anzscoCode": "3124",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Electronic Engineering Draftspersons and Technicians",
     "fiveYearGrowthRate": 2.4,
     "tenYearGrowthRate": 9.06,
     "growthRanking": "389 out of 667",
@@ -2045,7 +2045,7 @@
   },
   "3125": {
     "anzscoCode": "3125",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Mechanical Engineering Draftspersons and Technicians",
     "fiveYearGrowthRate": 2.41,
     "tenYearGrowthRate": 8.94,
     "growthRanking": "395 out of 667",
@@ -2059,7 +2059,7 @@
   },
   "3126": {
     "anzscoCode": "3126",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Safety Inspectors",
     "fiveYearGrowthRate": 4.34,
     "tenYearGrowthRate": 10.24,
     "growthRanking": "337 out of 667",
@@ -2073,7 +2073,7 @@
   },
   "3129": {
     "anzscoCode": "3129",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Other Building and Engineering Technicians",
     "fiveYearGrowthRate": 3.74,
     "tenYearGrowthRate": 10.71,
     "growthRanking": "318 out of 667",
@@ -2087,7 +2087,7 @@
   },
   "3131": {
     "anzscoCode": "3131",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "ICT Support Technicians",
     "fiveYearGrowthRate": 8.9,
     "tenYearGrowthRate": 16.64,
     "growthRanking": "189 out of 667",
@@ -2101,7 +2101,7 @@
   },
   "3132": {
     "anzscoCode": "3132",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Telecommunications Technical Specialists",
     "fiveYearGrowthRate": 6.74,
     "tenYearGrowthRate": 14.38,
     "growthRanking": "234 out of 667",
@@ -2115,7 +2115,7 @@
   },
   "3211": {
     "anzscoCode": "3211",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Automotive Electricians",
     "fiveYearGrowthRate": 2.28,
     "tenYearGrowthRate": 7.13,
     "growthRanking": "466 out of 667",
@@ -2129,7 +2129,7 @@
   },
   "3212": {
     "anzscoCode": "3212",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Motor Mechanics",
     "fiveYearGrowthRate": 2.6,
     "tenYearGrowthRate": 7.35,
     "growthRanking": "453 out of 667",
@@ -2143,7 +2143,7 @@
   },
   "3221": {
     "anzscoCode": "3221",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Metal Casting, Forging and Finishing Trades Workers",
     "fiveYearGrowthRate": -1.03,
     "tenYearGrowthRate": 2.7,
     "growthRanking": "604 out of 667",
@@ -2157,7 +2157,7 @@
   },
   "3222": {
     "anzscoCode": "3222",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Sheetmetal Trades Workers",
     "fiveYearGrowthRate": -2.0,
     "tenYearGrowthRate": 4.3,
     "growthRanking": "559 out of 667",
@@ -2171,7 +2171,7 @@
   },
   "3223": {
     "anzscoCode": "3223",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Structural Steel and Welding Trades Workers",
     "fiveYearGrowthRate": -1.37,
     "tenYearGrowthRate": 3.25,
     "growthRanking": "584 out of 667",
@@ -2185,7 +2185,7 @@
   },
   "3231": {
     "anzscoCode": "3231",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Aircraft Maintenance Engineers",
     "fiveYearGrowthRate": 4.42,
     "tenYearGrowthRate": 9.86,
     "growthRanking": "348 out of 667",
@@ -2199,7 +2199,7 @@
   },
   "3232": {
     "anzscoCode": "3232",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Metal Fitters and Machinists",
     "fiveYearGrowthRate": 0.46,
     "tenYearGrowthRate": 5.3,
     "growthRanking": "516 out of 667",
@@ -2213,7 +2213,7 @@
   },
   "3233": {
     "anzscoCode": "3233",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Precision Metal Trades Workers",
     "fiveYearGrowthRate": 0.46,
     "tenYearGrowthRate": 4.95,
     "growthRanking": "530 out of 667",
@@ -2227,7 +2227,7 @@
   },
   "3234": {
     "anzscoCode": "3234",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Toolmakers and Engineering Patternmakers",
     "fiveYearGrowthRate": -2.68,
     "tenYearGrowthRate": 2.54,
     "growthRanking": "608 out of 667",
@@ -2241,7 +2241,7 @@
   },
   "3241": {
     "anzscoCode": "3241",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Panelbeaters",
     "fiveYearGrowthRate": -4.29,
     "tenYearGrowthRate": -2.3,
     "growthRanking": "648 out of 667",
@@ -2255,7 +2255,7 @@
   },
   "3242": {
     "anzscoCode": "3242",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Vehicle Body Builders and Trimmers",
     "fiveYearGrowthRate": -7.36,
     "tenYearGrowthRate": -4.97,
     "growthRanking": "661 out of 667",
@@ -2269,7 +2269,7 @@
   },
   "3243": {
     "anzscoCode": "3243",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Vehicle Painters",
     "fiveYearGrowthRate": -4.4,
     "tenYearGrowthRate": -2.35,
     "growthRanking": "649 out of 667",
@@ -2283,7 +2283,7 @@
   },
   "3311": {
     "anzscoCode": "3311",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Bricklayers and Stonemasons",
     "fiveYearGrowthRate": 4.47,
     "tenYearGrowthRate": 9.14,
     "growthRanking": "385 out of 667",
@@ -2297,7 +2297,7 @@
   },
   "3312": {
     "anzscoCode": "3312",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Carpenters and Joiners",
     "fiveYearGrowthRate": 6.23,
     "tenYearGrowthRate": 10.95,
     "growthRanking": "313 out of 667",
@@ -2311,7 +2311,7 @@
   },
   "3321": {
     "anzscoCode": "3321",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Floor Finishers",
     "fiveYearGrowthRate": 3.56,
     "tenYearGrowthRate": 7.63,
     "growthRanking": "446 out of 667",
@@ -2325,7 +2325,7 @@
   },
   "3322": {
     "anzscoCode": "3322",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Painting Trades Workers",
     "fiveYearGrowthRate": 3.71,
     "tenYearGrowthRate": 7.83,
     "growthRanking": "439 out of 667",
@@ -2339,7 +2339,7 @@
   },
   "3331": {
     "anzscoCode": "3331",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Glaziers",
     "fiveYearGrowthRate": -1.01,
     "tenYearGrowthRate": 1.8,
     "growthRanking": "626 out of 667",
@@ -2353,7 +2353,7 @@
   },
   "3332": {
     "anzscoCode": "3332",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Plasterers",
     "fiveYearGrowthRate": 1.5,
     "tenYearGrowthRate": 4.37,
     "growthRanking": "555 out of 667",
@@ -2367,7 +2367,7 @@
   },
   "3333": {
     "anzscoCode": "3333",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Roof Tilers",
     "fiveYearGrowthRate": 0.26,
     "tenYearGrowthRate": 2.93,
     "growthRanking": "592 out of 667",
@@ -2381,7 +2381,7 @@
   },
   "3334": {
     "anzscoCode": "3334",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Wall and Floor Tilers",
     "fiveYearGrowthRate": 2.0,
     "tenYearGrowthRate": 4.93,
     "growthRanking": "531 out of 667",
@@ -2395,7 +2395,7 @@
   },
   "3341": {
     "anzscoCode": "3341",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Plumbers",
     "fiveYearGrowthRate": 5.56,
     "tenYearGrowthRate": 10.82,
     "growthRanking": "315 out of 667",
@@ -2409,7 +2409,7 @@
   },
   "3411": {
     "anzscoCode": "3411",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Electricians",
     "fiveYearGrowthRate": 6.99,
     "tenYearGrowthRate": 12.84,
     "growthRanking": "269 out of 667",
@@ -2423,7 +2423,7 @@
   },
   "3421": {
     "anzscoCode": "3421",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Airconditioning and Refrigeration Mechanics",
     "fiveYearGrowthRate": 0.65,
     "tenYearGrowthRate": 4.03,
     "growthRanking": "568 out of 667",
@@ -2437,7 +2437,7 @@
   },
   "3422": {
     "anzscoCode": "3422",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Electrical Distribution Trades Workers",
     "fiveYearGrowthRate": 1.11,
     "tenYearGrowthRate": 5.2,
     "growthRanking": "521 out of 667",
@@ -2451,7 +2451,7 @@
   },
   "3423": {
     "anzscoCode": "3423",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Electronics Trades Workers",
     "fiveYearGrowthRate": 0.12,
     "tenYearGrowthRate": 3.69,
     "growthRanking": "577 out of 667",
@@ -2465,7 +2465,7 @@
   },
   "3424": {
     "anzscoCode": "3424",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Telecommunications Trades Workers",
     "fiveYearGrowthRate": 0.03,
     "tenYearGrowthRate": 4.16,
     "growthRanking": "563 out of 667",
@@ -2479,7 +2479,7 @@
   },
   "3511": {
     "anzscoCode": "3511",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Bakers and Pastrycooks",
     "fiveYearGrowthRate": 4.3,
     "tenYearGrowthRate": 9.6,
     "growthRanking": "356 out of 667",
@@ -2493,7 +2493,7 @@
   },
   "3512": {
     "anzscoCode": "3512",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Butchers and Smallgoods Makers",
     "fiveYearGrowthRate": 6.38,
     "tenYearGrowthRate": 11.59,
     "growthRanking": "299 out of 667",
@@ -2507,7 +2507,7 @@
   },
   "3513": {
     "anzscoCode": "3513",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Chefs",
     "fiveYearGrowthRate": 7.97,
     "tenYearGrowthRate": 15.13,
     "growthRanking": "215 out of 667",
@@ -2521,7 +2521,7 @@
   },
   "3514": {
     "anzscoCode": "3514",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Cooks",
     "fiveYearGrowthRate": 7.92,
     "tenYearGrowthRate": 15.22,
     "growthRanking": "213 out of 667",
@@ -2535,7 +2535,7 @@
   },
   "3611": {
     "anzscoCode": "3611",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Animal Attendants and Trainers",
     "fiveYearGrowthRate": 7.36,
     "tenYearGrowthRate": 13.99,
     "growthRanking": "247 out of 667",
@@ -2549,7 +2549,7 @@
   },
   "3612": {
     "anzscoCode": "3612",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Shearers",
     "fiveYearGrowthRate": 8.38,
     "tenYearGrowthRate": 13.54,
     "growthRanking": "257 out of 667",
@@ -2563,7 +2563,7 @@
   },
   "3613": {
     "anzscoCode": "3613",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Veterinary Nurses",
     "fiveYearGrowthRate": 8.5,
     "tenYearGrowthRate": 14.95,
     "growthRanking": "218 out of 667",
@@ -2577,7 +2577,7 @@
   },
   "3621": {
     "anzscoCode": "3621",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Florists",
     "fiveYearGrowthRate": 1.74,
     "tenYearGrowthRate": 5.08,
     "growthRanking": "524 out of 667",
@@ -2591,7 +2591,7 @@
   },
   "3622": {
     "anzscoCode": "3622",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Gardeners",
     "fiveYearGrowthRate": 3.99,
     "tenYearGrowthRate": 8.42,
     "growthRanking": "413 out of 667",
@@ -2605,7 +2605,7 @@
   },
   "3623": {
     "anzscoCode": "3623",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Greenkeepers",
     "fiveYearGrowthRate": 1.97,
     "tenYearGrowthRate": 6.34,
     "growthRanking": "490 out of 667",
@@ -2619,7 +2619,7 @@
   },
   "3624": {
     "anzscoCode": "3624",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Nurserypersons",
     "fiveYearGrowthRate": 3.36,
     "tenYearGrowthRate": 9.06,
     "growthRanking": "388 out of 667",
@@ -2633,7 +2633,7 @@
   },
   "3911": {
     "anzscoCode": "3911",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Hairdressers",
     "fiveYearGrowthRate": 1.08,
     "tenYearGrowthRate": 5.64,
     "growthRanking": "504 out of 667",
@@ -2647,7 +2647,7 @@
   },
   "3921": {
     "anzscoCode": "3921",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Print Finishers and Screen Printers",
     "fiveYearGrowthRate": 0.34,
     "tenYearGrowthRate": 5.77,
     "growthRanking": "501 out of 667",
@@ -2661,7 +2661,7 @@
   },
   "3922": {
     "anzscoCode": "3922",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Graphic Pre-press Trades Workers",
     "fiveYearGrowthRate": 1.92,
     "tenYearGrowthRate": 7.49,
     "growthRanking": "450 out of 667",
@@ -2675,7 +2675,7 @@
   },
   "3923": {
     "anzscoCode": "3923",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Printers",
     "fiveYearGrowthRate": 0.72,
     "tenYearGrowthRate": 6.26,
     "growthRanking": "494 out of 667",
@@ -2689,7 +2689,7 @@
   },
   "3931": {
     "anzscoCode": "3931",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Canvas and Leather Goods Makers",
     "fiveYearGrowthRate": -0.64,
     "tenYearGrowthRate": 3.2,
     "growthRanking": "586 out of 667",
@@ -2703,7 +2703,7 @@
   },
   "3932": {
     "anzscoCode": "3932",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Clothing Trades Workers",
     "fiveYearGrowthRate": -1.74,
     "tenYearGrowthRate": 2.48,
     "growthRanking": "610 out of 667",
@@ -2717,7 +2717,7 @@
   },
   "3933": {
     "anzscoCode": "3933",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Upholsterers",
     "fiveYearGrowthRate": -3.02,
     "tenYearGrowthRate": 0.87,
     "growthRanking": "636 out of 667",
@@ -2731,7 +2731,7 @@
   },
   "3941": {
     "anzscoCode": "3941",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Cabinetmakers",
     "fiveYearGrowthRate": -0.06,
     "tenYearGrowthRate": 4.52,
     "growthRanking": "546 out of 667",
@@ -2745,7 +2745,7 @@
   },
   "3942": {
     "anzscoCode": "3942",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Wood Machinists and Other Wood Trades Workers",
     "fiveYearGrowthRate": 1.27,
     "tenYearGrowthRate": 5.15,
     "growthRanking": "522 out of 667",
@@ -2759,7 +2759,7 @@
   },
   "3991": {
     "anzscoCode": "3991",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Boat Builders and Shipwrights",
     "fiveYearGrowthRate": -3.95,
     "tenYearGrowthRate": 1.25,
     "growthRanking": "630 out of 667",
@@ -2773,7 +2773,7 @@
   },
   "3992": {
     "anzscoCode": "3992",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Chemical, Gas, Petroleum and Power Generation Plant Operators",
     "fiveYearGrowthRate": 2.95,
     "tenYearGrowthRate": 8.77,
     "growthRanking": "400 out of 667",
@@ -2787,7 +2787,7 @@
   },
   "3993": {
     "anzscoCode": "3993",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Gallery, Library and Museum Technicians",
     "fiveYearGrowthRate": 2.66,
     "tenYearGrowthRate": 7.13,
     "growthRanking": "465 out of 667",
@@ -2801,7 +2801,7 @@
   },
   "3994": {
     "anzscoCode": "3994",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Jewellers",
     "fiveYearGrowthRate": -0.34,
     "tenYearGrowthRate": 4.5,
     "growthRanking": "551 out of 667",
@@ -2815,7 +2815,7 @@
   },
   "3995": {
     "anzscoCode": "3995",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Performing Arts Technicians",
     "fiveYearGrowthRate": 2.6,
     "tenYearGrowthRate": 7.99,
     "growthRanking": "431 out of 667",
@@ -2829,7 +2829,7 @@
   },
   "3996": {
     "anzscoCode": "3996",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Signwriters",
     "fiveYearGrowthRate": 3.07,
     "tenYearGrowthRate": 8.31,
     "growthRanking": "419 out of 667",
@@ -2843,7 +2843,7 @@
   },
   "3999": {
     "anzscoCode": "3999",
-    "majorGroupTitle": "Technicians and Trades Workers",
+    "majorGroupTitle": "Other Miscellaneous Technicians and Trades Workers",
     "fiveYearGrowthRate": 5.78,
     "tenYearGrowthRate": 13.5,
     "growthRanking": "258 out of 667",
@@ -2857,7 +2857,7 @@
   },
   "4111": {
     "anzscoCode": "4111",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Ambulance Officers and Paramedics",
     "fiveYearGrowthRate": 9.02,
     "tenYearGrowthRate": 20.53,
     "growthRanking": "114 out of 667",
@@ -2871,7 +2871,7 @@
   },
   "4112": {
     "anzscoCode": "4112",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Dental Hygienists, Technicians and Therapists",
     "fiveYearGrowthRate": 3.3,
     "tenYearGrowthRate": 13.17,
     "growthRanking": "265 out of 667",
@@ -2885,7 +2885,7 @@
   },
   "4113": {
     "anzscoCode": "4113",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Diversional Therapists",
     "fiveYearGrowthRate": 12.22,
     "tenYearGrowthRate": 26.28,
     "growthRanking": "45 out of 667",
@@ -2899,7 +2899,7 @@
   },
   "4114": {
     "anzscoCode": "4114",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Enrolled and Mothercraft Nurses",
     "fiveYearGrowthRate": 9.96,
     "tenYearGrowthRate": 22.2,
     "growthRanking": "88 out of 667",
@@ -2913,7 +2913,7 @@
   },
   "4115": {
     "anzscoCode": "4115",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Indigenous Health Workers",
     "fiveYearGrowthRate": 9.01,
     "tenYearGrowthRate": 20.23,
     "growthRanking": "124 out of 667",
@@ -2927,7 +2927,7 @@
   },
   "4116": {
     "anzscoCode": "4116",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Massage Therapists",
     "fiveYearGrowthRate": 8.71,
     "tenYearGrowthRate": 19.84,
     "growthRanking": "128 out of 667",
@@ -2941,7 +2941,7 @@
   },
   "4117": {
     "anzscoCode": "4117",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Welfare Support Workers",
     "fiveYearGrowthRate": 8.4,
     "tenYearGrowthRate": 18.68,
     "growthRanking": "155 out of 667",
@@ -2955,7 +2955,7 @@
   },
   "4211": {
     "anzscoCode": "4211",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Child Carers",
     "fiveYearGrowthRate": -1.1,
     "tenYearGrowthRate": 2.26,
     "growthRanking": "616 out of 667",
@@ -2969,7 +2969,7 @@
   },
   "4221": {
     "anzscoCode": "4221",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Education Aides",
     "fiveYearGrowthRate": 5.49,
     "tenYearGrowthRate": 11.14,
     "growthRanking": "309 out of 667",
@@ -2983,7 +2983,7 @@
   },
   "4231": {
     "anzscoCode": "4231",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Aged and Disabled Carers",
     "fiveYearGrowthRate": 16.73,
     "tenYearGrowthRate": 31.88,
     "growthRanking": "11 out of 667",
@@ -2997,7 +2997,7 @@
   },
   "4232": {
     "anzscoCode": "4232",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Dental Assistants",
     "fiveYearGrowthRate": 14.27,
     "tenYearGrowthRate": 27.7,
     "growthRanking": "39 out of 667",
@@ -3011,7 +3011,7 @@
   },
   "4233": {
     "anzscoCode": "4233",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Nursing Support and Personal Care Workers",
     "fiveYearGrowthRate": 16.04,
     "tenYearGrowthRate": 30.87,
     "growthRanking": "18 out of 667",
@@ -3025,7 +3025,7 @@
   },
   "4234": {
     "anzscoCode": "4234",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Special Care Workers",
     "fiveYearGrowthRate": 10.66,
     "tenYearGrowthRate": 20.57,
     "growthRanking": "113 out of 667",
@@ -3039,7 +3039,7 @@
   },
   "4311": {
     "anzscoCode": "4311",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Bar Attendants and Baristas",
     "fiveYearGrowthRate": 7.91,
     "tenYearGrowthRate": 14.46,
     "growthRanking": "231 out of 667",
@@ -3053,7 +3053,7 @@
   },
   "4312": {
     "anzscoCode": "4312",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Cafe Workers",
     "fiveYearGrowthRate": 7.85,
     "tenYearGrowthRate": 14.32,
     "growthRanking": "235 out of 667",
@@ -3067,7 +3067,7 @@
   },
   "4313": {
     "anzscoCode": "4313",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Gaming Workers",
     "fiveYearGrowthRate": 8.53,
     "tenYearGrowthRate": 15.14,
     "growthRanking": "214 out of 667",
@@ -3081,7 +3081,7 @@
   },
   "4314": {
     "anzscoCode": "4314",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Hotel Service Managers",
     "fiveYearGrowthRate": 7.13,
     "tenYearGrowthRate": 14.51,
     "growthRanking": "228 out of 667",
@@ -3095,7 +3095,7 @@
   },
   "4315": {
     "anzscoCode": "4315",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Waiters",
     "fiveYearGrowthRate": 7.96,
     "tenYearGrowthRate": 14.59,
     "growthRanking": "226 out of 667",
@@ -3109,7 +3109,7 @@
   },
   "4319": {
     "anzscoCode": "4319",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Other Hospitality Workers",
     "fiveYearGrowthRate": 7.08,
     "tenYearGrowthRate": 13.42,
     "growthRanking": "260 out of 667",
@@ -3123,7 +3123,7 @@
   },
   "4411": {
     "anzscoCode": "4411",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Defence Force Members - Other Ranks",
     "fiveYearGrowthRate": 3.21,
     "tenYearGrowthRate": 8.08,
     "growthRanking": "427 out of 667",
@@ -3137,7 +3137,7 @@
   },
   "4412": {
     "anzscoCode": "4412",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Fire and Emergency Workers",
     "fiveYearGrowthRate": 4.73,
     "tenYearGrowthRate": 10.58,
     "growthRanking": "323 out of 667",
@@ -3151,7 +3151,7 @@
   },
   "4413": {
     "anzscoCode": "4413",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Police",
     "fiveYearGrowthRate": 4.09,
     "tenYearGrowthRate": 9.36,
     "growthRanking": "374 out of 667",
@@ -3165,7 +3165,7 @@
   },
   "4421": {
     "anzscoCode": "4421",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Prison Officers",
     "fiveYearGrowthRate": 3.24,
     "tenYearGrowthRate": 7.84,
     "growthRanking": "438 out of 667",
@@ -3179,7 +3179,7 @@
   },
   "4422": {
     "anzscoCode": "4422",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Security Officers and Guards",
     "fiveYearGrowthRate": 4.7,
     "tenYearGrowthRate": 10.21,
     "growthRanking": "338 out of 667",
@@ -3193,7 +3193,7 @@
   },
   "4511": {
     "anzscoCode": "4511",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Beauty Therapists",
     "fiveYearGrowthRate": 5.19,
     "tenYearGrowthRate": 11.51,
     "growthRanking": "301 out of 667",
@@ -3207,7 +3207,7 @@
   },
   "4512": {
     "anzscoCode": "4512",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Driving Instructors",
     "fiveYearGrowthRate": 4.46,
     "tenYearGrowthRate": 9.83,
     "growthRanking": "349 out of 667",
@@ -3221,7 +3221,7 @@
   },
   "4513": {
     "anzscoCode": "4513",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Funeral Workers",
     "fiveYearGrowthRate": 5.16,
     "tenYearGrowthRate": 11.44,
     "growthRanking": "303 out of 667",
@@ -3235,7 +3235,7 @@
   },
   "4514": {
     "anzscoCode": "4514",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Gallery, Museum and Tour Guides",
     "fiveYearGrowthRate": 4.03,
     "tenYearGrowthRate": 9.46,
     "growthRanking": "369 out of 667",
@@ -3249,7 +3249,7 @@
   },
   "4515": {
     "anzscoCode": "4515",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Personal Care Consultants",
     "fiveYearGrowthRate": 9.78,
     "tenYearGrowthRate": 21.39,
     "growthRanking": "101 out of 667",
@@ -3263,7 +3263,7 @@
   },
   "4516": {
     "anzscoCode": "4516",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Tourism and Travel Advisers",
     "fiveYearGrowthRate": 4.27,
     "tenYearGrowthRate": 9.92,
     "growthRanking": "346 out of 667",
@@ -3277,7 +3277,7 @@
   },
   "4517": {
     "anzscoCode": "4517",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Travel Attendants",
     "fiveYearGrowthRate": 11.93,
     "tenYearGrowthRate": 19.56,
     "growthRanking": "138 out of 667",
@@ -3291,7 +3291,7 @@
   },
   "4518": {
     "anzscoCode": "4518",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Other Personal Service Workers",
     "fiveYearGrowthRate": 5.79,
     "tenYearGrowthRate": 12.8,
     "growthRanking": "273 out of 667",
@@ -3305,7 +3305,7 @@
   },
   "4521": {
     "anzscoCode": "4521",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Fitness Instructors",
     "fiveYearGrowthRate": 8.31,
     "tenYearGrowthRate": 15.51,
     "growthRanking": "210 out of 667",
@@ -3319,7 +3319,7 @@
   },
   "4522": {
     "anzscoCode": "4522",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Outdoor Adventure Guides",
     "fiveYearGrowthRate": 7.39,
     "tenYearGrowthRate": 13.9,
     "growthRanking": "248 out of 667",
@@ -3333,7 +3333,7 @@
   },
   "4523": {
     "anzscoCode": "4523",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Sports Coaches, Instructors and Officials",
     "fiveYearGrowthRate": 7.75,
     "tenYearGrowthRate": 14.4,
     "growthRanking": "232 out of 667",
@@ -3347,7 +3347,7 @@
   },
   "4524": {
     "anzscoCode": "4524",
-    "majorGroupTitle": "Community and Personal Service Workers",
+    "majorGroupTitle": "Sportspersons",
     "fiveYearGrowthRate": 7.5,
     "tenYearGrowthRate": 14.1,
     "growthRanking": "241 out of 667",
@@ -3361,7 +3361,7 @@
   },
   "5111": {
     "anzscoCode": "5111",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Contract, Program and Project Administrators",
     "fiveYearGrowthRate": 9.57,
     "tenYearGrowthRate": 18.02,
     "growthRanking": "168 out of 667",
@@ -3375,7 +3375,7 @@
   },
   "5121": {
     "anzscoCode": "5121",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Office Managers",
     "fiveYearGrowthRate": 3.0,
     "tenYearGrowthRate": 7.96,
     "growthRanking": "432 out of 667",
@@ -3389,7 +3389,7 @@
   },
   "5122": {
     "anzscoCode": "5122",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Practice Managers",
     "fiveYearGrowthRate": 7.01,
     "tenYearGrowthRate": 17.07,
     "growthRanking": "187 out of 667",
@@ -3403,7 +3403,7 @@
   },
   "5211": {
     "anzscoCode": "5211",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Personal Assistants",
     "fiveYearGrowthRate": -10.43,
     "tenYearGrowthRate": -10.07,
     "growthRanking": "664 out of 667",
@@ -3417,7 +3417,7 @@
   },
   "5212": {
     "anzscoCode": "5212",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Secretaries",
     "fiveYearGrowthRate": -10.32,
     "tenYearGrowthRate": -10.31,
     "growthRanking": "667 out of 667",
@@ -3431,7 +3431,7 @@
   },
   "5311": {
     "anzscoCode": "5311",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "General Clerks",
     "fiveYearGrowthRate": 13.68,
     "tenYearGrowthRate": 23.28,
     "growthRanking": "79 out of 667",
@@ -3445,7 +3445,7 @@
   },
   "5321": {
     "anzscoCode": "5321",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Keyboard Operators",
     "fiveYearGrowthRate": -8.76,
     "tenYearGrowthRate": -7.77,
     "growthRanking": "662 out of 667",
@@ -3459,7 +3459,7 @@
   },
   "5411": {
     "anzscoCode": "5411",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Call or Contact Centre Workers",
     "fiveYearGrowthRate": 3.42,
     "tenYearGrowthRate": 8.58,
     "growthRanking": "407 out of 667",
@@ -3473,7 +3473,7 @@
   },
   "5412": {
     "anzscoCode": "5412",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Information Officers",
     "fiveYearGrowthRate": 3.13,
     "tenYearGrowthRate": 8.1,
     "growthRanking": "426 out of 667",
@@ -3487,7 +3487,7 @@
   },
   "5421": {
     "anzscoCode": "5421",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Receptionists",
     "fiveYearGrowthRate": 0.93,
     "tenYearGrowthRate": 6.97,
     "growthRanking": "471 out of 667",
@@ -3501,7 +3501,7 @@
   },
   "5511": {
     "anzscoCode": "5511",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Accounting Clerks",
     "fiveYearGrowthRate": 0.22,
     "tenYearGrowthRate": 4.31,
     "growthRanking": "558 out of 667",
@@ -3515,7 +3515,7 @@
   },
   "5512": {
     "anzscoCode": "5512",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Bookkeepers",
     "fiveYearGrowthRate": 0.55,
     "tenYearGrowthRate": 4.4,
     "growthRanking": "554 out of 667",
@@ -3529,7 +3529,7 @@
   },
   "5513": {
     "anzscoCode": "5513",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Payroll Clerks",
     "fiveYearGrowthRate": 0.06,
     "tenYearGrowthRate": 4.31,
     "growthRanking": "557 out of 667",
@@ -3543,7 +3543,7 @@
   },
   "5521": {
     "anzscoCode": "5521",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Bank Workers",
     "fiveYearGrowthRate": 4.01,
     "tenYearGrowthRate": 9.49,
     "growthRanking": "366 out of 667",
@@ -3557,7 +3557,7 @@
   },
   "5522": {
     "anzscoCode": "5522",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Credit and Loans Officers",
     "fiveYearGrowthRate": 3.88,
     "tenYearGrowthRate": 9.17,
     "growthRanking": "384 out of 667",
@@ -3571,7 +3571,7 @@
   },
   "5523": {
     "anzscoCode": "5523",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Insurance, Money Market and Statistical Clerks",
     "fiveYearGrowthRate": 3.39,
     "tenYearGrowthRate": 8.35,
     "growthRanking": "416 out of 667",
@@ -3585,7 +3585,7 @@
   },
   "5611": {
     "anzscoCode": "5611",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Betting Clerks",
     "fiveYearGrowthRate": -4.99,
     "tenYearGrowthRate": -3.39,
     "growthRanking": "651 out of 667",
@@ -3599,7 +3599,7 @@
   },
   "5612": {
     "anzscoCode": "5612",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Couriers and Postal Deliverers",
     "fiveYearGrowthRate": -5.59,
     "tenYearGrowthRate": -3.75,
     "growthRanking": "653 out of 667",
@@ -3613,7 +3613,7 @@
   },
   "5613": {
     "anzscoCode": "5613",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Filing and Registry Clerks",
     "fiveYearGrowthRate": -5.68,
     "tenYearGrowthRate": -3.69,
     "growthRanking": "652 out of 667",
@@ -3627,7 +3627,7 @@
   },
   "5614": {
     "anzscoCode": "5614",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Mail Sorters",
     "fiveYearGrowthRate": -5.93,
     "tenYearGrowthRate": -4.37,
     "growthRanking": "660 out of 667",
@@ -3641,7 +3641,7 @@
   },
   "5615": {
     "anzscoCode": "5615",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Survey Interviewers",
     "fiveYearGrowthRate": -5.12,
     "tenYearGrowthRate": -3.85,
     "growthRanking": "657 out of 667",
@@ -3655,7 +3655,7 @@
   },
   "5616": {
     "anzscoCode": "5616",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Switchboard Operators",
     "fiveYearGrowthRate": -4.47,
     "tenYearGrowthRate": -1.36,
     "growthRanking": "645 out of 667",
@@ -3669,7 +3669,7 @@
   },
   "5619": {
     "anzscoCode": "5619",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Other Clerical and Office Support Workers",
     "fiveYearGrowthRate": -5.28,
     "tenYearGrowthRate": -3.94,
     "growthRanking": "658 out of 667",
@@ -3683,7 +3683,7 @@
   },
   "5911": {
     "anzscoCode": "5911",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Purchasing and Supply Logistics Clerks",
     "fiveYearGrowthRate": 5.59,
     "tenYearGrowthRate": 11.58,
     "growthRanking": "300 out of 667",
@@ -3697,7 +3697,7 @@
   },
   "5912": {
     "anzscoCode": "5912",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Transport and Despatch Clerks",
     "fiveYearGrowthRate": 5.95,
     "tenYearGrowthRate": 11.83,
     "growthRanking": "292 out of 667",
@@ -3711,7 +3711,7 @@
   },
   "5991": {
     "anzscoCode": "5991",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Conveyancers and Legal Executives",
     "fiveYearGrowthRate": 4.2,
     "tenYearGrowthRate": 9.36,
     "growthRanking": "373 out of 667",
@@ -3725,7 +3725,7 @@
   },
   "5992": {
     "anzscoCode": "5992",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Court and Legal Clerks",
     "fiveYearGrowthRate": 2.51,
     "tenYearGrowthRate": 6.98,
     "growthRanking": "470 out of 667",
@@ -3739,7 +3739,7 @@
   },
   "5993": {
     "anzscoCode": "5993",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Debt Collectors",
     "fiveYearGrowthRate": 2.8,
     "tenYearGrowthRate": 7.85,
     "growthRanking": "437 out of 667",
@@ -3753,7 +3753,7 @@
   },
   "5994": {
     "anzscoCode": "5994",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Human Resource Clerks",
     "fiveYearGrowthRate": 4.73,
     "tenYearGrowthRate": 11.63,
     "growthRanking": "298 out of 667",
@@ -3767,7 +3767,7 @@
   },
   "5995": {
     "anzscoCode": "5995",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Inspectors and Regulatory Officers",
     "fiveYearGrowthRate": 1.17,
     "tenYearGrowthRate": 5.27,
     "growthRanking": "517 out of 667",
@@ -3781,7 +3781,7 @@
   },
   "5996": {
     "anzscoCode": "5996",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Insurance Investigators, Loss Adjusters and Risk Surveyors",
     "fiveYearGrowthRate": 4.22,
     "tenYearGrowthRate": 9.53,
     "growthRanking": "363 out of 667",
@@ -3795,7 +3795,7 @@
   },
   "5997": {
     "anzscoCode": "5997",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Library Assistants",
     "fiveYearGrowthRate": 1.24,
     "tenYearGrowthRate": 5.24,
     "growthRanking": "518 out of 667",
@@ -3809,7 +3809,7 @@
   },
   "5999": {
     "anzscoCode": "5999",
-    "majorGroupTitle": "Clerical and Administrative Workers",
+    "majorGroupTitle": "Other Miscellaneous Clerical and Administrative Workers",
     "fiveYearGrowthRate": 4.11,
     "tenYearGrowthRate": 10.31,
     "growthRanking": "333 out of 667",
@@ -3823,7 +3823,7 @@
   },
   "6111": {
     "anzscoCode": "6111",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Auctioneers, and Stock and Station Agents",
     "fiveYearGrowthRate": -0.32,
     "tenYearGrowthRate": 3.17,
     "growthRanking": "587 out of 667",
@@ -3837,7 +3837,7 @@
   },
   "6112": {
     "anzscoCode": "6112",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Insurance Agents",
     "fiveYearGrowthRate": -0.69,
     "tenYearGrowthRate": 2.58,
     "growthRanking": "607 out of 667",
@@ -3851,7 +3851,7 @@
   },
   "6113": {
     "anzscoCode": "6113",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Sales Representatives",
     "fiveYearGrowthRate": -1.29,
     "tenYearGrowthRate": 1.78,
     "growthRanking": "627 out of 667",
@@ -3865,7 +3865,7 @@
   },
   "6121": {
     "anzscoCode": "6121",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Real Estate Sales Agents",
     "fiveYearGrowthRate": 9.19,
     "tenYearGrowthRate": 16.39,
     "growthRanking": "191 out of 667",
@@ -3879,7 +3879,7 @@
   },
   "6211": {
     "anzscoCode": "6211",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Sales Assistants (General)",
     "fiveYearGrowthRate": 3.96,
     "tenYearGrowthRate": 8.28,
     "growthRanking": "420 out of 667",
@@ -3893,7 +3893,7 @@
   },
   "6212": {
     "anzscoCode": "6212",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "ICT Sales Assistants",
     "fiveYearGrowthRate": 5.44,
     "tenYearGrowthRate": 10.4,
     "growthRanking": "329 out of 667",
@@ -3907,7 +3907,7 @@
   },
   "6213": {
     "anzscoCode": "6213",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Motor Vehicle and Vehicle Parts Salespersons",
     "fiveYearGrowthRate": 3.68,
     "tenYearGrowthRate": 8.01,
     "growthRanking": "428 out of 667",
@@ -3921,7 +3921,7 @@
   },
   "6214": {
     "anzscoCode": "6214",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Pharmacy Sales Assistants",
     "fiveYearGrowthRate": 3.74,
     "tenYearGrowthRate": 7.71,
     "growthRanking": "444 out of 667",
@@ -3935,7 +3935,7 @@
   },
   "6215": {
     "anzscoCode": "6215",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Retail Supervisors",
     "fiveYearGrowthRate": 3.94,
     "tenYearGrowthRate": 8.15,
     "growthRanking": "425 out of 667",
@@ -3949,7 +3949,7 @@
   },
   "6216": {
     "anzscoCode": "6216",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Service Station Attendants",
     "fiveYearGrowthRate": 3.74,
     "tenYearGrowthRate": 7.74,
     "growthRanking": "443 out of 667",
@@ -3963,7 +3963,7 @@
   },
   "6217": {
     "anzscoCode": "6217",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Street Vendors and Related Salespersons",
     "fiveYearGrowthRate": 5.0,
     "tenYearGrowthRate": 10.35,
     "growthRanking": "332 out of 667",
@@ -3977,7 +3977,7 @@
   },
   "6219": {
     "anzscoCode": "6219",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Other Sales Assistants and Salespersons",
     "fiveYearGrowthRate": 4.9,
     "tenYearGrowthRate": 9.98,
     "growthRanking": "343 out of 667",
@@ -3991,7 +3991,7 @@
   },
   "6311": {
     "anzscoCode": "6311",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Checkout Operators and Office Cashiers",
     "fiveYearGrowthRate": 1.73,
     "tenYearGrowthRate": 4.99,
     "growthRanking": "527 out of 667",
@@ -4005,7 +4005,7 @@
   },
   "6391": {
     "anzscoCode": "6391",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Models and Sales Demonstrators",
     "fiveYearGrowthRate": 0.2,
     "tenYearGrowthRate": 3.53,
     "growthRanking": "580 out of 667",
@@ -4019,7 +4019,7 @@
   },
   "6392": {
     "anzscoCode": "6392",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Retail and Wool Buyers",
     "fiveYearGrowthRate": -0.15,
     "tenYearGrowthRate": 2.73,
     "growthRanking": "602 out of 667",
@@ -4033,7 +4033,7 @@
   },
   "6393": {
     "anzscoCode": "6393",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Telemarketers",
     "fiveYearGrowthRate": 1.27,
     "tenYearGrowthRate": 5.49,
     "growthRanking": "509 out of 667",
@@ -4047,7 +4047,7 @@
   },
   "6394": {
     "anzscoCode": "6394",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Ticket Salespersons",
     "fiveYearGrowthRate": 1.49,
     "tenYearGrowthRate": 5.6,
     "growthRanking": "506 out of 667",
@@ -4061,7 +4061,7 @@
   },
   "6395": {
     "anzscoCode": "6395",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Visual Merchandisers",
     "fiveYearGrowthRate": -0.02,
     "tenYearGrowthRate": 3.05,
     "growthRanking": "589 out of 667",
@@ -4075,7 +4075,7 @@
   },
   "6399": {
     "anzscoCode": "6399",
-    "majorGroupTitle": "Sales Workers",
+    "majorGroupTitle": "Other Sales Support Workers",
     "fiveYearGrowthRate": -0.23,
     "tenYearGrowthRate": 2.59,
     "growthRanking": "606 out of 667",
@@ -4089,7 +4089,7 @@
   },
   "7111": {
     "anzscoCode": "7111",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Clay, Concrete, Glass and Stone Processing Machine Operators",
     "fiveYearGrowthRate": -0.94,
     "tenYearGrowthRate": 2.74,
     "growthRanking": "600 out of 667",
@@ -4103,7 +4103,7 @@
   },
   "7112": {
     "anzscoCode": "7112",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Industrial Spraypainters",
     "fiveYearGrowthRate": -1.74,
     "tenYearGrowthRate": 1.98,
     "growthRanking": "621 out of 667",
@@ -4117,7 +4117,7 @@
   },
   "7113": {
     "anzscoCode": "7113",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Paper and Wood Processing Machine Operators",
     "fiveYearGrowthRate": -0.77,
     "tenYearGrowthRate": 0.84,
     "growthRanking": "637 out of 667",
@@ -4131,7 +4131,7 @@
   },
   "7114": {
     "anzscoCode": "7114",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Photographic Developers and Printers",
     "fiveYearGrowthRate": 0.68,
     "tenYearGrowthRate": 5.04,
     "growthRanking": "525 out of 667",
@@ -4145,7 +4145,7 @@
   },
   "7115": {
     "anzscoCode": "7115",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Plastics and Rubber Production Machine Operators",
     "fiveYearGrowthRate": -2.75,
     "tenYearGrowthRate": 0.93,
     "growthRanking": "635 out of 667",
@@ -4159,7 +4159,7 @@
   },
   "7116": {
     "anzscoCode": "7116",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Sewing Machinists",
     "fiveYearGrowthRate": -3.74,
     "tenYearGrowthRate": 0.11,
     "growthRanking": "638 out of 667",
@@ -4173,7 +4173,7 @@
   },
   "7117": {
     "anzscoCode": "7117",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Textile and Footwear Production Machine Operators",
     "fiveYearGrowthRate": -2.36,
     "tenYearGrowthRate": 0.97,
     "growthRanking": "634 out of 667",
@@ -4187,7 +4187,7 @@
   },
   "7119": {
     "anzscoCode": "7119",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Other Machine Operators",
     "fiveYearGrowthRate": 2.35,
     "tenYearGrowthRate": 7.19,
     "growthRanking": "463 out of 667",
@@ -4201,7 +4201,7 @@
   },
   "7121": {
     "anzscoCode": "7121",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Crane, Hoist and Lift Operators",
     "fiveYearGrowthRate": 3.07,
     "tenYearGrowthRate": 7.3,
     "growthRanking": "455 out of 667",
@@ -4215,7 +4215,7 @@
   },
   "7122": {
     "anzscoCode": "7122",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Drillers, Miners and Shot Firers",
     "fiveYearGrowthRate": -0.64,
     "tenYearGrowthRate": 3.98,
     "growthRanking": "569 out of 667",
@@ -4229,7 +4229,7 @@
   },
   "7123": {
     "anzscoCode": "7123",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Engineering Production Workers",
     "fiveYearGrowthRate": -0.59,
     "tenYearGrowthRate": 5.31,
     "growthRanking": "515 out of 667",
@@ -4243,7 +4243,7 @@
   },
   "7129": {
     "anzscoCode": "7129",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Other Stationary Plant Operators",
     "fiveYearGrowthRate": 1.73,
     "tenYearGrowthRate": 6.05,
     "growthRanking": "496 out of 667",
@@ -4257,7 +4257,7 @@
   },
   "7211": {
     "anzscoCode": "7211",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Agricultural, Forestry and Horticultural Plant Operators",
     "fiveYearGrowthRate": 1.4,
     "tenYearGrowthRate": 5.53,
     "growthRanking": "508 out of 667",
@@ -4271,7 +4271,7 @@
   },
   "7212": {
     "anzscoCode": "7212",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Earthmoving Plant Operators",
     "fiveYearGrowthRate": 1.1,
     "tenYearGrowthRate": 4.26,
     "growthRanking": "560 out of 667",
@@ -4285,7 +4285,7 @@
   },
   "7213": {
     "anzscoCode": "7213",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Forklift Drivers",
     "fiveYearGrowthRate": -0.41,
     "tenYearGrowthRate": 2.81,
     "growthRanking": "598 out of 667",
@@ -4299,7 +4299,7 @@
   },
   "7219": {
     "anzscoCode": "7219",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Other Mobile Plant Operators",
     "fiveYearGrowthRate": 2.45,
     "tenYearGrowthRate": 6.3,
     "growthRanking": "492 out of 667",
@@ -4313,7 +4313,7 @@
   },
   "7311": {
     "anzscoCode": "7311",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Automobile Drivers",
     "fiveYearGrowthRate": 4.6,
     "tenYearGrowthRate": 9.78,
     "growthRanking": "351 out of 667",
@@ -4327,7 +4327,7 @@
   },
   "7312": {
     "anzscoCode": "7312",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Bus and Coach Drivers",
     "fiveYearGrowthRate": 4.66,
     "tenYearGrowthRate": 9.82,
     "growthRanking": "350 out of 667",
@@ -4341,7 +4341,7 @@
   },
   "7313": {
     "anzscoCode": "7313",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Train and Tram Drivers",
     "fiveYearGrowthRate": 4.07,
     "tenYearGrowthRate": 7.38,
     "growthRanking": "452 out of 667",
@@ -4355,7 +4355,7 @@
   },
   "7321": {
     "anzscoCode": "7321",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Delivery Drivers",
     "fiveYearGrowthRate": 17.96,
     "tenYearGrowthRate": 28.63,
     "growthRanking": "34 out of 667",
@@ -4369,7 +4369,7 @@
   },
   "7331": {
     "anzscoCode": "7331",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Truck Drivers",
     "fiveYearGrowthRate": 1.05,
     "tenYearGrowthRate": 4.51,
     "growthRanking": "549 out of 667",
@@ -4383,7 +4383,7 @@
   },
   "7411": {
     "anzscoCode": "7411",
-    "majorGroupTitle": "Machinery Operators and Drivers",
+    "majorGroupTitle": "Storepersons",
     "fiveYearGrowthRate": 8.98,
     "tenYearGrowthRate": 15.88,
     "growthRanking": "199 out of 667",
@@ -4397,7 +4397,7 @@
   },
   "8111": {
     "anzscoCode": "8111",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Car Detailers",
     "fiveYearGrowthRate": -2.07,
     "tenYearGrowthRate": 0.1,
     "growthRanking": "639 out of 667",
@@ -4411,7 +4411,7 @@
   },
   "8112": {
     "anzscoCode": "8112",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Commercial Cleaners",
     "fiveYearGrowthRate": -0.56,
     "tenYearGrowthRate": 2.81,
     "growthRanking": "597 out of 667",
@@ -4425,7 +4425,7 @@
   },
   "8113": {
     "anzscoCode": "8113",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Domestic Cleaners",
     "fiveYearGrowthRate": 0.05,
     "tenYearGrowthRate": 3.3,
     "growthRanking": "582 out of 667",
@@ -4439,7 +4439,7 @@
   },
   "8114": {
     "anzscoCode": "8114",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Housekeepers",
     "fiveYearGrowthRate": -1.34,
     "tenYearGrowthRate": 2.82,
     "growthRanking": "596 out of 667",
@@ -4453,7 +4453,7 @@
   },
   "8115": {
     "anzscoCode": "8115",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Laundry Workers",
     "fiveYearGrowthRate": 0.1,
     "tenYearGrowthRate": 4.61,
     "growthRanking": "542 out of 667",
@@ -4467,7 +4467,7 @@
   },
   "8116": {
     "anzscoCode": "8116",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Other Cleaners",
     "fiveYearGrowthRate": -0.79,
     "tenYearGrowthRate": 1.99,
     "growthRanking": "620 out of 667",
@@ -4481,7 +4481,7 @@
   },
   "8211": {
     "anzscoCode": "8211",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Building and Plumbing Labourers",
     "fiveYearGrowthRate": 2.52,
     "tenYearGrowthRate": 5.76,
     "growthRanking": "502 out of 667",
@@ -4495,7 +4495,7 @@
   },
   "8212": {
     "anzscoCode": "8212",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Concreters",
     "fiveYearGrowthRate": 1.98,
     "tenYearGrowthRate": 4.92,
     "growthRanking": "532 out of 667",
@@ -4509,7 +4509,7 @@
   },
   "8213": {
     "anzscoCode": "8213",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Fencers",
     "fiveYearGrowthRate": 1.76,
     "tenYearGrowthRate": 4.71,
     "growthRanking": "540 out of 667",
@@ -4523,7 +4523,7 @@
   },
   "8214": {
     "anzscoCode": "8214",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Insulation and Home Improvement Installers",
     "fiveYearGrowthRate": 2.42,
     "tenYearGrowthRate": 5.49,
     "growthRanking": "510 out of 667",
@@ -4537,7 +4537,7 @@
   },
   "8215": {
     "anzscoCode": "8215",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Paving and Surfacing Labourers",
     "fiveYearGrowthRate": -1.83,
     "tenYearGrowthRate": 1.06,
     "growthRanking": "632 out of 667",
@@ -4551,7 +4551,7 @@
   },
   "8216": {
     "anzscoCode": "8216",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Railway Track Workers",
     "fiveYearGrowthRate": -0.99,
     "tenYearGrowthRate": 1.53,
     "growthRanking": "629 out of 667",
@@ -4565,7 +4565,7 @@
   },
   "8217": {
     "anzscoCode": "8217",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Structural Steel Construction Workers",
     "fiveYearGrowthRate": 1.04,
     "tenYearGrowthRate": 4.44,
     "growthRanking": "553 out of 667",
@@ -4579,7 +4579,7 @@
   },
   "8219": {
     "anzscoCode": "8219",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Other Construction and Mining Labourers",
     "fiveYearGrowthRate": -1.16,
     "tenYearGrowthRate": 2.1,
     "growthRanking": "618 out of 667",
@@ -4593,7 +4593,7 @@
   },
   "8311": {
     "anzscoCode": "8311",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Food and Drink Factory Workers",
     "fiveYearGrowthRate": -0.43,
     "tenYearGrowthRate": 2.72,
     "growthRanking": "603 out of 667",
@@ -4607,7 +4607,7 @@
   },
   "8312": {
     "anzscoCode": "8312",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Meat Boners and Slicers, and Slaughterers",
     "fiveYearGrowthRate": 0.23,
     "tenYearGrowthRate": 2.62,
     "growthRanking": "605 out of 667",
@@ -4621,7 +4621,7 @@
   },
   "8313": {
     "anzscoCode": "8313",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Meat, Poultry and Seafood Process Workers",
     "fiveYearGrowthRate": 0.21,
     "tenYearGrowthRate": 2.8,
     "growthRanking": "599 out of 667",
@@ -4635,7 +4635,7 @@
   },
   "8321": {
     "anzscoCode": "8321",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Packers",
     "fiveYearGrowthRate": -0.03,
     "tenYearGrowthRate": 3.62,
     "growthRanking": "578 out of 667",
@@ -4649,7 +4649,7 @@
   },
   "8322": {
     "anzscoCode": "8322",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Product Assemblers",
     "fiveYearGrowthRate": -5.05,
     "tenYearGrowthRate": -1.33,
     "growthRanking": "644 out of 667",
@@ -4663,7 +4663,7 @@
   },
   "8391": {
     "anzscoCode": "8391",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Metal Engineering Process Workers",
     "fiveYearGrowthRate": -5.08,
     "tenYearGrowthRate": -1.85,
     "growthRanking": "647 out of 667",
@@ -4677,7 +4677,7 @@
   },
   "8392": {
     "anzscoCode": "8392",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Plastics and Rubber Factory Workers",
     "fiveYearGrowthRate": -6.93,
     "tenYearGrowthRate": -4.2,
     "growthRanking": "659 out of 667",
@@ -4691,7 +4691,7 @@
   },
   "8393": {
     "anzscoCode": "8393",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Product Quality Controllers",
     "fiveYearGrowthRate": -3.93,
     "tenYearGrowthRate": -1.37,
     "growthRanking": "646 out of 667",
@@ -4705,7 +4705,7 @@
   },
   "8394": {
     "anzscoCode": "8394",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Timber and Wood Process Workers",
     "fiveYearGrowthRate": -3.71,
     "tenYearGrowthRate": -3.77,
     "growthRanking": "654 out of 667",
@@ -4719,7 +4719,7 @@
   },
   "8399": {
     "anzscoCode": "8399",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Other Factory Process Workers",
     "fiveYearGrowthRate": -1.59,
     "tenYearGrowthRate": 2.06,
     "growthRanking": "619 out of 667",
@@ -4733,7 +4733,7 @@
   },
   "8411": {
     "anzscoCode": "8411",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Aquaculture Workers",
     "fiveYearGrowthRate": 1.49,
     "tenYearGrowthRate": 8.98,
     "growthRanking": "393 out of 667",
@@ -4747,7 +4747,7 @@
   },
   "8412": {
     "anzscoCode": "8412",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Crop Farm Workers",
     "fiveYearGrowthRate": 0.46,
     "tenYearGrowthRate": 5.21,
     "growthRanking": "520 out of 667",
@@ -4761,7 +4761,7 @@
   },
   "8413": {
     "anzscoCode": "8413",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Forestry and Logging Workers",
     "fiveYearGrowthRate": 1.18,
     "tenYearGrowthRate": 5.96,
     "growthRanking": "499 out of 667",
@@ -4775,7 +4775,7 @@
   },
   "8414": {
     "anzscoCode": "8414",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Garden and Nursery Labourers",
     "fiveYearGrowthRate": 0.45,
     "tenYearGrowthRate": 3.93,
     "growthRanking": "573 out of 667",
@@ -4789,7 +4789,7 @@
   },
   "8415": {
     "anzscoCode": "8415",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Livestock Farm Workers",
     "fiveYearGrowthRate": 1.15,
     "tenYearGrowthRate": 4.77,
     "growthRanking": "536 out of 667",
@@ -4803,7 +4803,7 @@
   },
   "8416": {
     "anzscoCode": "8416",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Mixed Crop and Livestock Farm Workers",
     "fiveYearGrowthRate": 1.59,
     "tenYearGrowthRate": 5.34,
     "growthRanking": "512 out of 667",
@@ -4817,7 +4817,7 @@
   },
   "8419": {
     "anzscoCode": "8419",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Other Farm, Forestry and Garden Workers",
     "fiveYearGrowthRate": 0.16,
     "tenYearGrowthRate": 3.12,
     "growthRanking": "588 out of 667",
@@ -4831,7 +4831,7 @@
   },
   "8511": {
     "anzscoCode": "8511",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Fast Food Cooks",
     "fiveYearGrowthRate": 4.7,
     "tenYearGrowthRate": 9.53,
     "growthRanking": "362 out of 667",
@@ -4845,7 +4845,7 @@
   },
   "8512": {
     "anzscoCode": "8512",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Food Trades Assistants",
     "fiveYearGrowthRate": 2.17,
     "tenYearGrowthRate": 5.84,
     "growthRanking": "500 out of 667",
@@ -4859,7 +4859,7 @@
   },
   "8513": {
     "anzscoCode": "8513",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Kitchenhands",
     "fiveYearGrowthRate": 5.4,
     "tenYearGrowthRate": 11.28,
     "growthRanking": "306 out of 667",
@@ -4873,7 +4873,7 @@
   },
   "8911": {
     "anzscoCode": "8911",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Freight and Furniture Handlers",
     "fiveYearGrowthRate": -1.42,
     "tenYearGrowthRate": 1.13,
     "growthRanking": "631 out of 667",
@@ -4887,7 +4887,7 @@
   },
   "8912": {
     "anzscoCode": "8912",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Shelf Fillers",
     "fiveYearGrowthRate": -2.23,
     "tenYearGrowthRate": -0.52,
     "growthRanking": "642 out of 667",
@@ -4901,7 +4901,7 @@
   },
   "8991": {
     "anzscoCode": "8991",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Caretakers",
     "fiveYearGrowthRate": 0.06,
     "tenYearGrowthRate": 3.6,
     "growthRanking": "579 out of 667",
@@ -4915,7 +4915,7 @@
   },
   "8992": {
     "anzscoCode": "8992",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Deck and Fishing Hands",
     "fiveYearGrowthRate": 0.66,
     "tenYearGrowthRate": 4.11,
     "growthRanking": "565 out of 667",
@@ -4929,7 +4929,7 @@
   },
   "8993": {
     "anzscoCode": "8993",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Handypersons",
     "fiveYearGrowthRate": 3.39,
     "tenYearGrowthRate": 7.53,
     "growthRanking": "449 out of 667",
@@ -4943,7 +4943,7 @@
   },
   "8994": {
     "anzscoCode": "8994",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Motor Vehicle Parts and Accessories Fitters",
     "fiveYearGrowthRate": -0.34,
     "tenYearGrowthRate": 2.95,
     "growthRanking": "591 out of 667",
@@ -4957,7 +4957,7 @@
   },
   "8995": {
     "anzscoCode": "8995",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Printing Assistants and Table Workers",
     "fiveYearGrowthRate": -4.04,
     "tenYearGrowthRate": -0.28,
     "growthRanking": "641 out of 667",
@@ -4971,7 +4971,7 @@
   },
   "8996": {
     "anzscoCode": "8996",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Recycling and Rubbish Collectors",
     "fiveYearGrowthRate": 1.86,
     "tenYearGrowthRate": 5.1,
     "growthRanking": "523 out of 667",
@@ -4985,7 +4985,7 @@
   },
   "8997": {
     "anzscoCode": "8997",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Vending Machine Attendants",
     "fiveYearGrowthRate": 1.33,
     "tenYearGrowthRate": 5.31,
     "growthRanking": "514 out of 667",
@@ -4999,7 +4999,7 @@
   },
   "8999": {
     "anzscoCode": "8999",
-    "majorGroupTitle": "Labourers",
+    "majorGroupTitle": "Other Miscellaneous Labourers",
     "fiveYearGrowthRate": -0.11,
     "tenYearGrowthRate": 3.2,
     "growthRanking": "585 out of 667",

@@ -1,4 +1,6 @@
 import express from "express";
+import { json as cache, withSingleFlight } from '../cache.js';
+
 /**
  * @openapi
  * /api/shortage/by-anzsco:
@@ -306,32 +308,51 @@ export default function buildRouter(pool) {
    */
   router.post("/shortage/by-anzsco", async (req, res) => {
     try {
+      // 1) 参数校验
       const raw = String(req.body?.anzsco_code ?? "").trim();
       if (!raw || !/^\d{4,6}$/.test(raw)) {
         return res.status(400).json({ error: "anzsco_code must be 4–6 digits" });
       }
       const prefix4 = raw.slice(0, 4);
 
-      const conn = await pool.getConnection();
-      try {
-        const [latest] = await conn.query(SQL_LATEST_BY_STATE, [prefix4]);
-        const [stats] = await conn.query(SQL_STATS_BY_STATE, [prefix4]);
-        const [yearly] = await conn.query(SQL_YEARLY_TREND, [prefix4]);
+      // 2) 构造缓存 Key（按前4位聚合）
+      const cacheKey = `sb:shortage:by-anzsco:v1:${prefix4}`;
+      const TTL_SEC = 12 * 60 * 60; // 12 小时
 
-        res.json({
-          query: { input_code: raw, match_prefix4: prefix4 },
-          latest_by_state: latest,   // One latest value per state
-          stats_by_state: stats,     // Statistics per state
-          yearly_trend: yearly       // Annual average per state
-        });
-      } finally {
-        conn.release();
+      // 3) 先查缓存
+      const cached = await cache.get(cacheKey);
+      if (cached) {
+        return res.json(cached);
       }
+
+      // 4) 未命中时用 single-flight：并发仅让一个请求落库，其他等缓存结果
+      const payload = await withSingleFlight(cacheKey, TTL_SEC, async () => {
+        const conn = await pool.getConnection();
+        try {
+          // 注意：如果你的 SQL 还是用 LEFT(anzsco_code,4)=?，这里传 prefix4 即可；
+          // 如果后续把表加了生成列 prefix4，则 SQL 里可直接用 prefix4=?
+          const [latest] = await conn.query(SQL_LATEST_BY_STATE, [prefix4]);
+          const [stats] = await conn.query(SQL_STATS_BY_STATE, [prefix4]);
+          const [yearly] = await conn.query(SQL_YEARLY_TREND, [prefix4]);
+
+          // 统一响应体（也是缓存的内容）
+          return {
+            query: { input_code: raw, match_prefix4: prefix4 },
+            latest_by_state: latest,   // 各州最近一次
+            stats_by_state: stats,    // 历史统计
+            yearly_trend: yearly    // 年度均值
+          };
+        } finally {
+          conn.release();
+        }
+      });
+
+      // 5) 返回（single-flight 内已写缓存；若你想在这里手动回写也可以）
+      return res.json(payload);
     } catch (err) {
       console.error("[/shortage/by-anzsco] error:", err);
-      res.status(500).json({ error: "internal_error" });
+      return res.status(500).json({ error: "internal_error" });
     }
   });
-
-  return router;
+  return router;  // ★★★ 别忘了返回 router ★★★
 }

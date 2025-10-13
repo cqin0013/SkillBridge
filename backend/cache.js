@@ -57,3 +57,20 @@ export function stableHashSelections(selections) {
   const s = JSON.stringify(norm);
   return crypto.createHash('sha1').update(s).digest('base64url');
 }
+
+
+/** 清空整个 Redis（含所有前缀：会话 + 业务缓存），慎用！ */
+export async function flushAll() {
+  // node-redis v4 支持
+  return redis.flushAll();
+}
+
+/** 按 pattern 删除一批 key（更安全的做法，可用于清理业务缓存） */
+export async function delByPattern(pattern = "*", count = 200) {
+  let n = 0;
+  for await (const key of redis.scanIterator({ MATCH: pattern, COUNT: count })) {
+    await redis.del(key);
+    n++;
+  }
+  return n; // 返回删除数量
+}
