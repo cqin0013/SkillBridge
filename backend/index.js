@@ -36,9 +36,6 @@ import initAnzscoDemandRoutes   from './anzsco.demand.router.js';
 import buildRouter from "./routes/map.data.fromtemp.js";
 import initRankRoutes from './routes/occupations.rank.router.js';
 
-import initCareerGrowthRouter from './routes/career.growth.router.js';
-import initGlossaryRoutes from './routes/glossary.router.js';
-
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
@@ -509,12 +506,6 @@ app.use('/api/anzsco', initAnzscoDemandRoutes(pool));   // -> /api/anzsco/:code/
 
 app.use("/api", buildRouter(pool));
 app.use('/', initRankRoutes(pool));
-
-app.use('/', contactRouter);
-
-app.use('/api', initCareerGrowthRouter());
-
-app.use('/api', initGlossaryRoutes(pool));
 
 
 

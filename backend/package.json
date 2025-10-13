@@ -24,11 +24,6 @@
     "redis": "^4.7.1",
     "soap": "^1.4.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "zod": "^3.25.76"
-  },
-  "description": "https://thorough-annalise-fit5120-fc5e9371.koyeb.app/docs/\r Swagger doc",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "swagger-ui-express": "^5.0.1"
+  }
 }
