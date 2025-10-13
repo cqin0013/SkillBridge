@@ -16,7 +16,7 @@ const limiter = rateLimit({
 
 /**
  * @openapi
- * /contact:
+ * /api/contact:
  *   post:
  *     tags: [Feedback]
  *     summary: Submit feedback form (JSON) and forward it to a fixed mailbox
