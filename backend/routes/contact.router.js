@@ -6,7 +6,7 @@ import { sendFeedbackMail } from '../services/mailer.service.js';
 
 const router = express.Router();
 
-// 每 IP 每分钟至多 5 次（可按需调整）
+// Up to 5 times per minute per IP
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
@@ -27,8 +27,8 @@ const limiter = rateLimit({
  *           schema:
  *             type: object
  *             properties:
- *               name:     { type: string, example: "Qinyi Liu" }
- *               email:    { type: string, example: "Qinyi@example.com" }
+ *               name:     { type: string, example: "TE17" }
+ *               email:    { type: string, example: "TE17@example.com" }
  *               category: { type: string, example: "Bug report" }
  *               message:  { type: string, example: "Describe the issue..." }
  *               agree:    { type: boolean, example: true }
@@ -57,7 +57,7 @@ router.post('/contact', limiter, async (req, res) => {
     const id = await sendFeedbackMail(data);
     return res.json({ ok: true, id });
   } catch (err) {
-    // zod 校验错误
+
     if (err?.issues) {
       return res.status(400).json({ ok: false, error: 'BadRequest', detail: err.issues });
     }

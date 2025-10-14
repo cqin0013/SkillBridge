@@ -4,7 +4,7 @@ import { json, withSingleFlight, stableHashSelections } from '../cache.js';
 export default function initRankRoutes(pool) {
   const router = express.Router();
 
-  // ===== 工具函数 =====
+
   const ensureArray = (a) => (Array.isArray(a) ? a : []);
   const strip = (s) => (s ?? '').replace(/[\r\n]/g, '');
 /**
@@ -215,7 +215,7 @@ export default function initRankRoutes(pool) {
    */
   
   router.post('/occupations/rank-by-codes', async (req, res) => {
-    // 1) 读取并清洗 selections
+    // 1) Read and clean selections
     let selections = ensureArray(req.body?.selections)
       .map(x => ({ type: String(x.type || '').toLowerCase(), code: String(x.code || '').trim() }))
       .filter(x => x.type && x.code && ['knowledge', 'skill', 'tech'].includes(x.type));
@@ -224,18 +224,18 @@ export default function initRankRoutes(pool) {
       return res.status(400).json({ error: 'no codes provided' });
     }
 
-    // 2) 分类汇总
+    // 2) Classification Summary
     const selKn = new Set(selections.filter(x => x.type === 'knowledge').map(x => x.code));
     const selSk = new Set(selections.filter(x => x.type === 'skill').map(x => x.code));
     const selTe = new Set(selections.filter(x => x.type === 'tech').map(x => x.code));
 
-    // 行业与限制
+    // Industry and restrictions
     const qInd = (req.query?.industry ?? '').toString().trim();
     const bInd = (req.body?.industry ?? '').toString().trim();
     const industry = qInd || bInd;
     const limit = Math.min(Math.max(parseInt(req.query.limit ?? '10', 10) || 10, 1), 50);
 
-    // 缓存 key（按行业维度 + selections）
+    // Cache key (by industry dimension + selections)
     const norm = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
     const scope = industry ? norm(industry) : 'all';
     const selHash = stableHashSelections(selections);
@@ -249,7 +249,7 @@ export default function initRankRoutes(pool) {
 
     const conn = await pool.getConnection();
     try {
-      // 3) 代码 -> 标题映射（显示 unmatched 时用）
+      // 3) Code -> Title Mapping (used when displaying unmatched)
       const titleMap = async (table, codeField, titleField, set) => {
         if (!set.size) return new Map();
         const codes = [...set];
@@ -266,7 +266,7 @@ export default function initRankRoutes(pool) {
       const skTitleMap = await titleMap('skill_data', 'skill_code', 'skill_title', selSk);
       const teTitleMap = await titleMap('technology_skill_data', 'tech_skill_code', 'tech_title', selTe);
 
-      // 4) 反查职业命中
+      // 4) Reverse check of occupation hits
       const results = [];
       const fetchAndPush = async (table, field, type, set) => {
         if (!set.size) return;
@@ -285,7 +285,7 @@ export default function initRankRoutes(pool) {
       await fetchAndPush('occup_skill_data', 'skill_code', 'skill', selSk);
       await fetchAndPush('occup_tech_data', 'tech_skill_code', 'tech', selTe);
 
-      // 5) 聚合并计算得分
+      // 5) Aggregate and calculate scores
       const byOcc = new Map();
       for (const r of results) {
         const e = byOcc.get(r.occupation_code) || {
@@ -301,8 +301,8 @@ export default function initRankRoutes(pool) {
         const kc = e.matched.knowledge_codes.size;
         const sc = e.matched.skill_codes.size;
         const tc = e.matched.tech_codes.size;
-        const matchedCats = (kc > 0) + (sc > 0) + (tc > 0); // 布尔求和（0~3）
-        const score = kc + sc + tc + matchedCats * 0.1;     // 主要看命中数，类别覆盖做细微拉开
+        const matchedCats = (kc > 0) + (sc > 0) + (tc > 0); 
+        const score = kc + sc + tc + matchedCats * 0.1;
         const unmatched = {
           knowledge: [...selKn].filter(c => !e.matched.knowledge_codes.has(c)).map(c => ({ code: c, title: knTitleMap.get(c) ?? null })),
           skill:     [...selSk].filter(c => !e.matched.skill_codes.has(c)).map(c => ({ code: c, title: skTitleMap.get(c) ?? null })),
@@ -317,10 +317,10 @@ export default function initRankRoutes(pool) {
         };
       });
 
-      // 6) 排序（score DESC -> title ASC）
+      // 6) Sorting (score DESC -> title ASC)
       items.sort((a, b) => b.score - a.score || a.occupation_title.localeCompare(b.occupation_title));
 
-      // 7) SOC -> ANZSCO + 行业过滤（SQL 硬过滤）
+      // 7) SOC -> ANZSCO + Industry Filters
       const occCodes = items.map(i => i.occupation_code);
       let occToAnzscoFull = new Map();
 
@@ -360,7 +360,7 @@ export default function initRankRoutes(pool) {
         }, new Map());
       }
 
-      // 8) 组装 & 仅返回前 N 条
+      // 8)Assemble & return only the first N items
       const finalItems = items
         .map(it => ({
           occupation_code: it.occupation_code,
@@ -375,7 +375,7 @@ export default function initRankRoutes(pool) {
 
       const response = { total_selected: selections.length, industry: industry || null, limit, items: finalItems };
 
-      // 写缓存：有结果 18h，无结果 2min
+      // Write cache: 18 hours with results, 2 minutes without results
       try {
         await json.set(cacheKey, response, finalItems.length ? 60 * 60 * 18 : 120);
       } catch (e) {

@@ -5,11 +5,6 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 
-/**
- * 读取 JSON 数据：
- * - 优先读环境变量 CAREER_GROWTH_JSON_PATH
- * - 否则回退到项目内置路径 ./backend/data/career_growth.json
- */
 function loadCareerGrowthMap() {
   const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
   const fallback = path.resolve(__dirname, '..', 'data', 'career_growth.json');
@@ -24,7 +19,7 @@ function loadCareerGrowthMap() {
   const raw = fs.readFileSync(jsonPath, 'utf-8');
   const data = JSON.parse(raw);
 
-  // data 形如：{ "2613": { anzscoCode, majorGroupTitle, ... }, ... }
+
   if (!data || typeof data !== 'object') {
     throw new Error('[career-growth] invalid JSON structure');
   }
@@ -34,7 +29,6 @@ function loadCareerGrowthMap() {
 export default function initCareerGrowthRouter() {
   const router = Router();
 
-  // 仅做一次性加载；若你有热重载需求可改为按需读取+缓存
   let cache = null;
   try {
     const { data, jsonPath } = loadCareerGrowthMap();
@@ -42,7 +36,7 @@ export default function initCareerGrowthRouter() {
     console.log(`[career-growth] loaded ${Object.keys(cache).length} unit groups from ${jsonPath}`);
   } catch (e) {
     console.error(e);
-    // 不中断启动，让健康检查可用，但接口会返回 503
+
   }
 
   /**
