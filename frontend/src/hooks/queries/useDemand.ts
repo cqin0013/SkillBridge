@@ -1,4 +1,3 @@
-// src/hooks/queries/useDemand.ts
 // React Query wrapper for /api/anzsco/{code}/demand
 // English comments only inside code.
 

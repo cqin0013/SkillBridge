@@ -1,11 +1,8 @@
-// src/store/analyzerSlice.ts
-// Slice for the Analyzer wizard business state.
-// English comments only inside code.
+// Complete version with reset and auto-cleanup functionality
 
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { TrainingCourse } from "../components/analyzer/TrainingCourse";
-
+import type { TrainingCourse } from "../types/training";
 export type AType = "knowledge" | "tech" | "skill";
 
 /** Minimal ability unit selected by user */
@@ -23,7 +20,7 @@ export type UnmatchedBuckets = { knowledge: string[]; skill: string[]; tech: str
 /** Training advice persisted from the Training step */
 export type TrainingAdviceState = {
   occupation: { code: string; title: string };
-  courses: TrainingCourse[];
+  courses: TrainingCourse[]; 
 };
 
 /** Full Analyzer slice state */
@@ -46,6 +43,8 @@ export type AnalyzerState = {
   selectedJobUnmatched: UnmatchedBuckets | null;
   /** Normalized training advice for the selected job */
   trainingAdvice: TrainingAdviceState | null;
+  /** Timestamp of last activity (for auto-cleanup) */
+  lastActivity: number;
 };
 
 /** Baseline defaults (also used by persist migration) */
@@ -59,6 +58,7 @@ export const initialState: AnalyzerState = {
   selectedJob: null,
   selectedJobUnmatched: null,
   trainingAdvice: null,
+  lastActivity: Date.now(),
 };
 
 const analyzerSlice = createSlice({
@@ -68,27 +68,33 @@ const analyzerSlice = createSlice({
     /** Set the current wizard step */
     setStep(state, action: PayloadAction<number>) {
       state.step = action.payload;
+      state.lastActivity = Date.now();
     },
     /** Save confirmed roles; invalidate previous compute key */
     setChosenRoles(state, action: PayloadAction<RoleLite[]>) {
       state.chosenRoles = action.payload;
       state.lastCodesKey = null;
+      state.lastActivity = Date.now();
     },
     /** Live-update curated abilities */
     setChosenAbilities(state, action: PayloadAction<AbilityLite[]>) {
       state.chosenAbilities = action.payload;
+      state.lastActivity = Date.now();
     },
     /** Record the latest source key after recompute */
     setAbilitiesSourceKey(state, action: PayloadAction<string>) {
       state.lastCodesKey = action.payload;
+      state.lastActivity = Date.now();
     },
     /** Set preferred region for demand lookups */
     setPreferredRegion(state, action: PayloadAction<string | null>) {
       state.preferredRegion = action.payload;
+      state.lastActivity = Date.now();
     },
     /** Set interested industry code filters */
     setInterestedIndustryCodes(state, action: PayloadAction<string[] | null>) {
       state.interestedIndustryCodes = action.payload;
+      state.lastActivity = Date.now();
     },
     /**
      * Persist selected job.
@@ -98,14 +104,31 @@ const analyzerSlice = createSlice({
       state.selectedJob = action.payload ?? null;
       state.selectedJobUnmatched = null;
       state.trainingAdvice = null;
+      state.lastActivity = Date.now();
     },
     /** Save unmatched buckets for the currently selected job */
     setSelectedJobUnmatched(state, action: PayloadAction<UnmatchedBuckets | null>) {
       state.selectedJobUnmatched = action.payload;
+      state.lastActivity = Date.now();
     },
     /** Save normalized training advice for the selected job */
     setTrainingAdvice(state, action: PayloadAction<TrainingAdviceState | null>) {
       state.trainingAdvice = action.payload;
+      state.lastActivity = Date.now();
+    },
+    /** 
+     * Reset all analyzer state to initial values
+     * Used for manual clearing or when app closes
+     */
+    resetAnalyzer() {
+      return { ...initialState, lastActivity: Date.now() };
+    },
+    /**
+     * Update last activity timestamp
+     * Used to track user activity
+     */
+    updateActivity(state) {
+      state.lastActivity = Date.now();
     },
   },
 });
@@ -120,6 +143,8 @@ export const {
   setSelectedJob,
   setSelectedJobUnmatched,
   setTrainingAdvice,
+  resetAnalyzer,
+  updateActivity,
 } = analyzerSlice.actions;
 
 export default analyzerSlice.reducer;

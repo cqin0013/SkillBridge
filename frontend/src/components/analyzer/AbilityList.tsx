@@ -1,9 +1,7 @@
-// src/components/analyzer/AbilityList.tsx
 // Toolbar + list renderer for abilities per category.
 // - Shows selected count and an inline "Edit" button.
 // - Renders all abilities as chips; each chip has a centered remove button.
 // - De-duplicates by (tag|code||name) to keep count stable.
-//
 
 import * as React from "react";
 import clsx from "clsx";

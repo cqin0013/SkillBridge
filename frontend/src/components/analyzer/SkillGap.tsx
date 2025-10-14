@@ -1,6 +1,3 @@
-// src/components/analyzer/SkillGap.tsx
-import React from "react";
-
 /** Skill item definition */
 export interface SkillItem {
   /** Skill name, e.g. "Python Programming" */

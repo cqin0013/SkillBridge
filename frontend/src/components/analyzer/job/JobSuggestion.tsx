@@ -1,8 +1,7 @@
-// src/components/analyzer/job/JobSuggestion.tsx
 // Split layout: left industry list, right occupation groups.
 // Optional badges: shortageCount and avgMatch only render when provided.
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import clsx from "clsx";
 
 /** One detailed role item you will render inside a group (slot content) */

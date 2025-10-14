@@ -1,4 +1,3 @@
-// src/types/rank.ts
 export type AbilityType = "knowledge" | "skill" | "tech";
 
 export type AbilitySelection = {

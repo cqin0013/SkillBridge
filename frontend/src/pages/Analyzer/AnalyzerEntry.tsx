@@ -1,4 +1,3 @@
-// src/pages/Analyzer/AnalyzerEntry.tsx
 // Entry host for /analyzer/*
 // - Redirect /analyzer -> /analyzer/intro
 // - Render all child routes via <AnalyzerRoutes/>

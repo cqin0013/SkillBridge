@@ -1,4 +1,3 @@
-// src/store/browserStorage.ts
 // Resilient storage adapter for redux-persist on the web.
 // It probes localStorage → sessionStorage → in-memory Map.
 // All methods return Promises to match redux-persist expectations.

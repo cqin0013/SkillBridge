@@ -1,6 +1,4 @@
-// src/hooks/queries/useRankByCodesMany.ts
 // Parallel rank queries per industry, with precomputed matchPct on each item.
-// English comments only inside code.
 
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";

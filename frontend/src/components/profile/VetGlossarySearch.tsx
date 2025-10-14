@@ -1,4 +1,3 @@
-// frontend/src/components/analyzer/VetGlossarySearch.tsx
 // VET glossary search component for training terminology lookup.
 // Displays term description, acronyms, also_called names, and clickable see_also links.
 
@@ -59,7 +58,6 @@ export default function VetGlossarySearch({ className = "" }: VetGlossarySearchP
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
-        <h3 className="text-lg font-heading font-bold text-ink">VET Terminology</h3>
       </div>
 
       {/* Helper text */}
@@ -75,7 +73,7 @@ export default function VetGlossarySearch({ className = "" }: VetGlossarySearchP
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Enter a term (e.g., AQF, RTO, ASQA)"
+            placeholder="Enter a term (e.g., USI)"
             className="w-full px-4 py-2 pr-10 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm"
             aria-label="Search VET terminology"
           />

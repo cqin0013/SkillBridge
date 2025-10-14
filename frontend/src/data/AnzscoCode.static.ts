@@ -1,4 +1,3 @@
-// Auto-generated from trend_data_to_be_wrangled.xlsx
 // Lightweight static lookup for ANZSCO code -> name.
 // No `any`. English comments per request.
 

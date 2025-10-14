@@ -1,4 +1,3 @@
-// src/routes/AnalyzerRoutes.tsx
 // Child routes under parent "/analyzer/*" must be relative.
 
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";

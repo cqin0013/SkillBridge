@@ -1,5 +1,4 @@
-﻿// src/pages/Analyzer/AnalyzerIntro.tsx
-// Intro page for the Analyzer wizard.
+﻿// Intro page for the Analyzer wizard.
 // - Uses a full-bleed hero and feature sections.
 // - CTA navigates to the first data-collection step via a static path.
 

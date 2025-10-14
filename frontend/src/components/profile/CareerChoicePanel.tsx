@@ -1,4 +1,3 @@
-// src/components/analyzer/profile/CareerChoicePanel.tsx
 // Career choice panel for selecting past jobs, target job, and region.
 // Uses RoleLite format ({ id, title }) consistently for both pastJobs and targetJob.
 // The parent (Profile.tsx) handles conversion between UI format and Redux format.
@@ -13,7 +12,7 @@ import type { RoleLite } from "../../store/analyzerSlice";
 export type CareerChoiceState = {
   pastJobs: RoleLite[];        // Past occupations (up to 5)
   targetJob: RoleLite | null;  // Target occupation (single selection)
-  region: string;              // Region string in English
+  region: string;             
 };
 
 /** Minimal option shape reused by the search combo */
@@ -78,7 +77,7 @@ type EditorState =
  * Career Choice Panel Component
  * 
  * Desktop layout: Shows all three sections in one bordered box as a table
- * - Past (37.5%) | Target (25%) | Region (37.5%)
+ * - Past (37.5%) | Target (37.5%) | Region (25%)
  * - Vertical separators between columns
  * 
  * Mobile/tablet: Stacked vertically with spacing between rows

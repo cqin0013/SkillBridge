@@ -1,6 +1,5 @@
-// HeroIntro.tsx
 import { useRef } from "react";
-import { Link, type To } from "react-router-dom"; // ← add Link & To type
+import { Link, type To } from "react-router-dom";
 import clsx from "clsx";
 import { useRevealOnView } from "../hooks/userRevealOnView";
 
@@ -18,7 +17,7 @@ type HeroIntroProps = {
   /** CTA button text */
   ctaLabel?: string;
   /** If provided, CTA becomes a <Link> to this route (takes precedence over onStart) */
-  ctaTo?: To;                    // ← NEW: pass route path, e.g., "/analyzer/getInfo"
+  ctaTo?: To;
   /** Fallback click handler when ctaTo is not provided */
   onStart?: () => void;
 
@@ -45,7 +44,7 @@ export default function HeroIntro({
   imageAlt,
   imageDecorative,
   ctaLabel = "Start now",
-  ctaTo,                      // ← NEW
+  ctaTo,
   onStart,
   showWave = true,
   waveColor = "#ffffff",
@@ -63,7 +62,7 @@ export default function HeroIntro({
     <section
       className={clsx(
         "relative w-full box-border",
-        "overflow-x-hidden isolate",
+        "overflow-hidden isolate", 
         "px-4 sm:px-6 lg:px-8 pt-10 sm:pt-12 lg:pt-20 pb-14 sm:pb-16 lg:pb-24",
         TONE_BG[tone],
         className
@@ -83,7 +82,7 @@ export default function HeroIntro({
             className={clsx(
               "font-bold text-ink leading-tight",
               "[font-size:clamp(1.375rem,4.4vw,2.75rem)]",
-              "break-words [overflow-wrap:anywhere] hyphens-auto",
+              " [overflow-wrap:anywhere] hyphens-auto",
               "max-w-[28ch]"
             )}
           >
@@ -94,7 +93,7 @@ export default function HeroIntro({
             className={clsx(
               "mt-3 sm:mt-5 text-ink-soft leading-relaxed",
               "[font-size:clamp(0.95rem,2.2vw,1.125rem)]",
-              "break-words [overflow-wrap:anywhere] hyphens-auto",
+              " [overflow-wrap:anywhere] hyphens-auto",
               "max-w-[65ch]"
             )}
           >
@@ -103,7 +102,6 @@ export default function HeroIntro({
 
           {showCTA && (
             <div className="mt-6 sm:mt-7">
-              {/* If ctaTo is provided, render as a Link; otherwise render a button */}
               {ctaTo ? (
                 <Link
                   to={ctaTo}
@@ -140,10 +138,11 @@ export default function HeroIntro({
         <div
           ref={rightRef}
           className={clsx(
-            "relative flex items-center justify-center min-w-0",
+            "relative flex items-center justify-center",
+            "min-w-0 max-w-full",
             "opacity-0 md:translate-x-6",
             "transform-gpu transition-all duration-700 ease-out will-change-transform",
-            "overflow-hidden"
+            "overflow-hidden" 
           )}
         >
           {image ? (
@@ -155,7 +154,7 @@ export default function HeroIntro({
               draggable={false}
               className={clsx(
                 "w-full h-auto object-contain",
-                "max-w-[88vw] sm:max-w-[92vw] lg:max-w-[680px]"
+                "max-w-full max-h-[350px] sm:max-h-[350px] lg:max-h-[450px]",
               )}
             />
           ) : (

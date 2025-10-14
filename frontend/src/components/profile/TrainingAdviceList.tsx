@@ -1,5 +1,4 @@
-// C:\Users\隐居小号\SkillBridge\skillbridge\src\components\analyzer\profile\TrainingAdviceList.tsx
-import React from "react";
+
 import { ExternalLink, GraduationCap } from "lucide-react";
 import ConfirmRemove from "./confirmRemove";
 

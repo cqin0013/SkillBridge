@@ -1,11 +1,10 @@
-﻿// src/components/analyzer/SelectedSummary.tsx
-// Dumb, reusable summary renderer.
+﻿// Dumb, reusable summary renderer.
 // - Input decides WHAT to show (counts vs details). This component only renders.
 // - Groups items by "<section>:..." prefix from `id`.
 // - Value rows render as label/value lines; pills render as one-per-line chips.
 // - To avoid duplication: if a section has pills, value rows are NOT rendered.
 // - Width-safe: wraps long text, container scrolls if content overflows.
-// - No `any` used.
+
 
 import { useMemo } from "react";
 import clsx from "clsx";

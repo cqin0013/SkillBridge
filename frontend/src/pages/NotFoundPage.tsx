@@ -1,4 +1,3 @@
-// English comments only inside code:
 // 404 page rendered inside the layout.
 
 import { Link } from "react-router-dom"

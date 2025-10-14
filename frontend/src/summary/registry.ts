@@ -1,4 +1,3 @@
-// src/summary/registry.ts
 // Central plugin registry that aggregates items from all builders.
 // Works with builders that take 1 arg (state) or 2 args (state, drafts).
 // We only select the `analyzer` slice to avoid unnecessary re-renders.
