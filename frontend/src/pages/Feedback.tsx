@@ -4,12 +4,14 @@
  * - ARIA live region for screen readers.
  * - Honeypot field for simple anti-spam.
  * - Message limited to 500 characters.
+ * - Success modal popup after submission.
  */
 
 import * as React from "react";
 import Button from "../components/ui/Button";
 import { sendFeedback } from "../lib/api/contact";
-import type { FeedbackCategory, FeedbackReq } from "../types/feedback";
+import type { FeedbackCategory, FeedbackReq, FeedbackRes } from "../types/feedback";
+import { isFeedbackOk, isFeedbackError } from "../types/feedback";
 
 /** Local UI state (separate from API types) */
 type FormState = {
@@ -45,8 +47,8 @@ export default function FeedbackPage() {
   // UI flags
   const [errors, setErrors] = React.useState<Errors>({});
   const [submitting, setSubmitting] = React.useState(false);
-  const [submitted, setSubmitted] = React.useState(false);
   const [statusMsg, setStatusMsg] = React.useState<string>("");
+  const [showModal, setShowModal] = React.useState(false);
 
   // Refs for focusing first invalid field
   const nameRef = React.useRef<HTMLInputElement | null>(null);
@@ -80,7 +82,6 @@ export default function FeedbackPage() {
   /** Submit: validate -> map -> call API -> handle result */
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(false);
     setStatusMsg("");
 
     const errs = validate(state);
@@ -107,10 +108,11 @@ export default function FeedbackPage() {
         },
       };
 
-      const res = await sendFeedback(payload);
+      const res: FeedbackRes = await sendFeedback(payload);
 
-      if (res.status === "ok") {
-        setSubmitted(true);
+      // Discriminated handling:
+      if (isFeedbackOk(res)) {
+        setShowModal(true);
         setStatusMsg("Thanks! Your feedback has been received.");
         setState({
           name: "",
@@ -120,8 +122,13 @@ export default function FeedbackPage() {
           consent: false,
           website: "",
         });
-      } else {
+      } else if (isFeedbackError(res)) {
         setStatusMsg(res.message || "Something went wrong. Please try again.");
+      } else {
+        // Compile-time exhaustive check. Will error if union grows without handling.
+        const _exhaustiveCheck: never = res;
+        console.warn("Unhandled response shape", _exhaustiveCheck);
+        setStatusMsg("Unexpected response from server.");
       }
     } catch {
       setStatusMsg("Network error. Please try again.");
@@ -308,14 +315,46 @@ export default function FeedbackPage() {
           >
             {submitting ? "Sending…" : "Submit feedback"}
           </Button>
-
-          {submitted && !submitting && (
-            <p className="mt-3 text-sm text-green-700">
-              Your feedback was submitted successfully.
-            </p>
-          )}
         </div>
       </form>
+
+      {/* Success Modal */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="success-modal-title"
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 id="success-modal-title" className="text-2xl font-bold text-ink mb-2">
+                Submission Successful!
+              </h2>
+              <p className="text-ink-soft mb-6">
+                Thank you for your feedback. We have received your message.
+              </p>
+              <Button variant="primary" onClick={() => setShowModal(false)} className="w-full">
+                OK
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -1,4 +1,3 @@
-// frontend/src/lib/api/glossary/getDetailByKeyword.ts
 // API call to fetch VET glossary term details by keyword.
 
 import { getJSON } from "../apiClient";
@@ -20,5 +19,5 @@ export interface GlossaryDetail {
 export function getDetailByKeyword(keyword: string): Promise<GlossaryDetail> {
   const kw = keyword.trim();
   if (!kw) throw new Error("Keyword is required");
-  return getJSON<GlossaryDetail>("/api/glossary/detail", { keyword: kw });
+  return getJSON<GlossaryDetail>("/api/glossary/detail", { q: kw });
 }

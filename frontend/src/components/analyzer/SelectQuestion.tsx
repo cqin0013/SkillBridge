@@ -1,5 +1,3 @@
-
-
 // Reusable form component that supports both single-select and multi-select modes.
 // The component keeps a unified value shape (string[]) regardless of mode.
 

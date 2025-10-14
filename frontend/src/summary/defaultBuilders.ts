@@ -1,4 +1,3 @@
-
 // Core builder that emits Region (value row) + Industries/Roles (summary value row + chips)
 
 import type {

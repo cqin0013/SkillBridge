@@ -1,6 +1,4 @@
-// src/summary/jobBuilder.ts
 // Summary builder: show the selected target job as a single chip (pill).
-// No `any` used.
 
 import type { SummaryBuilder, SummaryItem, SummaryRoot } from "./types";
 import { registerSummaryBuilder } from "./registry";

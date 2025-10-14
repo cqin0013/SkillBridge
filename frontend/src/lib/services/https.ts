@@ -1,4 +1,3 @@
-// src/lib/services/https.ts
 // Minimal HTTP layer with timeout, JSON parsing, and normalized errors.
 // apiClient.ts builds absolute URLs and passes them here.
 
@@ -50,7 +49,6 @@ async function parseJsonOrText<T>(res: Response, url: string): Promise<T> {
 
   if (res.ok) {
     if (isJson) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return (await res.json()) as T;
     }
     // If server returns non-JSON but 2xx, treat as empty object or text wrapper

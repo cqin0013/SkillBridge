@@ -1,4 +1,3 @@
-// src/components/Hero.tsx
 // Text-first hero (no global overlays).
 // - Shows a full-width bottom veil (transparent → white) that contains the "SCROLL" hint.
 // - The veil + hint hide immediately on any scroll or click, and reappear when back at top.

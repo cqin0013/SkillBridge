@@ -8,7 +8,7 @@ import type { AbilityLite } from "../../types/domain";
 export function useAbilitiesByCodes(codes: string[] | undefined) {
   const list = useMemo(
     () => (codes ?? []).map((c) => c.trim()).filter(Boolean).slice(0, 5),
-    [codes?.join("|")],
+    [codes],
   );
 
   const results = useQueries({

@@ -1,4 +1,3 @@
-// src/data/au-states.ts
 // Canonical list of Australian states and territories for UI selects.
 // - `value` uses standard postal abbreviations (NSW, VIC, ...).
 // - Includes an "All" sentinel item for "All states" filtering.

@@ -1,4 +1,3 @@
-// src/lib/api/jobData/rankByCodes.ts
 import { postJSON } from "../../api/apiClient";
 import type { RankByCodesReq, RankByCodesRes } from "../../../types/rank";
 

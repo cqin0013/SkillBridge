@@ -1,25 +1,30 @@
-// frontend/src/pages/Profile.tsx
-// Page: Profile
-// Handles career profile management with Redux state and route fallback.
-// Converts between Redux format ({ code, title }) and UI format ({ id, title }) where needed.
+// Profile page with tutorial matching Insight page style
+// - Uses TutorialLauncher in the header (top-right corner)
+// - Export PDF button always visible (mobile + desktop)
+// - Shows skill roadmap from unmatched abilities
+// - Auto-fetches training advice
+// - VET glossary search for terminology lookup
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
-import type { RootState } from "../store";
-import { useAppDispatch } from "../store/hooks";
 
-// Components
+import React, { useEffect, useMemo, useRef, useState } from "react"
+import { useLocation } from "react-router-dom"
+import { useSelector } from "react-redux"
+import type { RootState } from "../store"
+import { useAppDispatch } from "../store/hooks"
+
+// UI Components
+import HelpToggleSmall from "../components/ui/HelpToggleSmall"
 import CareerChoicePanel, {
   type CareerChoiceState,
   type OccupationSearchInputs,
-} from "../components/profile/CareerChoicePanel";
-import SkillRoadMap, { type SkillRoadmapItem } from "../components/profile/SkillRoadMap";
-import TrainingAdviceList, { type TrainingAdvice } from "../components/profile/TrainingAdviceList";
-import VetGlossarySearch from "../components/profile/VetGlossarySearch";
-import HelpToggleSmall from "../components/ui/HelpToggleSmall";
+} from "../components/profile/CareerChoicePanel"
+import SkillRoadMap, { type SkillRoadmapItem } from "../components/profile/SkillRoadMap"
+import TrainingAdviceList, { type TrainingAdvice } from "../components/profile/TrainingAdviceList"
+import VetGlossarySearch from "../components/profile/VetGlossarySearch"
+import TutorialLauncher from "../components/tutorial/TutorialLauncher"
+import { useTrainingAdvice } from "../hooks/queries/useTrainingAdvice"
 
-// Redux actions
+// Redux actions + types
 import {
   setChosenRoles,
   setChosenAbilities,
@@ -27,23 +32,30 @@ import {
   setPreferredRegion,
   setSelectedJob,
   setTrainingAdvice,
-} from "../store/analyzerSlice";
-import type { AbilityLite, UnmatchedBuckets, RoleLite, SelectedJob } from "../store/analyzerSlice";
+} from "../store/analyzerSlice"
+import type {
+  AbilityLite,
+  UnmatchedBuckets,
+  RoleLite,
+  SelectedJob,
+  TrainingAdviceState,
+} from "../store/analyzerSlice"
 
 // Data and hooks
-import { industryOptions, industryNameOf } from "../data/industries";
-import { skillCategories } from "../data/skill.static";
-import { knowledgeCategories } from "../data/knowledge.static";
-import { techSkillCategories } from "../data/techskill.static";
-import { useAnzscoSearch } from "../hooks/queries/userAnzscoSearch";
-import type { AnalyzerRouteState } from "../types/routes";
-import type { AnzscoOccupation } from "../types/domain";
+import { industryOptions, industryNameOf } from "../data/industries"
+import { useAnzscoSearch } from "../hooks/queries/userAnzscoSearch"
+import type { SearchParams } from "../hooks/queries/userAnzscoSearch"
+import { getProfileTutorialSteps } from "../data/ProfileTutorialSteps"
+import type { AnalyzerRouteState } from "../types/routes"
+import type { AnzscoOccupation } from "../types/domain"
+import type { TrainingAdviceRes, TrainingCourse } from "../types/training"
 
-/** Build a public TGA/VET link when only a code is present */
-const fallbackCourseUrl = (code: string): string =>
-  `https://training.gov.au/training/details/${encodeURIComponent(code)}`;
+// Utils
+import { exportElementToPdf } from "../lib/utils/pdf"
 
-/** Region options for single-select */
+// ============================================================================
+// Constants
+// ============================================================================
 const REGION_OPTIONS = [
   "New South Wales",
   "Victoria",
@@ -53,233 +65,209 @@ const REGION_OPTIONS = [
   "Tasmania",
   "Northern Territory",
   "Australian Capital Territory",
-];
+]
 
-/** Course item structure from Redux/route state */
-type CourseItem = {
-  name?: string;
-  title?: string;
-  id?: string;
-  code?: string;
-  url?: string;
-};
+// ============================================================================
+// Types
+// ============================================================================
+type SelectedJobValue = Exclude<SelectedJob, null>
 
-type SelectedJobValue = Exclude<SelectedJob, null>;
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
-/**
- * Normalize roles from various formats into RoleLite[] with { id, title }.
- * Handles both string arrays and object arrays.
- */
-const normalizeRoles = (
-  roles: Array<RoleLite | string> | null | undefined
-): RoleLite[] => {
-  if (!Array.isArray(roles)) return [];
-  const seen = new Set<string>();
-  const cleaned: RoleLite[] = [];
-  roles.forEach((role) => {
-    if (!role) return;
-    const id = (typeof role === "string" ? role : role.id ?? "").trim();
-    if (!id || seen.has(id)) return;
-    seen.add(id);
-    const title = typeof role === "string" ? role : role.title || id;
-    cleaned.push({ id, title });
-  });
-  return cleaned;
-};
+/** Generate fallback URL for a course code */
+const fallbackCourseUrl = (code: string): string =>
+  `https://training.gov.au/training/details/${encodeURIComponent(code)}`
 
-/**
- * Normalize selected job from various formats into { code, title } | null.
- * This is the Redux format used throughout the app for API calls.
- */
+/** Safe string normalization */
+const normName = (v: unknown): string => (typeof v === "string" ? v : "")
+
+/** Normalize roles array with deduplication */
+const normalizeRoles = (roles: Array<RoleLite | string> | null | undefined): RoleLite[] => {
+  if (!Array.isArray(roles)) return []
+  const seen = new Set<string>()
+  const out: RoleLite[] = []
+  for (const role of roles) {
+    if (!role) continue
+    const id = (typeof role === "string" ? role : role.id ?? "").trim()
+    if (!id || seen.has(id)) continue
+    seen.add(id)
+    const title = typeof role === "string" ? role : role.title || id
+    out.push({ id, title })
+  }
+  return out
+}
+
+/** Normalize selected job */
 const normalizeSelectedJob = (
   job: SelectedJob | string | null | undefined
 ): SelectedJobValue | null => {
-  if (!job) return null;
+  if (!job) return null
   if (typeof job === "string") {
-    const code = job.trim();
-    if (!code) return null;
-    return { code, title: code };
+    const code = job.trim()
+    if (!code) return null
+    return { code, title: code }
   }
-  const code = (job.code ?? "").trim();
-  if (!code) return null;
-  return { code, title: job.title || code };
-};
+  const code = (job.code ?? "").trim()
+  if (!code) return null
+  return { code, title: job.title || code }
+}
 
-/** Local-only type for search params (keep them plain strings; avoid `undefined`) */
-type SearchParams = { industry: string; keyword: string; limit?: number };
-
-/** Safely normalize any value to a string name */
-const normName = (v: unknown): string => (typeof v === "string" ? v : "");
-
-/** Build a stable key for AbilityLite; return null if neither code nor name is valid */
+/** Generate unique key for ability */
 const abilityKey = (a: AbilityLite): string | null => {
-  const name = normName((a as { name?: unknown }).name);
-  const code = typeof (a as { code?: unknown }).code === "string" ? (a as { code?: string }).code : "";
-  if (!name && !code) return null;
-  return `${a.aType}:${code || name.toLowerCase()}`;
-};
+  const name = normName((a as { name?: unknown }).name)
+  const code =
+    typeof (a as { code?: unknown }).code === "string" ? (a as { code?: string }).code : ""
+  if (!name && !code) return null
+  return `${a.aType}:${code || name.toLowerCase()}`
+}
 
-/** Build a stable key for SkillRoadmapItem; return null if neither code nor skill is valid */
+/** Generate unique key for roadmap item */
 const roadmapKey = (it: SkillRoadmapItem): string | null => {
-  const name = normName((it as { skill?: unknown }).skill);
-  const code = typeof (it as { code?: unknown }).code === "string" ? (it as { code?: string }).code : ""
-  if (!name && !code) return null;
-  return `${it.abilityType}:${code || name.toLowerCase()}`;
-};
+  const name = normName((it as { skill?: unknown }).skill)
+  const code =
+    typeof (it as { code?: unknown }).code === "string" ? (it as { code?: string }).code : ""
+  if (!name && !code) return null
+  return `${it.abilityType}:${code || name.toLowerCase()}`
+}
 
-/** Unique identity string used for remount keys (URL-safe) */
+/** Generate identity key for ability */
 const abilityIdentityKey = (ability: AbilityLite): string => {
-  const name = normName(ability.name);
-  const base = ability.code ?? name;
-  const safe = base ? encodeURIComponent(base) : `unnamed-${ability.aType}`;
-  return `${ability.aType}:${safe}`;
-};
+  const name = normName(ability.name)
+  const base = ability.code ?? name
+  const safe = base ? encodeURIComponent(base) : `unnamed-${ability.aType}`
+  return `${ability.aType}:${safe}`
+}
 
-/** Unique filter for abilities with runtime guards */
+/** Remove duplicate abilities */
 const uniqueAbilities = (abilities: AbilityLite[]): AbilityLite[] => {
-  const seen = new Set<string>();
-  const result: AbilityLite[] = [];
+  const seen = new Set<string>()
+  const result: AbilityLite[] = []
   for (const a of abilities) {
-    const k = abilityKey(a);
-    const name = normName(a.name);
-    if (!k || !name) continue; // skip invalid rows
+    const k = abilityKey(a)
+    const name = normName(a.name)
+    if (!k || !name) continue
     if (!seen.has(k)) {
-      seen.add(k);
-      result.push({ ...a, name }); // ensure name is a plain string
+      seen.add(k)
+      result.push({ ...a, name })
     }
   }
-  return result;
-};
+  return result
+}
 
-/** Collapse unmatched buckets into flat abilities */
-const collapseUnmatchedBuckets = (buckets: UnmatchedBuckets | null | undefined): AbilityLite[] => {
-  if (!buckets) return [];
-  const collect = (list: string[] | undefined, aType: AbilityLite["aType"]): AbilityLite[] =>
+/** Collapse unmatched buckets into flat ability array */
+const collapseUnmatchedBuckets = (b: UnmatchedBuckets | null | undefined): AbilityLite[] => {
+  if (!b) return []
+  const extract = (entry: unknown): { name: string; code?: string } | null => {
+    if (typeof entry === "string") {
+      const trimmed = entry.trim()
+      return trimmed ? { name: trimmed } : null
+    }
+    if (entry && typeof entry === "object") {
+      const obj = entry as { name?: unknown; title?: unknown; label?: unknown; code?: unknown }
+      const code =
+        typeof obj.code === "string" && obj.code.trim().length > 0 ? obj.code.trim() : undefined
+      const candidate =
+        (typeof obj.name === "string" && obj.name.trim()) ||
+        (typeof obj.title === "string" && obj.title.trim()) ||
+        (typeof obj.label === "string" && obj.label.trim()) ||
+        code ||
+        ""
+      const name = candidate.trim()
+      return name ? { name, code } : null
+    }
+    return null
+  }
+  const collect = (list: unknown[] | undefined, aType: AbilityLite["aType"]): AbilityLite[] =>
     (list ?? [])
-      .filter((name): name is string => Boolean(name))
-      .map((name) => ({ name, aType }));
-
+      .map(extract)
+      .filter((item): item is { name: string; code?: string } => item !== null)
+      .map((item) => ({ name: item.name, code: item.code, aType }))
   return [
-    ...collect(buckets.skill, "skill"),
-    ...collect(buckets.knowledge, "knowledge"),
-    ...collect(buckets.tech, "tech"),
-  ];
-};
+    ...collect(b.skill as unknown[] | undefined, "skill"),
+    ...collect(b.knowledge as unknown[] | undefined, "knowledge"),
+    ...collect(b.tech as unknown[] | undefined, "tech"),
+  ]
+}
 
-/** Case-insensitive name match or exact code match */
-const matchesAbility = (entry: { name?: string; code?: string } | undefined, ability: AbilityLite): boolean => {
-  if (!entry) return false;
-  if (ability.code && entry.code && entry.code === ability.code) return true;
-  const entryName = normName(entry.name);
-  const abName = normName(ability.name);
-  if (entryName && abName && entryName.toLowerCase() === abName.toLowerCase()) return true;
-  return false;
-};
-
-/** Find category for the ability from static tables */
-const findCategoryForAbility = (ability: AbilityLite): string => {
-  if (ability.aType === "skill") {
-    if ((skillCategories.content ?? []).some((item) => matchesAbility(item, ability))) return "content";
-    if ((skillCategories.process ?? []).some((item) => matchesAbility(item, ability))) return "process";
-    const cross = skillCategories.crossFunctional ?? { resourceManagement: [], technical: [] };
-    if ((cross.resourceManagement ?? []).some((item) => matchesAbility(item, ability))) return "crossFunctional";
-    if ((cross.technical ?? []).some((item) => matchesAbility(item, ability))) return "crossFunctional";
-    return "content";
-  }
-
-  if (ability.aType === "knowledge") {
-    for (const key of Object.keys(knowledgeCategories) as Array<keyof typeof knowledgeCategories>) {
-      const list = knowledgeCategories[key] ?? [];
-      if (list.some((item) => matchesAbility(item, ability))) return key;
-    }
-    return "management";
-  }
-
-  if (ability.aType === "tech") {
-    for (const key of Object.keys(techSkillCategories) as Array<keyof typeof techSkillCategories>) {
-      const list = techSkillCategories[key] ?? [];
-      if (list.some((item) => matchesAbility(item, ability))) return key;
-    }
-    return "business";
-  }
-
-  return "content";
-};
-
-/** Map abilities to SkillRoadmapItem with empty schedule */
+/** Convert abilities to skill roadmap items */
 const toSkillRoadmapItems = (abilities: AbilityLite[]): SkillRoadmapItem[] =>
-  abilities.map((ability, index) => {
-    const category = findCategoryForAbility(ability);
-    const fallbackId = `${abilityIdentityKey(ability)}:${index}`;
-    return {
-      id: fallbackId,
-      abilityType: ability.aType,
-      category,
-      skill: normName(ability.name),
-      code: typeof ability.code === "string" ? ability.code : undefined,
-      startDate: undefined,
-      endDate: undefined,
-    };
-  });
+  abilities.map((ability, index) => ({
+    id: `${abilityIdentityKey(ability)}:${index}`,
+    abilityType: ability.aType,
+    category: ability.aType,
+    skill: normName(ability.name),
+    code: typeof ability.code === "string" ? ability.code : undefined,
+  }))
 
-/** Build a stable key from a list of abilities */
-const buildAbilitySourceKey = (source: string, abilities: AbilityLite[]): string => {
-  const parts = abilities.map((ability) => abilityIdentityKey(ability));
-  return `${source}:${parts.join("|") || "empty"}`;
-};
-
-/** De-duplicate SkillRoadmapItem safely */
+/** Deduplicate roadmap items */
 const dedupeRoadmapItems = (items: SkillRoadmapItem[]): SkillRoadmapItem[] => {
-  const seen = new Set<string>();
-  const out: SkillRoadmapItem[] = [];
+  const seen = new Set<string>()
+  const result: SkillRoadmapItem[] = []
   for (const it of items) {
-    const k = roadmapKey(it);
-    if (!k) continue;
+    const k = roadmapKey(it)
+    if (!k) continue
     if (!seen.has(k)) {
-      seen.add(k);
-      out.push(it);
+      seen.add(k)
+      result.push(it)
     }
   }
-  return out;
-};
+  return result
+}
 
-/** SelectQuestion adapter for region picker */
-const SelectQuestionAdapter: React.FC<{
-  title: string;
-  open: boolean;
-  options: string[];
-  value: string | null;
-  onClose: () => void;
-  onSave: (value: string) => void;
-  helperText?: string;
-}> = ({ title, open, options, value, onClose, onSave, helperText }) => {
-  const [selected, setSelected] = useState(value);
-  if (!open) return null;
+/** Map training API response to Redux state */
+const mapAdviceResToState = (
+  res: TrainingAdviceRes | null | undefined,
+  fallbackOccupation: { code: string; title: string }
+): TrainingAdviceState => {
+  const occupation = res?.anzsco ?? fallbackOccupation
+  const rawCourses = res?.vet_courses ?? []
+  const courses: TrainingCourse[] = rawCourses.map((c) => ({
+    id: c.vet_course_code,
+    name: c.course_name || c.vet_course_code,
+  }))
+  return { occupation, courses }
+}
+
+/** SelectQuestion modal for region selection */
+function SelectQuestion({
+  title,
+  open,
+  options,
+  value,
+  onClose,
+  onSave,
+  helperText,
+}: {
+  title: string
+  open: boolean
+  options: string[]
+  value: string | null
+  onClose: () => void
+  onSave: (value: string) => void
+  helperText?: string
+}): React.ReactElement | null {
+  const [selected, setSelected] = useState<string | null>(value)
+
+  useEffect(() => {
+    setSelected(value)
+  }, [value])
+
+  if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-modal max-w-md w-full p-6">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-heading font-bold text-ink">{title}</h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg transition"
-            aria-label="Close"
-          >
-            <svg className="w-5 h-5 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md space-y-4 rounded-xl border border-border bg-white p-6 shadow-2xl">
+        <h3 className="text-lg font-bold text-ink">{title}</h3>
+        {helperText && <p className="text-sm text-ink-soft">{helperText}</p>}
 
-        {helperText && <p className="text-sm text-ink-soft mb-4">{helperText}</p>}
-
-        <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
+        <div className="grid max-h-80 gap-2 overflow-y-auto">
           {options.map((opt) => (
             <button
               key={opt}
               onClick={() => setSelected(opt)}
-              className="w-full text-left p-3 border border-border rounded-lg hover:bg-gray-50 transition"
+              className="rounded-lg border px-3 py-2 text-left text-sm font-medium transition"
               style={{
                 borderColor: selected === opt ? "#5E75A4" : "#e2e8f0",
                 backgroundColor: selected === opt ? "#5E75A4" : "white",
@@ -294,234 +282,129 @@ const SelectQuestionAdapter: React.FC<{
         <div className="flex gap-3">
           <button
             onClick={() => {
-              if (selected) {
-                onSave(selected);
-                onClose();
-              }
+              if (selected) onSave(selected)
+              onClose()
             }}
-            className="flex-1 py-2 px-4 rounded-full font-semibold bg-primary text-ink-invert hover:bg-primary/90 transition"
+            className="flex-1 rounded-full bg-primary py-2 px-4 font-semibold text-ink-invert transition hover:bg-primary/90"
           >
             Save
           </button>
           <button
             onClick={onClose}
-            className="flex-1 py-2 px-4 rounded-full font-semibold border border-border text-ink hover:bg-gray-50 transition"
+            className="flex-1 rounded-full border border-border py-2 px-4 font-semibold text-ink transition hover:bg-gray-50"
           >
             Cancel
           </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
+// ============================================================================
+// Main Component
+// ============================================================================
 export default function Profile(): React.ReactElement {
-  const dispatch = useAppDispatch();
-  const { state } = useLocation();
-  const routeState = (state as (AnalyzerRouteState & { notice?: string }) | undefined) ?? undefined;
+  const dispatch = useAppDispatch()
+  const { state } = useLocation()
+  const routeState = (state as (AnalyzerRouteState & { notice?: string }) | undefined) ?? undefined
 
-  // Read from Redux (primary source)
-  const analyzer = useSelector((s: RootState) => s.analyzer);
-  const notice = routeState?.notice;
+  // Refs
+  const exportRef = useRef<HTMLDivElement | null>(null)
+  const vetTerminologyRef = useRef<HTMLDivElement>(null)
 
-  /** Hydrate Redux from route-state once if missing (fallback pattern) */
+  // Redux state
+  const analyzer = useSelector((s: RootState) => s.analyzer)
+  const notice = routeState?.notice
+
+  // Hydrate from route state (one-time)
   useEffect(() => {
-    if (!routeState) return;
-
-    // Priority: Redux first, route state second
+    if (!routeState) return
     if (!analyzer.chosenRoles?.length && routeState.roles?.length) {
-      dispatch(setChosenRoles(normalizeRoles(routeState?.roles)));
+      dispatch(setChosenRoles(normalizeRoles(routeState.roles)))
     }
     if (!analyzer.chosenAbilities?.length && routeState.abilities?.length) {
-      dispatch(setChosenAbilities(routeState.abilities));
+      dispatch(setChosenAbilities(routeState.abilities))
     }
-    if ((!analyzer.interestedIndustryCodes || analyzer.interestedIndustryCodes.length === 0) && routeState.industries?.length) {
-      dispatch(setInterestedIndustryCodes(routeState.industries));
+    if (
+      (!analyzer.interestedIndustryCodes || analyzer.interestedIndustryCodes.length === 0) &&
+      routeState.industries?.length
+    ) {
+      dispatch(setInterestedIndustryCodes(routeState.industries))
     }
     if (!analyzer.preferredRegion && routeState.region) {
-      dispatch(setPreferredRegion(routeState.region));
+      dispatch(setPreferredRegion(routeState.region))
     }
     if (!analyzer.selectedJob && routeState.selectedJob) {
-      const normalized = normalizeSelectedJob(routeState.selectedJob);
-      if (normalized) {
-        dispatch(setSelectedJob(normalized));
-      }
+      const normalized = normalizeSelectedJob(routeState.selectedJob)
+      if (normalized) dispatch(setSelectedJob(normalized))
     }
     if (!analyzer.trainingAdvice && routeState.training) {
-      dispatch(setTrainingAdvice(routeState.training));
+      dispatch(setTrainingAdvice(routeState.training))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount
+  }, [])
 
-  /**
-   * Build the baseline ability source from Redux or route.
-   * This mirrors your original logic to keep behavior consistent.
-   */
-  const abilitySource = useMemo(() => {
-    const chosen = uniqueAbilities(analyzer.chosenAbilities ?? []);
-    if (chosen.length > 0) {
-      const key = buildAbilitySourceKey("redux", chosen);
-      return { abilities: chosen, key, items: toSkillRoadmapItems(chosen) };
-    }
-
-    const routeAbilitiesRaw = Array.isArray(routeState?.abilities) ? (routeState.abilities as AbilityLite[]) : [];
-    const routeAbilities = uniqueAbilities(routeAbilitiesRaw);
-    if (routeAbilities.length > 0) {
-      const key = buildAbilitySourceKey("route", routeAbilities);
-      return { abilities: routeAbilities, key, items: toSkillRoadmapItems(routeAbilities) };
-    }
-
-    const unmatchedRedux = uniqueAbilities(collapseUnmatchedBuckets(analyzer.selectedJobUnmatched));
-    if (unmatchedRedux.length > 0) {
-      const key = buildAbilitySourceKey("redux-unmatched", unmatchedRedux);
-      return { abilities: unmatchedRedux, key, items: toSkillRoadmapItems(unmatchedRedux) };
-    }
-
-    const unmatchedRoute = uniqueAbilities(collapseUnmatchedBuckets(routeState?.unmatched ?? null));
-    if (unmatchedRoute.length > 0) {
-      const key = buildAbilitySourceKey("route-unmatched", unmatchedRoute);
-      return { abilities: unmatchedRoute, key, items: toSkillRoadmapItems(unmatchedRoute) };
-    }
-
-    return { abilities: [] as AbilityLite[], key: "none", items: [] as SkillRoadmapItem[] };
-  }, [analyzer.chosenAbilities, analyzer.selectedJobUnmatched, routeState]);
-
-  /**
-   * On every page open, merge UNMATCHED abilities into the initial list.
-   * Models "retest adds new abilities only" by appending anything missing.
-   * Convert to roadmap items, then de-duplicate with safe keys.
-   * Key is built from the merged abilities to refresh initial state when content changes.
-   */
-  const mergedInitial = useMemo(() => {
-    const unmatchedRedux = uniqueAbilities(collapseUnmatchedBuckets(analyzer.selectedJobUnmatched));
-    const unmatchedRoute = uniqueAbilities(collapseUnmatchedBuckets(routeState?.unmatched ?? null));
-
-    // Baseline keys derived from current items
-    const baselineKeys = new Set(
-      abilitySource.items
-        .map((it) => roadmapKey(it))
-        .filter((k): k is string => Boolean(k))
-    );
-
-    // Collect extra abilities that are not yet present
-    const extraAbilities: AbilityLite[] = [];
-    const consider = (list: AbilityLite[]): void => {
-      for (const a of list) {
-        const k = abilityKey(a);
-        if (!k) continue;
-        if (!baselineKeys.has(k)) extraAbilities.push(a);
-      }
-    };
-    consider(unmatchedRedux);
-    consider(unmatchedRoute);
-
-    // Merge and map
-    const mergedAbilities = uniqueAbilities([...abilitySource.abilities, ...extraAbilities]);
-    const mergedItems = dedupeRoadmapItems([
-      ...abilitySource.items,
-      ...toSkillRoadmapItems(extraAbilities),
-    ]);
-
-    const key = buildAbilitySourceKey("merged", mergedAbilities);
-    return { key, items: mergedItems };
-  }, [abilitySource, analyzer.selectedJobUnmatched, routeState?.unmatched]);
-
-  /**
-   * Career choice state (past jobs, target, region) - Redux first, fallback to route.
-   * Convert Redux format ({ code, title }) to UI format ({ id, title }) for CareerChoicePanel.
-   */
+  // Career choice value
   const careerChoiceValue = useMemo((): CareerChoiceState => {
-    // Priority 1: Redux
-    const pastJobsRedux = normalizeRoles(analyzer.chosenRoles);
-    const targetJobRedux = normalizeSelectedJob(analyzer.selectedJob);
-    const regionRedux = analyzer.preferredRegion || "";
+    const pastJobsRedux = normalizeRoles(analyzer.chosenRoles)
+    const targetJobRedux = normalizeSelectedJob(analyzer.selectedJob)
+    const regionRedux = analyzer.preferredRegion || ""
 
-    // Priority 2: Route state (fallback)
-    const pastJobsRoute = normalizeRoles(routeState?.roles);
-    const targetJobRoute = normalizeSelectedJob(routeState?.selectedJob);
-    const regionRoute = routeState?.region || "";
+    const pastJobsRoute = normalizeRoles(routeState?.roles)
+    const targetJobRoute = normalizeSelectedJob(routeState?.selectedJob)
+    const regionRoute = routeState?.region || ""
 
-    const pastJobs = pastJobsRedux.length > 0 ? pastJobsRedux : pastJobsRoute;
+    const pastJobs = pastJobsRedux.length > 0 ? pastJobsRedux : pastJobsRoute
+    const targetJobSource = targetJobRedux ?? targetJobRoute
+    const targetJob = targetJobSource ? { id: targetJobSource.code, title: targetJobSource.title } : null
 
-    // Convert Redux format { code, title } to UI format { id, title }
-    const targetJobSource = targetJobRedux ?? targetJobRoute;
-    const targetJob = targetJobSource 
-      ? { id: targetJobSource.code, title: targetJobSource.title }
-      : null;
+    return { pastJobs, targetJob, region: regionRedux || regionRoute }
+  }, [analyzer, routeState])
 
-    return {
-      pastJobs,
-      targetJob,
-      region: regionRedux || regionRoute,
-    };
-  }, [analyzer, routeState]);
-
-  /**
-   * Handle career choice changes from the panel.
-   * Convert UI format ({ id, title }) back to Redux format ({ code, title }).
-   */
+  // Handle career choice changes
   const onCareerChoiceChange = (next: CareerChoiceState): void => {
-    // Persist changes back to Redux
-    const normalizedRoles = normalizeRoles(next.pastJobs);
-    dispatch(setChosenRoles(normalizedRoles));
+    dispatch(setChosenRoles(normalizeRoles(next.pastJobs)))
+    const targetJobForRedux = next.targetJob ? { code: next.targetJob.id, title: next.targetJob.title } : null
+    dispatch(setSelectedJob(targetJobForRedux))
+    dispatch(setPreferredRegion(next.region))
+  }
 
-    // Convert UI format { id, title } to Redux format { code, title }
-    const targetJobForRedux = next.targetJob
-      ? { code: next.targetJob.id, title: next.targetJob.title }
-      : null;
-    dispatch(setSelectedJob(targetJobForRedux));
-    
-    dispatch(setPreferredRegion(next.region));
-  };
-
-  /** Training advice items - Redux first, fallback to route */
-  const trainingItems = useMemo<TrainingAdvice[]>(() => {
-    const coursesRedux = analyzer.trainingAdvice?.courses ?? [];
-    const coursesRoute = routeState?.training?.courses ?? [];
-    const courses = coursesRedux.length ? coursesRedux : coursesRoute;
-
-    return courses.map((c: CourseItem) => ({
-      title: c.name || c.title || "",
-      code: c.id || c.code || "",
-      url: c.url || fallbackCourseUrl(c.id || c.code || ""),
-    }));
-  }, [analyzer.trainingAdvice, routeState]);
-
-  /** Real occupation search with API */
-  const [industryCode, setIndustryCode] = useState("");
-  const [keyword, setKeyword] = useState("");
-  const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
-
-  /**
-   * The hook's data may be either an array or an object with a `results` array.
-   * Locally assert this union shape to keep types strict without touching the hook.
-   */
-  type SearchResultShape =
-    | { results?: AnzscoOccupation[] | null | undefined }
-    | AnzscoOccupation[]
-    | null
-    | undefined;
-
+  // Training advice fetch
+  const selectedJobCode = analyzer.selectedJob?.code ?? ""
+  const selectedJobTitle = analyzer.selectedJob?.title ?? ""
   const {
-    data: searchDataRaw,
-    isFetching,
-    isError,
-  } = useAnzscoSearch(searchParams) as {
-    data: SearchResultShape;
-    isFetching: boolean;
-    isError: boolean;
-  };
+    data: trainingData,
+    isFetching: trainingFetching,
+    isError: trainingError,
+  } = useTrainingAdvice(selectedJobCode)
 
-  /** Normalize hook data into a plain array the child expects. */
-  const normalizedResults = useMemo<AnzscoOccupation[]>(() => {
-    if (Array.isArray(searchDataRaw)) {
-      return searchDataRaw;
-    }
-    const maybe = searchDataRaw?.results;
-    return Array.isArray(maybe) ? maybe : [];
-  }, [searchDataRaw]);
+  useEffect(() => {
+    if (!trainingData || trainingFetching || trainingError) return
+    const mapped = mapAdviceResToState(trainingData, { code: selectedJobCode, title: selectedJobTitle })
+    dispatch(setTrainingAdvice(mapped))
+  }, [trainingData, trainingFetching, trainingError, selectedJobCode, selectedJobTitle, dispatch])
 
-  // Build props for the child component.
+  // Training items
+  const trainingItems: TrainingAdvice[] = useMemo(() => {
+    const courses = analyzer.trainingAdvice?.courses ?? []
+    return courses.map((c) => ({
+      title: c.name ?? c.id,
+      code: c.id,
+      url: c.url ?? fallbackCourseUrl(c.id),
+    }))
+  }, [analyzer.trainingAdvice])
+
+  // Occupation search
+  const [industryCode, setIndustryCode] = useState("")
+  const [keyword, setKeyword] = useState("")
+  const [searchParams, setSearchParams] = useState<SearchParams>(null)
+  const { data: searchDataRaw, isFetching, isError } = useAnzscoSearch(searchParams)
+  const normalizedResults: AnzscoOccupation[] = useMemo(
+    () => (Array.isArray(searchDataRaw) ? searchDataRaw : []),
+    [searchDataRaw]
+  )
+
   const occupationSearch: OccupationSearchInputs = {
     industryOptions: industryOptions.map((opt) => ({ value: opt.value, label: opt.label })),
     industryCode,
@@ -529,146 +412,216 @@ export default function Profile(): React.ReactElement {
     keyword,
     onKeywordChange: setKeyword,
     onSearch: () => {
-      const industryName = industryNameOf(industryCode) ?? "";
+      const industryName = industryNameOf(industryCode) ?? ""
       if (industryName || keyword.trim()) {
-        setSearchParams({
-          industry: industryName,
-          keyword: keyword.trim(),
-          limit: 20,
-        });
+        setSearchParams({ industry: industryName, keyword: keyword.trim(), limit: 20 })
       }
     },
     results: normalizedResults,
     isFetching,
     isError,
     noResults: !isFetching && normalizedResults.length === 0,
-  };
+  }
 
-  // Ref for scrolling to VET Terminology section
-  const vetTerminologyRef = React.useRef<HTMLDivElement>(null);
+  // Skill roadmap from unmatched
+  const unmatchedRedux = analyzer.selectedJobUnmatched
+  const unmatchedRoute = routeState?.unmatched ?? null
+  const abilitiesFromUnmatched = useMemo(() => {
+    const source = unmatchedRedux ?? unmatchedRoute ?? null
+    return uniqueAbilities(collapseUnmatchedBuckets(source))
+  }, [unmatchedRedux, unmatchedRoute])
 
-  // Handler to scroll to VET Terminology section
-  const scrollToVetTerminology = () => {
-    vetTerminologyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const initialRoadmap = useMemo(() => {
+    const items = dedupeRoadmapItems(toSkillRoadmapItems(abilitiesFromUnmatched))
+    const key = `unmatched:${items.length}`
+    return { key, items }
+  }, [abilitiesFromUnmatched])
+
+  // Export PDF
+  const onExportPdf = async (): Promise<void> => {
+    if (!exportRef.current) return
+    const code = analyzer.selectedJob?.code ? `_${analyzer.selectedJob.code}` : ""
+    const fileName = `Profile${code}.pdf`
+    await exportElementToPdf(exportRef.current, fileName)
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-8">
-        {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-4xl font-heading font-bold text-ink mb-2">Profile</h1>
-          <p className="text-ink-soft">Manage your career journey and skills roadmap</p>
+    <div id="profile-export-root" ref={exportRef}>
+      {/* Header with tutorial button via TutorialLauncher */}
+      <div id="profile-header" className="relative bg-white px-4 py-12 sm:px-6 lg:px-8">
+        {/* Tutorial button in the top-right corner.
+           Header on this page is not fixed inside this block, so no headerOffset needed. */}
+        <TutorialLauncher
+          steps={getProfileTutorialSteps}
+          placement="top-right"
+          label="View Tutorial"
+          variant="outline"
+          ariaLabel="View Tutorial"
+          className="z-[60]"
+          headerOffset={0}
+          tutorialHeaderOffset={0}
+        />
 
+        <div className="mx-auto max-w-7xl text-center">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Profile</h1>
+            <HelpToggleSmall
+              placement="bottom"
+              openOn="both"
+              text={
+                <>
+                  <p className="mb-2">
+                    <strong>Career Intent:</strong> Define your past roles, target job, and preferred location.
+                  </p>
+                  <p className="mb-2">
+                    <strong>Skill Roadmap:</strong> Focus on abilities you're currently missing. Add target dates.
+                  </p>
+                  <p className="mb-2">
+                    <strong>Training Advice:</strong> Discover relevant VET courses mapped to your target occupation.
+                  </p>
+                  <p>
+                    <strong>VET Glossary:</strong> Look up unfamiliar course terminology before enrolling.
+                  </p>
+                </>
+              }
+            />
+          </div>
+          <p className="mx-auto max-w-3xl text-base text-slate-700 sm:text-lg">
+            Organize your career intent, track your skill development roadmap, and discover relevant training opportunities.
+          </p>
           {notice && (
-            <div className="mt-4 rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-800">
+            <div className="mt-4 inline-block rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-800">
               {notice}
             </div>
           )}
-        </header>
-
-        <div className="space-y-6">
-          {/* Career Intent Section */}
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-ink mb-4">Career Intent</h2>
-            <CareerChoicePanel
-              value={careerChoiceValue}
-              onChange={onCareerChoiceChange}
-              regionOptions={REGION_OPTIONS}
-              SelectQuestion={SelectQuestionAdapter}
-              occupationSearch={occupationSearch}
-            />
-          </section>
-
-          {/* Skill Roadmap Section */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-heading font-bold text-ink">Skill Roadmap</h2>
-              <HelpToggleSmall
-                placement="left"
-                openOn="both"
-                text={
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Heads-up</div>
-                    <p>
-                      If you run the analyzer again, this list will <strong>only add new abilities</strong> it finds.
-                      It will <strong>not remove</strong> any existing items here.
-                    </p>
-                  </div>
-                }
-              />
-            </div>
-
-            <div className="rounded-xl border border-border p-6 bg-white shadow-card">
-              <p className="text-sm text-ink-soft mb-4">
-                Plan your skill development journey with timelines for each skill you want to acquire.
-              </p>
-              {/* Use mergedInitial so unmatched are appended on page open; key ensures re-init when merged set changes */}
-              <SkillRoadMap key={mergedInitial.key} initialSkills={mergedInitial.items} />
-            </div>
-          </section>
-
-          {/* Training Advice Section */}
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-ink mb-4">Training Advice</h2>
-            <div className="rounded-xl border border-border p-6 bg-white shadow-card">
-              <TrainingAdviceList
-                items={trainingItems}
-                title=""
-                onRemove={(item) => {
-                  // Remove from Redux state by filtering and re-shaping to original structure.
-                  const updated = trainingItems.filter((t) => t.code !== item.code);
-                  dispatch(
-                    setTrainingAdvice({
-                      occupation: analyzer.trainingAdvice?.occupation || { code: "", title: "" },
-                      courses: updated.map((t) => ({ id: t.code, name: t.title, url: t.url })),
-                    })
-                  );
-                }}
-              />
-
-              {/* Help prompt to guide users to VET Terminology section */}
-              {trainingItems.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-border">
-                  <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
-                    <svg 
-                      className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm text-blue-900 mb-2">
-                        <strong>Confused by course terminology?</strong> Try our VET Terminology Dictionary below to look up unfamiliar terms.
-                      </p>
-                      <button
-                        onClick={scrollToVetTerminology}
-                        className="text-sm font-semibold text-blue-700 hover:text-blue-800 underline transition"
-                      >
-                        Go to VET Terminology →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* VET Terminology Section */}
-          <section ref={vetTerminologyRef}>
-            <h2 className="text-2xl font-heading font-bold text-ink mb-4">VET Terminology</h2>
-            <VetGlossarySearch />
-          </section>
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl space-y-8 px-4 py-12 sm:px-6 lg:px-8">
+        {/* Career Intent Section */}
+        <section id="career-intent" className="relative">
+          {/* Export PDF button — always visible now (removed `hidden sm:block`) */}
+          <div className="absolute right-0 -top-6 sm:-top-8">
+            <button
+              onClick={onExportPdf}
+              className="inline-flex items-center gap-2 rounded-full border-2 border-primary bg-white px-4 py-2 text-sm font-semibold text-primary shadow-lg transition-all hover:bg-primary hover:text-white"
+              aria-label="Export this page as PDF"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 9V4h12v5M6 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1M6 14h12v8H6v-8Z" />
+              </svg>
+              <span>Export PDF</span>
+            </button>
+          </div>
+
+          <h2 className="mb-4 text-2xl font-heading font-bold text-ink">Career Intent</h2>
+          <CareerChoicePanel
+            value={careerChoiceValue}
+            onChange={onCareerChoiceChange}
+            regionOptions={REGION_OPTIONS}
+            SelectQuestion={SelectQuestion}
+            occupationSearch={occupationSearch}
+          />
+        </section>
+
+        {/* Skill Roadmap Section */}
+        <section id="skill-roadmap">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-heading font-bold text-ink">Skill Roadmap</h2>
+            <HelpToggleSmall
+              placement="left"
+              openOn="both"
+              text={
+                <div>
+                  <p>
+                    We list only <strong>missing abilities</strong> detected for your selected job. You can{" "}
+                    <strong>customize</strong> this list at any time.
+                  </p>
+                </div>
+              }
+            />
+          </div>
+
+          <div className="rounded-xl border border-border bg-white p-6 shadow-card">
+            <p className="mb-4 text-sm text-ink-soft">
+              Plan your skill development journey with timelines for each skill you want to acquire.
+            </p>
+            <SkillRoadMap key={initialRoadmap.key} initialSkills={initialRoadmap.items} />
+          </div>
+        </section>
+
+        {/* Training Advice Section */}
+        <section id="training-advice">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-heading font-bold text-ink">Training Advice</h2>
+            <HelpToggleSmall
+              placement="left"
+              openOn="both"
+              text="This list updates based on the target job you select."
+            />
+          </div>
+
+          <div className="rounded-xl border border-border bg-white p-6 shadow-card">
+            <TrainingAdviceList
+              items={trainingItems}
+              title=""
+              onRemove={(item) => {
+                const updated = trainingItems.filter((t) => t.code !== item.code)
+                dispatch(
+                  setTrainingAdvice({
+                    occupation: analyzer.trainingAdvice?.occupation || { code: "", title: "" },
+                    courses: updated.map((t) => ({ id: t.code, name: t.title, url: t.url })),
+                  })
+                )
+              }}
+            />
+
+            {trainingItems.length > 0 && (
+              <div className="mt-6 border-t border-border pt-6">
+                <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <svg
+                    className="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="mb-2 text-sm text-blue-900">
+                      <strong>Confused by course terminology?</strong> Try our VET Terminology Dictionary below.
+                    </p>
+                    <button
+                      onClick={() =>
+                        vetTerminologyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      }
+                      className="text-sm font-semibold text-blue-700 underline hover:text-blue-800"
+                    >
+                      Jump to VET Glossary
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* VET Glossary Section */}
+        <section id="vet-terminology" ref={vetTerminologyRef}>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-heading font-bold text-ink">VET Terminology</h2>
+            <HelpToggleSmall
+              placement="left"
+              openOn="both"
+              text="Search for any VET term or acronym to see its definition and related terms."
+            />
+          </div>
+
+          <VetGlossarySearch />
+        </section>
+      </div>
     </div>
-  );
+  )
 }

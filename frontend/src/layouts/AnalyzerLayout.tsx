@@ -1,4 +1,3 @@
-// src/layouts/AnalyzerLayout.tsx
 // Layout renders ProgressBar, an optional centered page header (Title + Help),
 // a right-aligned actions slot, page content, and the SelectedSummaryDock.
 //
@@ -106,7 +105,7 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({
     <div className={clsx("pb-12", className)}>
       {/* Progress bar section */}
       {showProgress && (
-        <div className="mx-auto mt-6 mb-4 max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mt-6 mb-4 max-w-6xl px-4 sm:px-6 lg:px-8" data-progress-bar>
           <ProgressBar current={progressCurrent} steps={progressSteps} />
         </div>
       )}
@@ -127,6 +126,7 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({
               <h1 className="text-3xl sm:text-4xl font-extrabold text-ink">{title}</h1>
               {helpContent ? (
                 <HelpToggle
+                data-help-toggle
                   content={{
                     title: helpContent.title,
                     subtitle: helpContent.subtitle,

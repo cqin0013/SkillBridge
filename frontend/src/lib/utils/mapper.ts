@@ -1,4 +1,3 @@
-// src/lib/utils/mapper.ts
 // Mappers to convert API models into domain models for UI.
 
 import type {  SkillsByCodeRes } from "../../types/api";

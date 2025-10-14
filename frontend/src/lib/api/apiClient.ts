@@ -1,5 +1,3 @@
-// frontend/src/lib/api/apiClient.ts
-
 import { httpGet, httpPost, type RequestOptions } from "../services/https";
 /** Primitive query types; undefined keys are skipped. */
 type QueryPrimitive = string | number | boolean | undefined;
@@ -40,7 +38,6 @@ function buildUrl(path: string, q?: Query): string {
 /** Print request info in dev environment. */
 function logRequest(method: "GET" | "POST", url: string): void {
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
     console.log(`[API ${method}]`, url);
   }
 }
@@ -65,15 +62,14 @@ export function postJSON<TReq, TRes>(
   path: string,
   body: TReq,
   q?: Query,
-  options?: RequestOptions  // ✅ 添加 options 参数
+  options?: RequestOptions  
 ): Promise<TRes> {
   const url = buildUrl(path, q);
   logRequest("POST", url);
-  return httpPost<TReq, TRes>(url, body, options);  // ✅ 传递 options
+  return httpPost<TReq, TRes>(url, body, options);  
 }
 
 /** Optional: log base URL when running in dev mode */
 if (import.meta.env.DEV) {
-  // eslint-disable-next-line no-console
   console.log("[VITE_API_BASE]", BASE || "(proxy/relative)");
 }

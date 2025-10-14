@@ -1,4 +1,3 @@
-// src/components/home/FeatureSection.tsx
 // FeatureSection supports two visual styles: "panel" and "image".
 // - Small screens: image first in DOM (better reading order).
 // - Large screens: both blocks are pinned to the same grid row (row-start-1),
@@ -10,7 +9,7 @@ import { useId, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import clsx from "clsx"
 import Button from "../ui/Button"
-import { useRevealOnView } from "../../hooks/userRevealOnView" // <-- fixed name
+import { useRevealOnView } from "../../hooks/userRevealOnView" 
 
 type Aspect = "square" | "wide"
 type ButtonVariant = "primary" | "accent" | "ghost"

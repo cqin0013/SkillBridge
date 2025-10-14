@@ -1,5 +1,4 @@
-﻿// src/hooks/useRouteStep.ts
-// Path-driven step resolver and navigator for the analyzer wizard.
+﻿// Path-driven step resolver and navigator for the analyzer wizard.
 // - STEP_PATHS must match your AnalyzerRoutes in order.
 // - Helpers support passing router state between steps.
 

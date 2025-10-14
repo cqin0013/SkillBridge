@@ -1,12 +1,10 @@
-// src/components/ConfirmRemove.tsx
 // A single-file Confirm-Remove trigger + dialog (React + TSX).
 // - Trigger can be a primary button or a circular icon button.
 // - Dialog is accessible: focus trap, ESC to close, restore focus.
-// - No `any`. Uses your Button variants for consistent theming.
 
 import React from "react";
 import type { ReactElement } from "react";
-import Button from "../ui/Button"; // uses primary/ghost variants :contentReference[oaicite:2]{index=2}
+import Button from "../ui/Button"; 
 
 type TriggerMode = "button" | "circle";
 

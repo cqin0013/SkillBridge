@@ -1,5 +1,3 @@
-// src/components/analyzer/TrainingCourses.tsx
-import React from "react";
 
 /** One training course item */
 export type TrainingCourse = {
