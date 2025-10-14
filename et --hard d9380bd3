@@ -1,0 +1,43 @@
+[33mb499fdbd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32miteration3-frontend[m[33m, [m[1;31morigin/iteration3-frontend[m[33m, [m[1;31miteration3/main[m[33m)[m HEAD@{0}: commit: ac 5.1.1 show occupation related data
+[33mb999aad7[m HEAD@{1}: commit: chore: ignore node_modules and dist
+[33md9380bd3[m HEAD@{2}: commit: chore: ignore node_modules
+[33m48fdb949[m HEAD@{3}: commit: ac5.1.2 show a map that can present demand of selected occupation
+[33m2b57a26f[m HEAD@{4}: commit: ac5.1.2 show a map that can present demand of selected occupation
+[33md52a046c[m HEAD@{5}: commit: ac6.1.1 show a search section for terminology
+[33mfc63c9e9[m HEAD@{6}: commit: iteration3
+[33ma3cf9a97[m[33m ([m[1;31miteration3/frontend[m[33m)[m HEAD@{7}: commit: remove node_modules and update .gitignore
+[33m4c98454f[m HEAD@{8}: commit: chore: copy project into frontend/
+[33m6a35b479[m HEAD@{9}: commit: remove storybook
+[33m440642a7[m HEAD@{10}: commit: remove storybook
+[33mffacd3e5[m HEAD@{11}: commit: remove storybook
+[33m0610c7dc[m HEAD@{12}: merge origin/main: Merge made by the 'ort' strategy.
+[33m573ddb8b[m[33m ([m[1;32mmain[m[33m)[m HEAD@{13}: checkout: moving from main to iteration3-frontend
+[33m573ddb8b[m[33m ([m[1;32mmain[m[33m)[m HEAD@{14}: commit: change root
+[33ma73bb1a3[m HEAD@{15}: commit: change root
+[33m8ada3896[m HEAD@{16}: checkout: moving from iteration3-frontend to main
+[33m3c3bcebf[m HEAD@{17}: reset: moving to HEAD
+[33m3c3bcebf[m HEAD@{18}: checkout: moving from main to iteration3-frontend
+[33m8ada3896[m HEAD@{19}: commit: deploy problem
+[33m13b46a06[m HEAD@{20}: commit: deploy problem
+[33maefc9885[m HEAD@{21}: commit: deploy problem
+[33mef849c7f[m HEAD@{22}: commit: deploy problem
+[33ma20289c2[m HEAD@{23}: commit: deploy problem
+[33m0af1a2dc[m HEAD@{24}: commit: deploy problem
+[33medc5b499[m HEAD@{25}: commit: reduce volume
+[33ma5702444[m HEAD@{26}: commit: reduce volume
+[33m7f088dac[m HEAD@{27}: commit: reduce volume
+[33m62df9054[m HEAD@{28}: commit: reduce volume
+[33mf3798e1c[m HEAD@{29}: commit: analyzer
+[33m9b9536b5[m HEAD@{30}: commit: analyzer logic
+[33mde97dff2[m HEAD@{31}: commit: analyzerIntro design
+[33md61dc8c3[m HEAD@{32}: commit: analyzerIntro design
+[33ma948c105[m HEAD@{33}: commit: analyzerIntro design
+[33m83654eb4[m HEAD@{34}: commit: fix refresh
+[33m17b7e3fd[m HEAD@{35}: commit: footer design
+[33mb710d32f[m HEAD@{36}: commit: footer design
+[33maac31566[m HEAD@{37}: commit: home page design
+[33mc2b416ba[m HEAD@{38}: commit: home page design
+[33m5c4cc188[m HEAD@{39}: commit: remove focus
+[33m0973d544[m HEAD@{40}: commit: Home page design
+[33m79aedeec[m HEAD@{41}: Branch: renamed refs/heads/master to refs/heads/main
+[33m79aedeec[m HEAD@{43}: commit (initial): first commit
