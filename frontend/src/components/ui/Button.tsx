@@ -1,18 +1,7 @@
 ﻿// src/components/ui/Button.tsx
 /**
- * Reusable Button (simple version without React.memo and forwardRef).
- *
- * - Render modes: native <button>, <a> anchor, React Router <Link>.
- * - Variants: primary | accent | ghost. Sizes: sm | md | lg.
- * - A11y: SR-only loading text (aria-live), aria-disabled/aria-busy,
- *         removes tabbability for <a>/<Link> when disabled,
- *         minimum 44px touch target (WCAG).
- * - Safety: blocks "javascript:" href; adds "noopener noreferrer" for target="_blank".
- *
- * Notes:
- * - Exposes `type?: "button" | "submit" | "reset"` for native <button> usage in forms.
- * - Exposes `"aria-label"?: string` for icon-only buttons.
- * - No `any`. Event handler types are strict per render mode.
+ * Reusable Button with instant disabled tooltip.
+ * Tooltip supports auto-wrapping for long text.
  */
 
 import * as React from "react";
@@ -37,9 +26,9 @@ const base = [
 ];
 
 const sizes: Record<ButtonSize, string[]> = {
-  sm: ["h-11", "px-4", "text-sm"],     // approx. 44px tall
-  md: ["h-11", "px-5", "text-sm"],     // approx. 44px tall with more padding
-  lg: ["h-12", "px-6", "text-base"],   // approx. 48px tall, larger text
+  sm: ["h-11", "px-4", "text-sm"],
+  md: ["h-11", "px-5", "text-sm"],
+  lg: ["h-12", "px-6", "text-base"],
 };
 
 const variants: Record<ButtonVariant, string[]> = {
@@ -70,10 +59,10 @@ type CommonProps = {
   loading?: boolean;
   disabled?: boolean;
   "aria-describedby"?: string;
-  /** SR-only message announced while loading (defaults to "Loading..."). */
-  loadingLabel?: string;
-  /** For icon-only buttons, provide a text label for screen readers. */
-  "aria-label"?: string;
+  loadingLabel?: string;      // SR-only loading text
+  "aria-label"?: string;      // for icon-only
+  /** Tooltip text shown instantly when disabled or loading */
+  tooltipWhenDisabled?: string;
 };
 
 type ButtonAsButton = CommonProps & {
@@ -103,31 +92,26 @@ type ButtonAsRouterLink = CommonProps & {
 
 export type ButtonProps = ButtonAsButton | ButtonAsLink | ButtonAsRouterLink;
 
-function isRouterLink(props: ButtonProps): props is ButtonAsRouterLink {
-  return typeof (props as ButtonAsRouterLink).to === "string";
+function isRouterLink(p: ButtonProps): p is ButtonAsRouterLink {
+  return typeof (p as ButtonAsRouterLink).to === "string";
 }
-
-function isAnchor(props: ButtonProps): props is ButtonAsLink {
-  return typeof (props as ButtonAsLink).href === "string";
+function isAnchor(p: ButtonProps): p is ButtonAsLink {
+  return typeof (p as ButtonAsLink).href === "string";
 }
-
 function withSafeRel(rel?: string, target?: string): string | undefined {
   if (target !== "_blank") return rel;
-  const base = "noopener noreferrer";
-  if (!rel) return base;
-  const tokens = new Set((rel + " " + base).split(/\s+/).filter(Boolean));
+  const baseRel = "noopener noreferrer";
+  if (!rel) return baseRel;
+  const tokens = new Set((rel + " " + baseRel).split(/\s+/).filter(Boolean));
   return Array.from(tokens).join(" ");
 }
-
 function isUnsafeHref(href: string): boolean {
-  const value = href.trim();
-  const lower = value.toLowerCase();
-  if (lower.startsWith("javascript:")) return true;
-  if (/^(https?:|mailto:|tel:|\/|#|\?|\.)/i.test(value)) return false;
-  return true;
+  const v = href.trim().toLowerCase();
+  if (v.startsWith("javascript:")) return true;
+  return !/^(https?:|mailto:|tel:|\/|#|\?|\.)/i.test(href);
 }
 
-export default function Button(props: ButtonProps) {
+export default function Button(props: ButtonProps): React.ReactElement {
   const {
     id,
     title,
@@ -138,11 +122,13 @@ export default function Button(props: ButtonProps) {
     loading,
     disabled,
     loadingLabel = "Loading...",
+    tooltipWhenDisabled,
   } = props;
 
   const routerMode = isRouterLink(props);
   const anchorMode = isAnchor(props);
   const isDisabled = Boolean(disabled || loading);
+  const showTooltip = Boolean(isDisabled && tooltipWhenDisabled);
 
   const classes = clsx([...base, ...sizes[size], ...variants[variant], className]);
 
@@ -152,16 +138,17 @@ export default function Button(props: ButtonProps) {
     </span>
   ) : null;
 
+  let core: React.ReactElement;
+
   if (routerMode) {
-    const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (event) => {
+    const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
       if (isDisabled) {
-        event.preventDefault();
+        e.preventDefault();
         return;
       }
-      props.onClick?.(event);
+      props.onClick?.(e);
     };
-
-    return (
+    core = (
       <Link
         id={id}
         title={title}
@@ -177,23 +164,20 @@ export default function Button(props: ButtonProps) {
         {srLoading}
       </Link>
     );
-  }
-
-  if (anchorMode) {
-    const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (event) => {
+  } else if (anchorMode) {
+    const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
       if (isDisabled) {
-        event.preventDefault();
+        e.preventDefault();
         return;
       }
       const href = props.href ?? "";
       if (isUnsafeHref(href)) {
-        event.preventDefault();
+        e.preventDefault();
         return;
       }
-      props.onClick?.(event);
+      props.onClick?.(e);
     };
-
-    return (
+    core = (
       <a
         id={id}
         title={title}
@@ -211,30 +195,56 @@ export default function Button(props: ButtonProps) {
         {srLoading}
       </a>
     );
+  } else {
+    const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+      if (isDisabled) {
+        e.preventDefault();
+        return;
+      }
+      (props as ButtonAsButton).onClick?.(e);
+    };
+    core = (
+      <button
+        id={id}
+        title={title}
+        type={(props as ButtonAsButton).type ?? "button"}
+        className={classes}
+        disabled={isDisabled}
+        aria-disabled={isDisabled || undefined}
+        aria-busy={loading || undefined}
+        aria-label={props["aria-label"]}
+        onClick={handleClick}
+      >
+        {children}
+        {srLoading}
+      </button>
+    );
   }
 
-  const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-    if (isDisabled) {
-      event.preventDefault();
-      return;
-    }
-    (props as ButtonAsButton).onClick?.(event);
-  };
+  if (!showTooltip) return core;
+
+  const tooltipId = id ? `${id}-disabled-tip` : undefined;
 
   return (
-    <button
-      id={id}
-      title={title}
-      type={(props as ButtonAsButton).type ?? "button"}
-      className={classes}
-      disabled={isDisabled}
-      aria-disabled={isDisabled || undefined}
-      aria-busy={loading || undefined}
-      aria-label={props["aria-label"]}
-      onClick={handleButtonClick}
+    <span
+      className={clsx("relative inline-block group", isDisabled && "cursor-not-allowed")}
+      aria-describedby={tooltipId}
     >
-      {children}
-      {srLoading}
-    </button>
+      {core}
+      <span
+        id={tooltipId}
+        role="tooltip"
+        className={clsx(
+          "pointer-events-none absolute left-1/2 top-[calc(100%+4px)] -translate-x-1/2",
+          "z-[2147483647]",
+          "rounded bg-black/85 px-2 py-1 text-xs text-white shadow",
+          "max-w-xs text-left leading-tight",
+          // show instantly on hover
+          "opacity-0 group-hover:opacity-100 transition-opacity duration-0"
+        )}
+      >
+        {tooltipWhenDisabled}
+      </span>
+    </span>
   );
 }

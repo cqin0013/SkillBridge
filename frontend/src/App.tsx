@@ -7,7 +7,6 @@ import AnalyzerEntry from "./pages/Analyzer/AnalyzerEntry";
 const Home = lazy(() => import("./pages/Home"));
 const Insight = lazy(() => import("./pages/Insight"));
 const Profile = lazy(() => import("./pages/Profile"));
-const Glossary = lazy(() => import("./pages/Glossary"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -42,8 +41,8 @@ export default function App() {
             <Route path="analyzer" element={<Navigate to="/analyzer/intro" replace />} />
             <Route path="analyzer/*" element={<AnalyzerEntry />} />
             <Route path="insight" element={<Insight />} />
+            <Route path="insight/:anzsco" element={<Insight />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="glossary" element={<Glossary />} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="terms" element={<Terms />} />

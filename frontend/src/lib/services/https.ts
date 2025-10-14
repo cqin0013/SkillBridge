@@ -18,14 +18,13 @@ export class HttpError extends Error {
     this.url = opts?.url;
   }
 }
-
-/** Extra options beyond native fetch */
-interface RequestOptions {
+export interface RequestOptions {
   /** Abort after N ms */
   timeoutMs?: number;
   /** Additional headers */
   headers?: Record<string, string>;
 }
+/** Extra options beyond native fetch */
 
 /** Default timeout (ms) */
 const DEFAULT_TIMEOUT = 15000;

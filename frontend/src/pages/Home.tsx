@@ -13,7 +13,7 @@ import bridgeUrl from "../assets/image/bridge.png"
 import analyzeSvg from "../assets/image/analyze.svg"
 import dataSvg from "../assets/image/data.svg"
 import profileSvg from "../assets/image/profie.svg"
-import searchSvg from "../assets/image/search.svg"
+
 
 export default function Home() {
   // Shared sizes
@@ -111,7 +111,7 @@ export default function Home() {
         {/* CARDS: tighter section paddings and grid gaps */}
         <section className="bg-white -mt-15">
           <div className="mx-auto max-w-7xl px-3 lg:px-6 py-12 lg:py-16">
-            <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-2">
               <FeatureCard
                 title="Industry Insight"
                 description="Explore industry trends, requirements, and growth areas to make better career choices."
@@ -133,17 +133,6 @@ export default function Home() {
                 ctaVariant="accent"
                 tone="gold"
                 revealDelayMs={60}
-              />
-              <FeatureCard
-                title="Glossary"
-                description="Look up job titles, industry terms, and workplace concepts to better understand career language."
-                to="/glossary"
-                image={searchSvg}
-                imageAlt="Search/book icon"
-                ctaLabel="Use Glossary"
-                ctaVariant="primary"
-                tone="blue"
-                revealDelayMs={120}
               />
             </div>
           </div>

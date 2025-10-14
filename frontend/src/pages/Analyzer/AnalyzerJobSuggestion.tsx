@@ -26,14 +26,9 @@ import {
   setInterestedIndustryCodes,
   setPreferredRegion,
 } from "../../store/analyzerSlice";
+import type { AbilityLite, AType, SelectedJob } from "../../store/analyzerSlice";
 import { industryNameOf } from "../../data/industries";
 import type { AnalyzerRouteState } from "../../types/routes";
-
-/** Allowed ability buckets */
-type AType = "knowledge" | "skill" | "tech";
-
-/** Minimal ability from store */
-type AbilityLite = { name: string; code?: string; aType: AType };
 
 /** Selection payload for ranking */
 type SelectionItem = { type: AType; code: string };
@@ -133,7 +128,7 @@ export default function AnalyzerJobSuggestion() {
       abilities: s.analyzer.chosenAbilities as AbilityLite[] | null,
       industryCodes: s.analyzer.interestedIndustryCodes as string[] | null,
       region: s.analyzer.preferredRegion as string | null,
-      storedTarget: s.analyzer.selectedJob as { code: string; title: string } | null,
+      storedTarget: s.analyzer.selectedJob as SelectedJob,
       rolesInStore: s.analyzer.chosenRoles,
     }),
     shallowEqual
@@ -156,9 +151,7 @@ export default function AnalyzerJobSuggestion() {
   }, [abilities, industryCodes, region, rolesInStore, routeState, dispatch]);
 
   // Local selection mirrors Redux to support toggle UX; hydrate from store
-  const [selected, setSelected] = useState<{ code: string; title: string } | null>(
-    storedTarget ?? null
-  );
+  const [selected, setSelected] = useState<SelectedJob>(storedTarget ?? null);
 
   // Build selection payload for backend
   const selections: SelectionItem[] = useMemo(() => {

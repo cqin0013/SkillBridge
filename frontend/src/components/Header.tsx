@@ -64,7 +64,6 @@ const NAV_ITEM_HOVER =
 const NAV_ITEMS = [
   { label: "Analyzer", to: "/analyzer" },
   { label: "Insight", to: "/insight" },
-  { label: "Glossary", to: "/glossary" },
   { label: "Profile", to: "/profile" },
 ] as const;
 

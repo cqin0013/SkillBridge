@@ -4,7 +4,7 @@
 // - CTA navigates to the first data-collection step via a static path.
 
 import React from "react";
-import HeroIntro from "../../components/analyzer/HeroIntro";
+import HeroIntro from "../../components/HeroIntro";
 import FeatureCard from "../../components/FeatureCard";
 import DataAnalyzerIcon from "../../assets/image/dataAnalyzer.svg";
 import MatchIcon from "../../assets/image/match.svg";
@@ -15,7 +15,7 @@ import HowItWorksGrid, {
   type HowItWorksStep,
 } from "../../components/analyzer/HowItWorksGrid";
 
-/** Inline SVG icons for steps (no external deps) */
+/** Inline SVG icons for steps  */
 const IconUser: React.FC<{ className?: string }> = ({ className }) => (
   <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
     <circle cx="12" cy="8" r="4" fill="currentColor" />
