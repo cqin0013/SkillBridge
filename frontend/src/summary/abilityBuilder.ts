@@ -5,9 +5,7 @@
 
 import type { SummaryBuilder, SummaryItem, SummaryRoot, DraftOverrides } from "./types";
 import { registerSummaryBuilder } from "./registry";
-
-type AType = "knowledge" | "tech" | "skill";
-type AbilityLite = { name: string; code?: string; aType: AType };
+import type { AbilityLite } from "../store/analyzerSlice";
 
 // Extend drafts to optionally carry abilities so pages can pass live picks.
 type DraftWithAbilities = DraftOverrides & { abilities?: AbilityLite[] };

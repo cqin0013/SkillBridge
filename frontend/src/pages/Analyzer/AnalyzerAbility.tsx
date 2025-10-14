@@ -41,10 +41,8 @@ import {
   setPreferredRegion,
   setInterestedIndustryCodes,
 } from "../../store/analyzerSlice";
+import type { AbilityLite, AType } from "../../store/analyzerSlice";
 import type { AnalyzerRouteState } from "../../types/routes";
-
-type AType = "knowledge" | "tech" | "skill";
-type AbilityLite = { name: string; code?: string; aType: AType };
 
 /** Normalize any incoming ability-like value to AbilityLite. */
 const normalizeOne = (a: unknown): AbilityLite => {

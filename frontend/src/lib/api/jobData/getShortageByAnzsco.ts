@@ -1,17 +1,29 @@
-// src/lib/api/jobs/getShortage.ts
-import { getJSON } from "../apiClient";
+// frontend/src/lib/api/jobData/getShortageByAnzsco.ts
+import { postJSON } from "../apiClient";
 import type { ShortageRes } from "../../../types/shortage";
 
 /**
- * GET /api/shortage/by-anzsco
- * Params:
- *  - code: ANZSCO code, e.g. "111111"
- *  - prefix4 (optional): first 4 digits for grouping, e.g. "1111"
+ * POST /api/shortage/by-anzsco
+ * Body: { "anzsco_code": "111111" }
+ * Increased timeout for slow API response
  */
-export function getShortageByAnzsco(code: string, prefix4?: string) {
+export async function getShortageByAnzsco(code: string): Promise<ShortageRes> {
   const c = code.trim();
   if (!c) throw new Error("anzsco code is required");
-  const params: Record<string, string> = { code: c };
-  if (prefix4) params.prefix4 = prefix4.trim();
-  return getJSON<ShortageRes>("/api/shortage/by-anzsco", params);
+
+  try {
+    // Send JSON body with extended timeout
+    const result = await postJSON<{ anzsco_code: string }, ShortageRes>(
+      "/api/shortage/by-anzsco",
+      { anzsco_code: c },
+      undefined, // no query params
+      { timeoutMs: 60000 } // 60 seconds timeout
+    );
+    
+    console.log("✅ Shortage API Success:", result);
+    return result;
+  } catch (err) {
+    console.error("❌ Shortage API Error:", err);
+    throw err;
+  }
 }

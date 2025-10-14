@@ -7,8 +7,7 @@
 
 import * as React from "react";
 import clsx from "clsx";
-
-type AType = "knowledge" | "tech" | "skill";
+import type { AType } from "../../store/analyzerSlice";
 
 type Ability = {
   /** Display name shown to user */

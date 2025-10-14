@@ -71,7 +71,6 @@ const SearchComboWithResults: React.FC<Props> = (props) => {
             onChange={(e) => onIndustryChange(e.target.value)}
             aria-label="Industry"
           >
-            <option value="">All industries</option>
             {industryOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
@@ -125,7 +124,7 @@ const SearchComboWithResults: React.FC<Props> = (props) => {
           No roles found. Try another industry or keyword.
         </div>
       )}
-      {isFetching && <div className="mt-3 text-sm text-ink-soft">Searching…</div>}
+      {isFetching && <div className="mt-3 text-sm text-ink-soft">Searching...</div>}
 
       {/* Results */}
       <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -174,3 +173,4 @@ const SearchComboWithResults: React.FC<Props> = (props) => {
 };
 
 export default SearchComboWithResults;
+
