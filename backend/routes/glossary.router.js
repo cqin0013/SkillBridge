@@ -1,7 +1,7 @@
-// glossary.router.js  ——  GET /api/glossary/detail?q=Apprenticeship 或 ?q=AAIP
+// glossary.router.js
 import { Router } from 'express';
 
-/** 把 "A; B；C , D | E" 等拆成字符串数组 */
+/** Split into string array */
 function splitList(v) {
   if (!v || typeof v !== 'string') return [];
   return v
@@ -10,9 +10,9 @@ function splitList(v) {
     .filter(Boolean);
 }
 
-/** 在 word_data / acronyms 中查词条；支持用“术语”或“缩写”查 */
+/** Search for a term in word_data / acronyms; supports searching by "term" or "abbreviation" */
 async function findGlossaryRecord(pool, q) {
-  // 1) 先在 word_data 直接命中（按术语或缩写）
+  // 1) First directly hit word_data (by term or abbreviation)
   {
     const [rows] = await pool.query(
       `
@@ -31,7 +31,7 @@ async function findGlossaryRecord(pool, q) {
     if (rows.length) return rows[0];
   }
 
-  // 2) 若没命中：到 acronyms 找映射（缩写 -> 全称，或全称 -> 缩写）
+  // 2) If no match: look for a mapping in acronyms (abbreviation -> full name, or full name -> abbreviation)
   const [aRows] = await pool.query(
     `
     SELECT acronym, full_form
@@ -45,7 +45,7 @@ async function findGlossaryRecord(pool, q) {
 
   const { acronym, full_form } = aRows[0];
 
-  // 3) 用 full_form 再回查 word_data（很多定义都在 word_data）
+  // 3) Use full_form to check word_data again (many definitions are in word_data)
   const [rows2] = await pool.query(
     `
     SELECT 
@@ -61,12 +61,12 @@ async function findGlossaryRecord(pool, q) {
     [full_form]
   );
   if (rows2.length) {
-    // 若 word_data 里没有填写 acronym，则回填 acronyms 表里的
+    // If acronym is not filled in word_data, then fill in the acronyms table
     rows2[0].acronym = rows2[0].acronym || acronym || null;
     return rows2[0];
   }
 
-  // 4) word_data 也没有时，用 acronyms 兜底（仅返回 term/acronym）
+
   return {
     term: full_form,
     description: null,

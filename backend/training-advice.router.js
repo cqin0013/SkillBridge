@@ -11,7 +11,7 @@ const WSDL_TCS = process.env.TGA_WSDL || `${TGA_BASE}/TrainingComponentService.s
 const TGA_USER = process.env.TGA_USER || 'WebService.Read';
 const TGA_PASS = process.env.TGA_PASS || 'Asdf098';
 
-// TGA 里 ANZSCO 的分类方案
+// ANZSCO classification scheme in the TGA
 const ANZSCO_SCHEME = '01';
 
 // ---- Utils ----
@@ -27,7 +27,7 @@ async function makeClient() {
     wsdl_options: { timeout: 15000 },
   });
 
-  // 统一使用 BasicHttp（/Training）
+  // BasicHttp（/Training）
   const ports =
     client?.wsdl?.definitions?.services?.TrainingComponentService?.ports || {};
   const epBasic =
@@ -44,7 +44,7 @@ async function makeClient() {
   return client;
 }
 
-// ---- ANZSCO 搜索：返回基本条目（不推导 advice）----
+// ---- ANZSCO Search: Back to basic entries ----
 async function searchByAnzsco(anzscoCode) {
   const client = await makeClient();
 
@@ -89,14 +89,14 @@ async function searchByAnzsco(anzscoCode) {
     .filter(x => x.code);
 }
 
-// ---- 直接按 TGA 代码搜索（不推导 advice）----
+// ----Search directly by TGA code----
 async function searchByCode(code) {
   const client = await makeClient();
 
   const req = {
     PageNumber: 1,
     PageSize: 50,
-    Filter: code,           // 直接用 code 过滤
+    Filter: code,
     SearchCode: true,
     SearchTitle: false,
     TrainingComponentTypes: {
@@ -105,17 +105,17 @@ async function searchByCode(code) {
       IncludeSkillSet: true,
       IncludeAccreditedCourse: false,
       IncludeAccreditedCourseModule: false,
-      IncludeUnit: true, // 也允许返回 Unit（以防用户直接给了单元代码）
+      IncludeUnit: true,
       IncludeUnitContextualisation: false,
     },
     IncludeDeleted: false,
-    IncludeSuperseded: true, // 宽松一点，便于命中
+    IncludeSuperseded: true,
   };
 
   const [resp] = await client.SearchAsync({ request: req });
   const arr = toArr(resp?.SearchResult?.Results?.TrainingComponentSummary);
 
-  // 优先精确匹配，其次返回前若干条样本
+  // Prioritize exact matching, then return the first few samples
   const exact = arr.filter(s => (s?.Code || '').toUpperCase() === code.toUpperCase());
   const list = (exact.length ? exact : arr).slice(0, 10);
 
@@ -130,7 +130,7 @@ async function searchByCode(code) {
     .filter(x => x.code);
 }
 
-// ---- 主路由：只返回已知信息（不找 advice）----
+// ----Main route: returns only known information (no advice)----
 router.get('/training-advice/:code?', async (req, res) => {
   const raw = (req.params.code ?? req.query.anzsco ?? req.query.code ?? '')
     .toString()
@@ -166,7 +166,7 @@ router.get('/training-advice/:code?', async (req, res) => {
   }
 });
 
-// ---- 可选：简单 ping 路由（保留一个最小调试入口）----
+// -
 router.get('/debug/tga/ping', async (_req, res) => {
   try {
     const client = await makeClient();

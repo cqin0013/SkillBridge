@@ -5,13 +5,13 @@ import path from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-// ======== 仅调整这里：servers 生成策略 ========
+// ================
 const isProd = process.env.NODE_ENV === 'production';
 const PUBLIC_BASE_URL =
   process.env.PUBLIC_BASE_URL ||
   'https://progressive-alysia-skillbridge-437200d9.koyeb.app';
 
-//  关键：用根路径，不要带 /api
+//Use the root path, without /api
 const servers = [{ url: '/', description: 'same-origin' }];
 
 if (!isProd) {
@@ -24,7 +24,7 @@ if (PUBLIC_BASE_URL) {
 
 // ============================================
 
-// 生成“英文基础 spec”（用现有的英文 JSDoc 注释）
+// Generate "English base spec" (using existing English JSDoc comments)
 function buildBaseSpec() {
   return swaggerJSDoc({
     definition: {
@@ -148,26 +148,26 @@ function buildBaseSpec() {
       }
     },
     apis: [
-      // 用绝对路径，避免 cwd 不同时扫不到文件
+      // Use absolute paths to avoid missing files when cwd is different
       path.join(__dirname, 'index.js'),
       path.join(__dirname, '*.router.js'),
-      // 把 routes 目录也纳入（包括 map.data.fromtemp.js）
+      // Include the routes directory (including map.data.fromtemp.js)
       path.join(__dirname, 'routes/*.js'),
       path.join(__dirname, 'routes/**/*.js'),
     ],
   });
 }
 
-// 一个非常轻量的翻译字典（可按需扩展）
+// 
 const DICT = {
-  // 顶部
+
   'SkillBridge API': 'SkillBridge 接口文档',
   'ANZSCO search, ability mapping, training courses, and shortage ratings.':
     'ANZSCO 搜索、能力映射、培训课程与短缺评级接口。',
-  // 标签
+
   'ANZSCO': 'ANZSCO 接口',
   'Meta': '元信息',
-  // 常见 summary（按你路由注释写的英文来配）
+
   'Health check': '健康检查',
   'Search ANZSCO by first-digit (major group) and keyword': '按首位行业与关键词搜索 ANZSCO',
   'Get ability (knowledge/skill/tech) mapped from an ANZSCO 6-digit code':
@@ -176,17 +176,17 @@ const DICT = {
   'Shortage ratings (national & states) by ANZSCO code': '按 ANZSCO 代码获取短缺评级（全国与各州）',
 };
 
-// 简单替换工具
+// Simple replacement tool
 function zhifyText(s) {
   if (!s || typeof s !== 'string') return s;
-  return DICT[s] || s; // 查不到就原文
+  return DICT[s] || s; // If you can't find the original text
 }
 
-// 生成中文规范：克隆英文 spec，然后覆盖 title/description/summary/tag
+// Generate Chinese specification: clone the English spec and then overwrite title/description/summary/tag
 function buildZhSpecFrom(baseSpec) {
   const spec = JSON.parse(JSON.stringify(baseSpec));
 
-  // 头部
+
   spec.info.title = spec.info['x-title-zh'] || spec.info.title;
   spec.info.description = spec.info['x-description-zh'] || spec.info.description;
 
@@ -226,14 +226,14 @@ function buildZhSpecFrom(baseSpec) {
         }
       }
 
-      // requestBody（如果你用到）
+      // requestBody
       if (op.requestBody && op.requestBody.description) {
         op.requestBody.description = op.requestBody['x-description-zh'] || op.requestBody.description;
       }
     }
   }
 
-  // 组件 schemas（可选：如果你想给字段中文名/说明）
+  //schemas
   if (spec.components && spec.components.schemas) {
     for (const sch of Object.values(spec.components.schemas)) {
       if (sch && typeof sch === 'object') {
