@@ -1,4 +1,3 @@
-// src/data/industries.ts
 // Canonical list of Australian industries used by JSA industry profiles.
 // These align to ANZSIC Divisions (A–S). Keep `code` stable; `slug` is URL-friendly.
 // Display label is English only (labelEn), as requested.

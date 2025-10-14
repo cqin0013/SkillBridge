@@ -1,4 +1,3 @@
-// src/lib/api/jobs/getTrainingAdvice.ts
 import { getJSON } from "../apiClient";
 import type { TrainingAdviceRes } from "../../../types/training";
 

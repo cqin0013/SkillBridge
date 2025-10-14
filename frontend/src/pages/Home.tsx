@@ -1,5 +1,3 @@
-// src/pages/Home/Home.tsx
-// English comments only inside code:
 // - Background image is 20% taller than the hero (so 1/5 remains visible).
 // - No CSS mask: we overlay a transparent→white gradient on top of the image,
 //   which visually fades the edges to the page background (white).

@@ -1,5 +1,4 @@
-﻿// src/hooks/use-step-sync.ts
-// Synchronize the wizard "step" between Redux and the URL query (?step=).
+﻿// Synchronize the wizard "step" between Redux and the URL query (?step=).
 // - On mount: read ?step and dispatch to Redux (clamped).
 // - On Redux change: write ?step to URL (remove when step === 0) with history.replace.
 // This keeps deep-links and refresh behavior consistent.

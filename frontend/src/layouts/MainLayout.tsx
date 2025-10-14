@@ -1,4 +1,3 @@
-// English comments only inside code:
 // Layout that renders Header and Footer once, and an <Outlet /> in between.
 // Also scrolls to top on route change for better UX.
 

@@ -1,4 +1,3 @@
-// src/components/analyzer/AbilityPicker.tsx
 /**
  * AbilityPicker
  * - Modal with category tabs and checkable pills.

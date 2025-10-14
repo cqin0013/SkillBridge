@@ -1,4 +1,3 @@
-// src/hooks/queries/useAnzscoSearch.ts
 import { useQuery } from "@tanstack/react-query";
 import { searchOccupations } from "../../lib/api/ability/searchOccupations";
 import { mapSearchItemToDomain } from "../../lib/utils/mapper";

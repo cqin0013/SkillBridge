@@ -1,5 +1,4 @@
-﻿// src/lib/utils/prefetch.ts
-
+﻿
 type RoutePath = "/Analyzer" | "/Profile" | "/Insight";
 
 const loaders: Record<RoutePath, () => Promise<unknown>> = {

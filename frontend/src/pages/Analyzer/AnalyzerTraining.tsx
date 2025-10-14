@@ -1,4 +1,3 @@
-// C:\Users\隐居小号\SkillBridge\skillbridge\src\pages\Analyzer\AnalyzerTraining.tsx
 import React, { useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";

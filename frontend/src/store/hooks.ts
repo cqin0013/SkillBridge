@@ -1,4 +1,3 @@
-// src/store/hooks.ts
 // Typed wrappers for react-redux hooks.
 // Use these instead of raw useDispatch/useSelector for full TS inference.
 

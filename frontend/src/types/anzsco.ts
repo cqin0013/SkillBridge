@@ -1,5 +1,4 @@
-﻿// src/types/anzsco.ts
-// Shared ANZSCO domain types for UI, hooks and services.
+﻿// Shared ANZSCO domain types for UI, hooks and services.
 
 /**
  * Search request params accepted by the ANZSCO API.

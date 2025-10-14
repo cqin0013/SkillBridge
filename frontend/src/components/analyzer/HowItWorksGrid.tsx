@@ -1,5 +1,4 @@
-// src/components/analyzer/HowItWorksGrid.tsx
-import React, { useRef } from "react";
+import  { useRef } from "react";
 import clsx from "clsx";
 import { useRevealOnView } from "../../hooks/userRevealOnView";
 

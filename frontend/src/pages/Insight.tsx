@@ -1,398 +1,429 @@
-// frontend/src/pages/Insight.tsx
-// Comprehensive occupation insight page displaying growth statistics,
-// comparison charts, and geographical demand distribution.
+// Career Insights page with comprehensive data visualization
+// - Tutorial button only shows when occupation is selected
+// - Mobile-optimized tutorial launcher (icon-only on small screens)
+// - Shows geographic distribution, growth statistics, and comparisons
 
-import { useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
-import type { FeatureCollection, Geometry } from "geojson";
 
-import rawGeo from "../assets/au-states.json";
-import { normalizeAuStates } from "../lib/utils/normalizeAuState";
+import { useMemo, useState } from "react"
+import { useSelector } from "react-redux"
+import { Link } from "react-router-dom"
+import type { FeatureCollection, Geometry } from "geojson"
 
-import HeroIntro from "../components/HeroIntro";
-import AuSvgMap from "../components/insight/AuMap";
-import OccupationGrowthStats from "../components/insight/OccupationGrowthCard";
-import GrowthComparisonChart from "../components/insight/GrowthComparisonChart";
-import IndustryEmploymentComparison from "../components/insight/IndustryEmploymentComparison";
-import HelpToggleSmall from "../components/ui/HelpToggleSmall";
-import InsightImage from "../assets/image/data.svg";
+import rawGeo from "../assets/au-states.json"
+import { normalizeAuStates } from "../lib/utils/normalizeAuState"
 
-import { useShortage } from "../hooks/queries/useShortage";
-import type { ShortageRes } from "../types/shortage";
-import type { RootState } from "../store";
+import HeroIntro from "../components/HeroIntro"
+import AuSvgMap from "../components/insight/AuMap"
+import OccupationGrowthStats from "../components/insight/OccupationGrowthCard"
+import GrowthComparisonChart from "../components/insight/GrowthComparisonChart"
+import HelpToggleSmall from "../components/ui/HelpToggleSmall"
+import ErrorBoundary from "../components/common/ErrorBoundary"
+import TutorialLauncher from "../components/tutorial/TutorialLauncher"
+import { insightTutorialSteps } from "../data/InsightTutorialStep"
+import InsightImage from "../assets/image/data.svg"
+
+import { useShortage } from "../hooks/queries/useShortage"
+import { useCareerGrowth } from "../hooks/queries/useCareerGrowth"
+import type { ShortageRes } from "../types/shortage"
+import type { RootState } from "../store"
+import type { CareerGrowthResponse } from "../types/careerGrowth"
 
 import {
   type StateCode,
+  type StateProps,
   getStateCode,
   initializeStateValues,
-  type StateProps,
-} from "../types/state";
-
-import { getMockOccupationInsight, hasMockData } from "../data/occupationInsightMock";
+} from "../types/state"
 
 // ============================================================================
-// Constants
-// ============================================================================
-
-const GEO_DATA: FeatureCollection<Geometry, StateProps> = normalizeAuStates(
-  rawGeo as FeatureCollection<Geometry, Record<string, unknown>>
-);
-
-// ============================================================================
-// Helper Functions
+// Redux & Utils
 // ============================================================================
 
 /**
- * Convert API shortage response to map-compatible state values
+ * Read the currently selected ANZSCO code from Redux
+ * Returns empty string if no occupation is selected
  */
-function transformShortageData(res?: ShortageRes): Record<StateCode, number> {
-  const stateValues = initializeStateValues(0);
+const useTargetAnzsco = () =>
+  useSelector((s: RootState) => s.analyzer?.selectedJob?.code?.trim() ?? "")
 
-  if (!res) return stateValues;
+/**
+ * Extract the 4-digit major group code from ANZSCO
+ * Used for career growth API queries
+ */
+const getMajorGroupCode = (code: string) => code.trim().slice(0, 4)
 
-  // Handle modern API format: latest_by_state array
+/**
+ * Safe number parser with fallback to 0
+ * Handles both number and string inputs
+ */
+const safeNumber = (v: unknown): number => {
+  if (typeof v === "number" && Number.isFinite(v)) return v
+  if (typeof v === "string") {
+    const n = Number(v)
+    return Number.isFinite(n) ? n : 0
+  }
+  return 0
+}
+
+/**
+ * Safe string parser with fallback to empty string
+ */
+const safeString = (v: unknown): string => (typeof v === "string" ? v : "")
+
+/**
+ * Convert shortage API response into map-friendly state→value dictionary
+ * Handles both array and object formats from the API
+ */
+function toEmploymentValues(res?: ShortageRes): Record<StateCode, number> {
+  const out = initializeStateValues(0)
+  if (!res) return out
+
+  // Handle array format: latest_by_state
   if (Array.isArray(res.latest_by_state)) {
-    res.latest_by_state.forEach((entry) => {
-      const stateCode = getStateCode(entry.state);
-      const value = entry.nsc_emp;
-
-      if (stateCode && typeof value === "number" && Number.isFinite(value)) {
-        stateValues[stateCode] = value;
-      }
-    });
-    return stateValues;
+    for (const row of res.latest_by_state) {
+      const code = getStateCode(row.state)
+      if (code) out[code] = safeNumber(row.nsc_emp)
+    }
+  } 
+  // Handle object format: shortage
+  else if (res.shortage && typeof res.shortage === "object") {
+    for (const [name, val] of Object.entries(res.shortage)) {
+      const code = getStateCode(name)
+      if (code) out[code] = safeNumber(val)
+    }
   }
-
-  // Handle legacy API format: shortage object
-  if (res.shortage && typeof res.shortage === "object") {
-    Object.entries(res.shortage).forEach(([key, value]) => {
-      const stateCode = getStateCode(key);
-      if (stateCode && typeof value === "number" && Number.isFinite(value)) {
-        stateValues[stateCode] = value;
-      }
-    });
-  }
-
-  return stateValues;
+  return out
 }
 
 /**
- * Custom hook to get target ANZSCO code
+ * Check if at least one state has data > 0
  */
-function useTargetAnzsco(): string {
-  const params = useParams<{ anzsco?: string }>();
-  const fromRoute = params.anzsco?.trim() ?? "";
-
-  const fromRedux = useSelector(
-    (state: RootState) => state.analyzer?.selectedJob?.code?.trim() ?? ""
-  );
-
-  return fromRoute || fromRedux || "";
-}
-
-/**
- * Check if any state has non-zero shortage value
- */
-function hasShortageData(values: Record<StateCode, number>): boolean {
-  return Object.values(values).some((value) => value > 0);
-}
+const hasAnyData = (values: Record<StateCode, number>) =>
+  Object.values(values).some((v) => v > 0)
 
 // ============================================================================
 // UI Components
 // ============================================================================
 
 /**
- * Info banner shown when no data is available
+ * Section header with decorative square and help tooltip
+ * Used for major sections throughout the page
  */
-function InfoBanner({
-  anzscoCode,
-  isFetching,
-  isError,
-  hasData,
+function SectionHeader({
+  title,
+  helpContent,
+  level = 2,
 }: {
-  anzscoCode: string;
-  isFetching: boolean;
-  isError: boolean;
-  hasData: boolean;
+  title: string
+  helpContent: string
+  level?: 2 | 3
 }) {
-  if (hasData) return null;
-
-  let message: string;
-
-  if (!anzscoCode) {
-    message =
-      "No target job selected. Please choose a job in Profile or complete the Analyzer flow.";
-  } else if (isFetching) {
-    message = "Loading target job shortage data…";
-  } else if (isError) {
-    message = "Failed to load shortage data. Please try again later.";
-  } else {
-    message = "No shortage data available for this occupation. All states show zero.";
-  }
-
   return (
-    <div
-      className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700"
-      role="status"
-      aria-live="polite"
-    >
-      {isFetching && (
-        <div className="flex items-center gap-2">
-          <div
-            className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"
-            aria-hidden="true"
-          />
-          <span>{message}</span>
-        </div>
+    <div className="mb-4 flex items-center gap-3">
+      {/* Decorative square - hidden from screen readers */}
+      <div
+        aria-hidden="true"
+        className="h-9 w-9 rounded-lg bg-primary/15 ring-1 ring-primary/30 sm:h-10 sm:w-10"
+      />
+      {level === 2 ? (
+        <h2 className="text-2xl font-heading font-extrabold text-ink sm:text-3xl">{title}</h2>
+      ) : (
+        <h3 className="text-xl font-heading font-bold text-ink sm:text-2xl">{title}</h3>
       )}
-      {!isFetching && <span>{message}</span>}
-    </div>
-  );
-}
-
-/**
- * Section header with title and help toggle
- */
-interface SectionHeaderProps {
-  title: string;
-  helpContent: string;
-}
-
-function SectionHeader({ title, helpContent }: SectionHeaderProps) {
-  return (
-    <div className="flex items-center gap-2 mb-4">
-      <h2 className="text-2xl font-heading font-bold text-ink">{title}</h2>
       <HelpToggleSmall text={helpContent} placement="bottom" openOn="click" />
     </div>
-  );
+  )
 }
 
 /**
- * Quick stats cards showing key metrics at a glance
+ * Loading skeleton component
+ * Shows animated placeholders while data is being fetched
  */
-interface QuickStatsProps {
-  totalRegions: number;
-  totalEmployment: number;
-  avgGrowthRate?: number;
-  hasValidData: boolean;
-}
-
-function QuickStats({ totalRegions, totalEmployment, avgGrowthRate, hasValidData }: QuickStatsProps) {
-  if (!hasValidData) return null;
-
+function LoadingSkeleton() {
   return (
-    <section className="bg-white rounded-2xl shadow-md p-6 border border-slate-100">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-        <div className="text-center">
-          <div className="text-3xl font-bold text-slate-900 mb-1">{totalRegions}</div>
-          <div className="text-sm text-slate-600">Active Regions</div>
-        </div>
-        <div className="text-center">
-          <div className="text-3xl font-bold text-slate-900 mb-1">
-            {totalEmployment.toLocaleString('en-AU')}
-          </div>
-          <div className="text-sm text-slate-600">Total Employment</div>
-        </div>
-        {avgGrowthRate !== undefined && (
-          <div className="text-center col-span-2 md:col-span-1">
-            <div className="text-3xl font-bold text-slate-900 mb-1">
-              {avgGrowthRate > 0 ? '+' : ''}{avgGrowthRate.toFixed(1)}%
-            </div>
-            <div className="text-sm text-slate-600">Projected Growth</div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
+    <div className="animate-pulse space-y-8" aria-busy="true" aria-live="polite">
+      <div className="h-32 rounded-xl bg-slate-200" />
+      <div className="h-64 rounded-xl bg-slate-200" />
+      <div className="h-96 rounded-xl bg-slate-200" />
+    </div>
+  )
 }
 
-// ============================================================================
-// Main Component
-// ============================================================================
-
-export default function Insight(): React.ReactElement {
-  const anzscoCode = useTargetAnzsco();
-  const { data: shortageData, isFetching, isError } = useShortage(anzscoCode);
-
-  // State for selected state in map
-  const [selectedState, setSelectedState] = useState<string | null>(null);
-
-  // Transform shortage data for map
-  const stateValues = useMemo(
-    () => transformShortageData(shortageData),
-    [shortageData]
-  );
-
-  const hasData = useMemo(() => hasShortageData(stateValues), [stateValues]);
-
-  const geoData = useMemo(() => GEO_DATA, []);
-
-  // Get mock data for the occupation (if available)
-  const mockData = useMemo(() => {
-    if (!anzscoCode) return null;
-    return getMockOccupationInsight(anzscoCode);
-  }, [anzscoCode]);
-
-  // Use mock data if available, otherwise show placeholder
-  const hasMock = hasMockData(anzscoCode);
-
-  // Calculate quick stats
-  const quickStats = useMemo(() => {
-    const activeRegions = Object.values(stateValues).filter(v => v > 0).length;
-    const totalEmployment = Object.values(stateValues).reduce((sum, v) => sum + v, 0);
-    const avgGrowth = mockData?.growth?.fiveYearGrowthRate;
-    
-    return {
-      totalRegions: activeRegions,
-      totalEmployment,
-      avgGrowthRate: avgGrowth,
-      hasValidData: activeRegions > 0 || totalEmployment > 0,
-    };
-  }, [stateValues, mockData]);
-
-  // Handle state selection on map
-  const handleStateSelect = (stateCode: string, value: number): void => {
-    setSelectedState(stateCode);
-    console.log(`Selected state: ${stateCode}, Employment value: ${value}`);
-  };
-
-  // Show message if no ANZSCO code is selected
-  if (!anzscoCode) {
-    return (
-      <>
+/**
+ * Empty state component
+ * Displayed when no occupation is selected
+ * Shows helpful message and action buttons
+ */
+function NoOccupationSelected() {
+  return (
+    <>
+      {/* Hero section without tutorial button */}
+      <div id="hero-section" className="relative">
         <HeroIntro
-          title="Discover Career Insights Tailored for You"
-          description="Explore personalized occupation metrics, track employment trends across Australian states, and make informed career decisions with real-time labor market data."
+          title="Your Personalized Career Insights"
+          description="Select a target occupation in your profile to view employment data, growth, and regional demand."
           image={InsightImage}
           tone="blue"
-          ctaLabel="View Tutorial"
-          ctaTo="/tutorial"
           imageDecorative
         />
-        
-        <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-7xl mx-auto">
-          <div className="rounded-xl border border-border bg-white shadow-card p-8 text-center">
-            <h2 className="text-2xl font-heading font-bold text-ink mb-3">
-              No Occupation Selected
-            </h2>
-            <p className="text-ink-soft">
-              Please select a target occupation in your Profile or complete the Career Analyzer to
-              view detailed insights.
-            </p>
+      </div>
+
+      {/* Empty state message with action buttons */}
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-12 text-center">
+          <h3 className="mb-2 text-xl font-semibold text-slate-900">No Occupation Selected</h3>
+          <p className="mx-auto mb-6 max-w-md text-slate-600">
+            Choose a target occupation in your profile or complete the analyzer test to see personalized career insights.
+          </p>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+            <Link 
+              to="/profile" 
+              className="rounded-lg bg-primary px-6 py-3 text-white hover:bg-primary-dark transition-colors"
+            >
+              Go to Profile
+            </Link>
+            <Link
+              to="/analyzer"
+              className="rounded-lg border border-primary bg-white px-6 py-3 text-primary hover:bg-blue-50 transition-colors"
+            >
+              Take Analyzer Test
+            </Link>
           </div>
         </div>
-      </>
-    );
-  }
+      </div>
+    </>
+  )
+}
+
+// ============================================================================
+// Main Page Component
+// ============================================================================
+
+/**
+ * InsightInner - Main content component
+ * Handles data fetching, state management, and rendering
+ */
+function InsightInner(): React.ReactElement {
+  // Get selected occupation code from Redux
+  const anzscoCode = useTargetAnzsco()
+  const majorGroup = anzscoCode ? getMajorGroupCode(anzscoCode) : ""
+
+  // Local state
+
+  const [selectedState, setSelectedState] = useState<string | null>(null)
+
+  // Fetch data from APIs
+  const { 
+    data: shortage, 
+    isLoading: shortageLoading, 
+    isFetching: shortageRefetching 
+  } = useShortage(anzscoCode)
+  
+  const { 
+    data: career, 
+    isLoading: careerLoading, 
+
+  } = useCareerGrowth(majorGroup)
+
+  // Normalize geographic data
+  const geoData: FeatureCollection<Geometry, StateProps> = useMemo(
+    () => normalizeAuStates(rawGeo as FeatureCollection<Geometry, Record<string, unknown>>),
+    []
+  )
+
+  // Process employment values for map visualization
+  const employmentValues = useMemo(() => toEmploymentValues(shortage), [shortage])
+  const mapHasData = hasAnyData(employmentValues)
+  const isInitialLoading = (careerLoading || shortageLoading) && !career && !shortage
+
+  // Normalize career growth data to safe UI values
+  const safeCareer = useMemo(() => {
+    if (!career) return null
+    const c = career as unknown as Partial<CareerGrowthResponse>
+    return {
+      anzscoCode: safeString(c.anzscoCode),
+      majorGroupTitle: safeString(c.majorGroupTitle),
+      fiveYearGrowthRate: safeNumber(c.fiveYearGrowthRate),
+      tenYearGrowthRate: safeNumber(c.tenYearGrowthRate),
+      growthRanking: safeString(c.growthRanking),
+      currentEmployment: safeNumber(c.currentEmployment),
+      projectedNewJobs: safeNumber(c.projectedNewJobs),
+      nationalAverageRate: safeNumber(c.nationalAverageRate),
+      relatedOccupationsRate: safeNumber(c.relatedOccupationsRate),
+      selectedOccupationRate: safeNumber(c.selectedOccupationRate),
+    }
+  }, [career])
+
+  // Show empty state if no occupation is selected
+  if (!anzscoCode) return <NoOccupationSelected />
 
   return (
     <>
-      {/* Hero Section */}
-      <HeroIntro
-        title="Your Personalized Career Insights"
-        description={`Comprehensive employment data and growth projections for ${mockData?.growth?.majorGroupTitle || `ANZSCO ${anzscoCode}`}. Explore regional demand, industry trends, and future opportunities across Australia.`}
-        image="/images/insight-hero.png"
-        tone="blue"
-        ctaLabel="View Tutorial"
-        ctaTo="/tutorial"
-        imageDecorative
-      />
+      {/* Hero header with tutorial button (ONLY shows when job is selected) */}
+      <div id="hero-section" className="relative">
+        <HeroIntro
+          title="Your Personalized Career Insights"
+          description={
+            safeCareer
+              ? `Comprehensive data for ${safeCareer.majorGroupTitle}. Explore employment trends, growth projections, and regional demand across Australia.`
+              : "Loading career insights..."
+          }
+          image={InsightImage}
+          tone="blue"
+          imageDecorative
+        />
+        
+        {/* Tutorial launcher - only visible when occupation is selected */}
+        <TutorialLauncher
+          steps={insightTutorialSteps}
+          placement="top-right"
+          label="View Tutorial"
+          variant="outline"
+          ariaLabel="View Career Insights Tutorial"
+          className="z-50"        
+          headerOffset={64}          
+          tutorialHeaderOffset={64} 
+        />
+      </div>
 
-      {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-7xl mx-auto space-y-8">
-        {/* Quick Stats Bar */}
-        <QuickStats {...quickStats} />
+      {/* Main content area */}
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        {isInitialLoading ? (
+          <LoadingSkeleton />
+        ) : (
+          <>
+            {/* Job title section with ID for tutorial targeting */}
+            {safeCareer && (
+              <div id="job-title" className="mb-8">
+                <h2 className="text-2xl font-bold text-ink sm:text-3xl">
+                  {safeCareer.majorGroupTitle}
+                </h2>
+                <p className="mt-2 text-sm text-ink-soft">
+                  ANZSCO Major Group: {safeCareer.anzscoCode.slice(0, 4)}
+                </p>
+              </div>
+            )}
 
-        {/* Growth Statistics Section */}
-        {mockData && (
-          <section>
-            <SectionHeader
-              title="Major Group Statistics"
-              helpContent="The first 4 digits of an ANZSCO code represent the Major Group classification. For example, code 2613 refers to 'Software and Applications Programmers' within the broader ICT Professionals category. This grouping helps track employment trends and growth projections for related occupations."
-            />
-            <OccupationGrowthStats
-              anzscoCode={mockData.growth.anzscoCode}
-              majorGroupTitle={mockData.growth.majorGroupTitle}
-              fiveYearGrowthRate={mockData.growth.fiveYearGrowthRate}
-              tenYearGrowthRate={mockData.growth.tenYearGrowthRate}
-              growthRanking={mockData.growth.growthRanking}
-              currentEmployment={mockData.growth.currentEmployment}
-              projectedNewJobs={mockData.growth.projectedNewJobs}
-            />
-          </section>
-        )}
+            {/* Quick statistics section */}
+            {safeCareer && (
+              <section id="quick-stats" className="mb-8">
+                <SectionHeader
+                  title="Quick Statistics"
+                  helpContent="Overview of key metrics for this occupation group including growth rates and rankings."
+                />
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+                    <div className="text-sm text-slate-600">5-Year Growth</div>
+                    <div className="mt-1 text-2xl font-bold text-primary">
+                      {safeCareer.fiveYearGrowthRate}%
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+                    <div className="text-sm text-slate-600">10-Year Growth</div>
+                    <div className="mt-1 text-2xl font-bold text-primary">
+                      {safeCareer.tenYearGrowthRate}%
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+                    <div className="text-sm text-slate-600">National Ranking</div>
+                    <div className="mt-1 text-2xl font-bold text-primary">
+                      {safeCareer.growthRanking}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
 
-        {/* Growth Comparison Chart Section */}
-        {mockData && (
-          <section>
-            <GrowthComparisonChart
-              selectedOccupationRate={mockData.growthComparison.selectedOccupationRate}
-              selectedOccupationLabel={mockData.growthComparison.selectedOccupationLabel}
-              relatedOccupationsRate={mockData.growthComparison.relatedOccupationsRate}
-              nationalAverageRate={mockData.growthComparison.nationalAverageRate}
-            />
-          </section>
-        )}
+            {/* Growth statistics section */}
+            {safeCareer && (
+              <section id="growth-statistics" className="mb-8">
+                <SectionHeader
+                  title="Growth Statistics"
+                  helpContent="Detailed employment statistics and projections for this major occupation group."
+                />
+                <OccupationGrowthStats
+                  anzscoCode={safeCareer.anzscoCode}
+                  majorGroupTitle={safeCareer.majorGroupTitle}
+                  fiveYearGrowthRate={safeCareer.fiveYearGrowthRate}
+                  tenYearGrowthRate={safeCareer.tenYearGrowthRate}
+                  growthRanking={safeCareer.growthRanking}
+                  currentEmployment={safeCareer.currentEmployment}
+                  projectedNewJobs={safeCareer.projectedNewJobs}
+                />
+              </section>
+            )}
 
-        {/* Industry Comparison Section */}
-        {mockData && (
-          <section>
-            <IndustryEmploymentComparison
-              industries={mockData.industryComparison.industries}
-              title="Employment by Related Industry"
-            />
-          </section>
-        )}
+            {/* Growth comparison chart section */}
+            {safeCareer && (
+              <section id="growth-comparison" className="mb-8">
+                <SectionHeader
+                  title="Growth Comparison"
+                  helpContent="Compare this occupation's growth rate with related occupations and national average."
+                />
+                <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-md">
+                  <GrowthComparisonChart
+                    selectedOccupationRate={safeCareer.selectedOccupationRate}
+                    selectedOccupationLabel={safeCareer.majorGroupTitle || "Selected occupation"}
+                    relatedOccupationsRate={safeCareer.relatedOccupationsRate}
+                    nationalAverageRate={safeCareer.nationalAverageRate}
+                  />
+                </div>
+              </section>
+            )}
 
-        {/* Geographic Distribution Map Section */}
-        <section>
-          <SectionHeader
-            title="Geographic Demand Distribution"
-            helpContent="Click on different states to view their specific demand data. Darker colors indicate higher demand or employment numbers for this occupation in that state. This helps you understand regional job market variations across Australia."
-          />
+            {/* Geographic distribution map section */}
+            <section id="geographic-map">
+              <SectionHeader
+                title="Geographic Distribution"
+                helpContent="Click a state to view employment values. Darker shades indicate higher demand."
+              />
+              <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-md">
+                {shortageLoading || shortageRefetching ? (
+                  <div className="flex flex-col items-center justify-center py-12" aria-live="polite">
+                    <div className="mb-3 h-8 w-8 animate-spin rounded-full border-4 border-current border-t-transparent text-primary" />
+                    <p className="text-sm text-slate-600">Loading geographic data…</p>
+                  </div>
+                ) : (
+                  <AuSvgMap
+                    geo={geoData}
+                    values={employmentValues}
+                    onSelect={(code, value) =>
+                      setSelectedState(`${code} — ${value.toLocaleString("en-AU")}`)
+                    }
+                  />
+                )}
+              </div>
 
-          <InfoBanner
-            anzscoCode={anzscoCode}
-            isFetching={isFetching}
-            isError={isError}
-            hasData={hasData}
-          />
-
-          <div className="flex justify-center mt-4">
-            <AuSvgMap
-              geo={geoData}
-              values={stateValues}
-              className="w-[340px] sm:w-[520px] md:w-[720px] lg:w-[900px]"
-              onSelect={handleStateSelect}
-            />
-          </div>
-
-          {selectedState && (
-            <div className="mt-4 text-center text-sm text-ink-soft">
-              Selected: <span className="font-semibold text-ink">{selectedState}</span>
-              {stateValues[selectedState as StateCode] > 0 && (
-                <span>
-                  {" "}
-                  - Employment: {stateValues[selectedState as StateCode].toLocaleString("en-AU")}
-                </span>
+              {/* Selected state display */}
+              {mapHasData && selectedState && (
+                <p className="mt-3 text-center text-sm text-ink-soft">
+                  Selected: <span className="font-medium text-ink">{selectedState}</span>
+                </p>
               )}
-            </div>
-          )}
-        </section>
 
-        {/* Development Notice */}
-        {!hasMock && (
-          <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <p className="font-semibold mb-1">Development Mode</p>
-            <p>
-              Mock data is currently available for these ANZSCO codes: 261313 (Software Engineer),
-              254411 (Registered Nurse), 221111 (Accountant), 241111 (Primary School Teacher), 341111
-              (Electrician). Try these codes to see full insights.
-            </p>
-          </div>
+              {/* No data message */}
+              {!mapHasData && !(shortageLoading || shortageRefetching) && (
+                <p className="mt-3 text-center text-sm text-ink-soft">
+                  No regional employment data available for this occupation.
+                </p>
+              )}
+            </section>
+          </>
         )}
       </div>
+
+
     </>
-  );
+  )
+}
+
+/**
+ * Insight - Main export component with error boundary
+ */
+export default function Insight(): React.ReactElement {
+  return (
+    <ErrorBoundary feedbackHref="/feedback">
+      <InsightInner />
+    </ErrorBoundary>
+  )
 }

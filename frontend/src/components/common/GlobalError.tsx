@@ -1,5 +1,3 @@
-// src/components/common/GlobalError.tsx
-import React from "react";
 
 interface GlobalErrorProps {
   /** Link to feedback page, e.g. "/feedback" */

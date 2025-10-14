@@ -1,4 +1,3 @@
-// src/components/DataSource.tsx
 import React, { useId } from "react";
 import { Globe2 } from "lucide-react";
 

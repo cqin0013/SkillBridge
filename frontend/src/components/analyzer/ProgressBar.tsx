@@ -1,11 +1,9 @@
-// src/components/analyzer/ProgressBar.tsx
 // Step-based progress indicator: numbered circles connected by lines.
 // Pure Tailwind responsive sizing. No JS media queries.
 // - Circles: 28px (mobile) → 40px (sm) → 48px (md)
 // - Connectors shorten on small screens
 // - Hover shows tooltip with step name
 
-import React from "react";
 import clsx from "clsx";
 
 export type ProgressBarProps = {

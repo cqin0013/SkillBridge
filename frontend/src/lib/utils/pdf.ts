@@ -1,4 +1,3 @@
-// src/utils/pdf.ts
 // Generate and download a multi-page A4 PDF from a DOM element.
 // Heavy deps (html-to-image, jspdf) are loaded on demand to keep initial bundle small.
 

@@ -1,4 +1,3 @@
-// src/store/index.ts
 // Store composition that consumes the single persist config.
 
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
