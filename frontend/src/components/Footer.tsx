@@ -1,4 +1,3 @@
-// src/components/layout/Footer.tsx
 /**
  * Footer (three-column layout)
  * - Left: Brand + tagline + byline
@@ -47,7 +46,7 @@ export default function Footer() {
 
   return (
     <footer role="contentinfo" className="bg-ink text-ink-invert">
-      {/* Top section ---------------------------------------------------------------- */}
+      {/* Top section*/}
       <section className="mx-auto max-w-7xl px-4 py-14">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           {/* Brand / left column */}

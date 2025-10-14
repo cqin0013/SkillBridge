@@ -1,5 +1,4 @@
-﻿// src/components/ui/Button.tsx
-/**
+﻿/**
  * Reusable Button with instant disabled tooltip.
  * Tooltip supports auto-wrapping for long text.
  */

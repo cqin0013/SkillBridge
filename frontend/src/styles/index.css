@@ -1,5 +1,3 @@
-/* src/styles/index.css */
-
 /* 0) Define design tokens FIRST so utilities like bg-ink, shadow-card exist */
 @theme {
     /* Brand colors (semantic tokens) */

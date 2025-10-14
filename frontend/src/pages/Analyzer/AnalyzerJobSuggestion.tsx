@@ -1,12 +1,10 @@
-// src/pages/Analyzer/AnalyzerJobSuggestion.tsx
 // Uses split JobSuggestion card (left industries, right occupation groups).
 // Computes matchPct via hook result and passes into groups.
 // On Next, stores the selected job's unmatched buckets into Redux.
-// Route fallback: if Redux is missing pieces after a refresh/private mode,
-// read them from `location.state` and write back to Redux.
-// English comments only inside code.
+// Route/cache fallback: if Redux is missing after refresh/private mode,
+// read from location.state and write back to Redux.
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useSelector, shallowEqual } from "react-redux";
 import AnalyzerLayout from "../../layouts/AnalyzerLayout";
@@ -26,7 +24,7 @@ import {
   setInterestedIndustryCodes,
   setPreferredRegion,
 } from "../../store/analyzerSlice";
-import type { AbilityLite, AType, SelectedJob } from "../../store/analyzerSlice";
+import type { AbilityLite, AType, SelectedJob, RoleLite } from "../../store/analyzerSlice";
 import { industryNameOf } from "../../data/industries";
 import type { AnalyzerRouteState } from "../../types/routes";
 
@@ -38,7 +36,6 @@ type AnzscoItem = {
   code: string;
   title: string;
   description?: string | null;
-  // some backends may put unmatched here
   unmatched?: { knowledge: string[]; skill: string[]; tech: string[] };
 };
 
@@ -46,9 +43,8 @@ type AnzscoItem = {
 type OccupationGroupItem = {
   occupation_code: string;
   occupation_title: string;
-  matchPct?: number; // computed in hook select()
+  matchPct?: number;
   anzsco: AnzscoItem[];
-  // some backends may put unmatched at the group level
   unmatched?: { knowledge: string[]; skill: string[]; tech: string[] };
 };
 
@@ -63,23 +59,19 @@ function InlineDemandCard(props: {
 }) {
   const { data, isFetching } = useDemand(props.code, props.region ?? undefined);
 
-  // ----- Safe shortage detection -----
+  // Safe shortage detection
   const nat = (data?.national_rating ?? "").toLowerCase();
   const st = (data?.state_rating ?? "").toLowerCase();
-
   const reNo = /\bno shortage\b|\bnot in shortage\b|\bnot in the shortage list\b|\bnon-shortage\b/;
 
   const natNoShortage = reNo.test(nat);
   const stNoShortage = reNo.test(st);
 
-  // positive shortage but exclude negative phrases
   const nationalShort = /\bshortage\b/.test(nat) && !natNoShortage;
   const stateShort = /\bshortage\b/.test(st) && !stNoShortage;
 
-  // ----- Display text & tone -----
   let text = "";
   let tone: "strong" | "soft" | "default" = "default";
-
   if (stateShort) {
     text = "Shortage";
     tone = "strong";
@@ -88,10 +80,8 @@ function InlineDemandCard(props: {
     tone = "soft";
   } else if (natNoShortage || stNoShortage) {
     text = "Not shortage";
-    tone = "default";
   } else {
     text = "Not in the shortage list";
-    tone = "default";
   }
 
   return (
@@ -113,12 +103,13 @@ function InlineDemandCard(props: {
  * - Split UI: left industries → right occupation groups → role cards grid.
  * - Queries multiple industries in parallel with useRankByCodesMany (each item has matchPct).
  * - Next disabled until a role is selected; selection and unmatched persisted to Redux.
+ * - Fallback: hydrate Redux from route state when store is empty.
  */
-export default function AnalyzerJobSuggestion() {
+export default function AnalyzerJobSuggestion(): React.ReactElement {
   const dispatch = useAppDispatch();
   const { goPrev, goNext } = useStepNav();
 
-  // Route fallback (may carry roles/region/industries/abilities from previous step)
+  // Route/cache fallback (may carry roles/region/industries/abilities from previous step)
   const { state } = useLocation();
   const routeState = (state as AnalyzerRouteState) || undefined;
 
@@ -129,12 +120,12 @@ export default function AnalyzerJobSuggestion() {
       industryCodes: s.analyzer.interestedIndustryCodes as string[] | null,
       region: s.analyzer.preferredRegion as string | null,
       storedTarget: s.analyzer.selectedJob as SelectedJob,
-      rolesInStore: s.analyzer.chosenRoles,
+      rolesInStore: s.analyzer.chosenRoles as (RoleLite | string)[],
     }),
     shallowEqual
   );
 
-  // Route → Redux fallback (only fill when missing)
+  // Fallback: write route data into Redux only when missing in store
   useEffect(() => {
     if ((!abilities || abilities.length === 0) && routeState?.abilities?.length) {
       dispatch(setChosenAbilities(routeState.abilities));
@@ -163,6 +154,21 @@ export default function AnalyzerJobSuggestion() {
     }
     return out;
   }, [abilities]);
+
+  // Codes the user already selected in previous steps; filter them out of suggestions
+  const excludedRoleCodes = useMemo(() => {
+    const set = new Set<string>();
+    (rolesInStore ?? []).forEach((role) => {
+      if (typeof role === "string") {
+        const code = role.trim();
+        if (code) set.add(code);
+      } else if (role && typeof role === "object") {
+        const code = role.id?.trim() ?? "";
+        if (code) set.add(code);
+      }
+    });
+    return set;
+  }, [rolesInStore]);
 
   // Resolve full industry names from chosen codes; de-duplicate
   const industries = useMemo(() => {
@@ -209,52 +215,75 @@ export default function AnalyzerJobSuggestion() {
   }, [allCodes, selected, dispatch]);
 
   // Toggle pick and write-through to Redux so other steps see it
-  const handlePick = (code: string, title: string) => {
-    const next = selected?.code === code ? null : { code, title };
-    setSelected(next);
-    dispatch(setSelectedJob(next));
-    if (!next) {
-      dispatch(setSelectedJobUnmatched(null));
-    }
-  };
+  const handlePick = useCallback(
+    (code: string, title: string) => {
+      setSelected((prev) => {
+        const next = prev?.code === code ? null : { code, title };
+        dispatch(setSelectedJob(next));
+        if (!next) {
+          dispatch(setSelectedJobUnmatched(null));
+        }
+        return next;
+      });
+    },
+    [dispatch]
+  );
 
   // Build data for the split JobSuggestion component
   const splitData = useMemo(() => {
-    return many.list.map((one) => {
-      const items = (one.data?.items ?? []) as OccupationGroupItem[];
-      return {
-        key: one.industry,
-        title: one.industry,
-        groupCount: items.length,
-        groups: items.map((g) => ({
-          id: g.occupation_code,
-          title: g.occupation_title,
-          jobsCount: g.anzsco.length,
-          avgMatch: typeof g.matchPct === "number" ? g.matchPct : undefined,
-          collapsible: true,
-          defaultOpen: false,
-          children: (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {g.anzsco.map((z) => {
-                const chosen = selected?.code === z.code;
-                return (
-                  <InlineDemandCard
-                    key={z.code}
-                    code={z.code}
-                    title={z.title}
-                    description={z.description ?? ""}
-                    region={region}
-                    selected={Boolean(chosen)}
-                    onSelect={() => handlePick(z.code, z.title)}
-                  />
-                );
-              })}
-            </div>
-          ),
-        })),
-      };
-    });
-  }, [many.list, region, selected]);
+    return many.list
+      .map((one) => {
+        const items = (one.data?.items ?? []) as OccupationGroupItem[];
+
+        const groups = items
+          .map((g) => {
+            const visibleJobs = g.anzsco.filter((job) => {
+              const code = job.code?.trim() ?? "";
+              return code && !excludedRoleCodes.has(code);
+            });
+
+            if (visibleJobs.length === 0) return null;
+
+            return {
+              id: g.occupation_code,
+              title: g.occupation_title,
+              jobsCount: visibleJobs.length,
+              avgMatch: typeof g.matchPct === "number" ? g.matchPct : undefined,
+              collapsible: true,
+              defaultOpen: false,
+              children: (
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {visibleJobs.map((job) => {
+                    const chosen = selected?.code === job.code;
+                    return (
+                      <InlineDemandCard
+                        key={job.code}
+                        code={job.code}
+                        title={job.title}
+                        description={job.description ?? ""}
+                        region={region}
+                        selected={Boolean(chosen)}
+                        onSelect={() => handlePick(job.code, job.title)}
+                      />
+                    );
+                  })}
+                </div>
+              ),
+            };
+          })
+          .filter((g): g is NonNullable<typeof g> => Boolean(g));
+
+        if (groups.length === 0) return null;
+
+        return {
+          key: one.industry,
+          title: one.industry,
+          groupCount: groups.length,
+          groups,
+        };
+      })
+      .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+  }, [many.list, region, selected, excludedRoleCodes, handlePick]);
 
   // On Next: persist unmatched buckets for the selected job only (support both shapes)
   const handleNext = () => {
@@ -265,13 +294,11 @@ export default function AnalyzerJobSuggestion() {
     for (const one of many.list) {
       const items = (one.data?.items ?? []) as OccupationGroupItem[];
       for (const grp of items) {
-        // case 1: unmatched lives on the group that contains the selected role
         const inGroup = grp.anzsco.some((z) => z.code === selected.code);
         if (inGroup && grp.unmatched) {
           unmatched = grp.unmatched;
           break;
         }
-        // case 2: unmatched lives on the anzsco item itself
         const hit = grp.anzsco.find((z) => z.code === selected.code && z.unmatched);
         if (hit?.unmatched) {
           unmatched = hit.unmatched;
@@ -281,6 +308,7 @@ export default function AnalyzerJobSuggestion() {
       if (unmatched) break;
     }
 
+    // Debug: inspect unmatched buckets before persisting
     dispatch(setSelectedJobUnmatched(unmatched));
     goNext();
   };
@@ -332,23 +360,16 @@ export default function AnalyzerJobSuggestion() {
         <Button variant="ghost" size="md" onClick={goPrev} aria-label="Go back to previous step">
           Back
         </Button>
-        <div className="tt-group">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleNext}
-            disabled={nextDisabled}
-            aria-label={nextDisabled ? "Disabled. Pick a job to continue." : "Go to next step"}
-            title={nextDisabled ? "Pick a job to continue" : "Next"}
-          >
-            Next
-          </Button>
-          {nextDisabled && (
-            <div className="tt-bubble tt--top" role="tooltip">
-              Pick a job to continue.
-            </div>
-          )}
-        </div>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={handleNext}
+          disabled={nextDisabled}
+          aria-label={nextDisabled ? "Disabled. Pick a job to continue." : "Go to next step"}
+          tooltipWhenDisabled="Pick a job to continue."
+        >
+          Next
+        </Button>
       </footer>
     </AnalyzerLayout>
   );

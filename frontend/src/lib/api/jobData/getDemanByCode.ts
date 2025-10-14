@@ -1,4 +1,3 @@
-// src/lib/api/jobData/getDemandByCode.ts
 import { getJSON } from "../apiClient";
 import type { DemandRes } from "../../../types/demand";
 

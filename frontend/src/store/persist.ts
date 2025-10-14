@@ -1,6 +1,3 @@
-// src/store/persist.ts
-// English comments only inside code
-
 import type { PersistConfig, Transform } from "redux-persist";
 import type { PersistedState } from "redux-persist/es/types";
 import { createTransform } from "redux-persist";

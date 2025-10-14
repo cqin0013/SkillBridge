@@ -1,4 +1,3 @@
-// src/types/route.ts
 // Route constants + the shape of the state object we attach to navigation.
 // Keep paths in sync with STEP_PATHS (src/hooks/useRouteStep.ts).
 

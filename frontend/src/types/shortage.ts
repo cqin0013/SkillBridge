@@ -1,5 +1,3 @@
-// frontend/src/types/shortage.ts
-
 /** Query metadata from API response */
 export interface ShortageQuery {
   input_code: string;

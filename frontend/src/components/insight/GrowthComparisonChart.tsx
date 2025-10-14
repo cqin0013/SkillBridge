@@ -1,4 +1,3 @@
-// src/components/occupation/GrowthComparisonChart.tsx
 // Bar chart component comparing growth rates across three categories:
 // - Selected occupation
 // - Related occupations (average)

@@ -1,4 +1,3 @@
-// frontend/src/types/states.ts
 /**
  * Australian States and Territories Configuration
  * 
@@ -252,3 +251,8 @@ export const STATE_OPTIONS_SHORT = STATE_CODES.map((code) => ({
   value: code,
   label: STATE_SHORT_NAMES[code],
 }));
+
+export interface StateValue {
+  rating: string;      // e.g. "Active" | "Unknown"
+  employment: number;  // employment count
+}

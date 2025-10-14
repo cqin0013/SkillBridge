@@ -1,4 +1,4 @@
-// Generic route→Redux fallback hook (no any).
+// Generic route→Redux fallback hook.
 // Priority: route state → Redux → default. Hydrates Redux once if empty.
 
 import { useEffect, useMemo } from "react";

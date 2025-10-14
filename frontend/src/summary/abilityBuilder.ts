@@ -1,7 +1,5 @@
-// src/summary/abilityBuilder.ts
 // Builder that emits a single value row with Knowledge/Tech/Skills counts.
 // The renderer stays dumb; it will just show this value row.
-// No `any`.
 
 import type { SummaryBuilder, SummaryItem, SummaryRoot, DraftOverrides } from "./types";
 import { registerSummaryBuilder } from "./registry";

@@ -1,4 +1,4 @@
-// src/components/common/ErrorBoundary.tsx
+
 import React, { type PropsWithChildren } from "react";
 import GlobalError from "./GlobalError";
 
@@ -34,7 +34,6 @@ export default class ErrorBoundary extends React.Component<
     // Forward to external reporter if provided
     this.props.onError?.(error, info);
     // Dev log; do not gate on process.env to avoid Node types
-    // eslint-disable-next-line no-console
     console.error("[ErrorBoundary]", error, info);
   }
 

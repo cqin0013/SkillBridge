@@ -1,4 +1,3 @@
-// src/hooks/useRevealOnView.ts
 /**
  * useRevealOnView
  * Reveal an element once it enters the viewport.

@@ -1,4 +1,3 @@
-// src/components/ui/HelpToggle.tsx
 import { useEffect, useId, useRef, useState, type ReactElement } from "react";
 import clsx from "clsx";
 import { FileText, Target, Lightbulb, X } from "lucide-react";

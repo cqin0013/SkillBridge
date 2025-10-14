@@ -1,4 +1,3 @@
-// types/ability.ts
 // Central types for ability-like taxonomies (skills, knowledge, tech skills).
 
 /** Atomic item inside any taxonomy group */

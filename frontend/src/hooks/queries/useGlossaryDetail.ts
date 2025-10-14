@@ -1,4 +1,3 @@
-// frontend/src/hooks/queries/useGlossaryDetail.ts
 // React Query hook for fetching glossary term details.
 
 import { useQuery } from "@tanstack/react-query";

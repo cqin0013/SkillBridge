@@ -1,38 +1,49 @@
-// Types for feedback API payload and response
 
-/** Allowed category values from the UI select */
+/**
+ * Allowed feedback categories for the UI select.
+ */
 export type FeedbackCategory = "Bug" | "Feature request" | "Idea" | "Other";
 
-/** Optional metadata sent with the feedback for debugging/analytics */
-export interface FeedbackMeta {
-  /** Channel where the feedback comes from, e.g. "web" */
-  source: string;
-  /** Current page path, e.g. "/feedback" */
-  page: string;
-}
-
-/** Request body shape expected by the backend */
+/**
+ * Request payload expected by the backend.
+ * Optional fields use '?' so we can omit them when empty.
+ */
 export interface FeedbackReq {
-  /** Optional display name */
   name?: string;
-  /** Optional email for follow-up */
   email?: string;
-  /** Required category selected by the user */
   category: FeedbackCategory;
-  /** Required free text from the textarea */
   message: string;
-  /** Required consent flag mapped from the checkbox */
   agree: boolean;
-  /** Optional structured metadata */
-  meta?: FeedbackMeta;
+  meta?: {
+    /** Where the submission comes from, e.g. "web". */
+    source?: string;
+    /** Current page path to help trace issues. */
+    page?: string;
+  };
 }
 
-/** Generic success/error shape returned by backend */
-export interface FeedbackRes {
-  /** "ok" on success, "error" on failure */
-  status: "ok" | "error";
-  /** Optional server message */
-  message?: string;
-  /** Optional server-generated id for the feedback */
-  id?: string;
+/**
+ * Normalized API response for the feedback endpoint.
+ * Use the discriminant 'status' to branch safely.
+ */
+export type FeedbackRes =
+  | { status: "ok"; id: string }
+  | { status: "error"; message: string };
+
+/**
+ * Type guard for the success variant.
+ */
+export function isFeedbackOk(
+  res: FeedbackRes
+): res is Extract<FeedbackRes, { status: "ok" }> {
+  return res.status === "ok";
+}
+
+/**
+ * Type guard for the error variant.
+ */
+export function isFeedbackError(
+  res: FeedbackRes
+): res is Extract<FeedbackRes, { status: "error" }> {
+  return res.status === "error";
 }

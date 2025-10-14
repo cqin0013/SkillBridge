@@ -1,13 +1,12 @@
-// src/pages/analyzer/AnalyzerAbilities.tsx
 /**
  * AnalyzerAbilities
  * - Fetch + merge abilities by occupation codes.
  * - Local list lazily hydrates from Redux chosenAbilities so Back restores chips.
  * - Per-section collapse; body uses AbilityList to show count, Edit, and chips.
  * - "Analyzing..." when empty + loading; inline error on failure (GlobalError).
- * - Next disabled until at least one ability exists (tooltip via title).
- * - Local edits sync to Redux so SelectedSummary shows counts.
- * - Route fallback: if Redux is empty, read data from location.state and write back to Redux.
+ * - If API returns empty successfully, show a guidance notice to customize or go back.
+ * - Next disabled until at least one ability exists.
+ * - Local edits sync to Redux.
  */
 
 import {
@@ -27,11 +26,9 @@ import AbilityPicker, { type AbilityCategory } from "../../components/analyzer/A
 import AbilityList from "../../components/analyzer/AbilityList";
 import ErrorBoundary from "../../components/common/ErrorBoundary";
 import GlobalError from "../../components/common/GlobalError";
-
 import { skillCategories } from "../../data/skill.static";
 import { knowledgeCategories } from "../../data/knowledge.static";
 import { techSkillCategories } from "../../data/techskill.static";
-
 import { useAbilitiesByCodes } from "../../hooks/queries/useAbilitiesByCodes";
 import type { RootState } from "../../store";
 import { useAppDispatch } from "../../store/hooks";
@@ -54,14 +51,13 @@ const normalizeOne = (a: unknown): AbilityLite => {
 /** Build a stable identity key for set membership. */
 const identityOf = (it: AbilityLite): string => `${it.aType}|${it.code ?? it.name}`;
 
-/** Static category builders for the picker. */
+/** Category builders for picker */
 const buildSkillCats = (): AbilityCategory[] => [
   { id: "content", label: "Content", skills: (skillCategories.content ?? []).map((s) => s.name) },
   { id: "process", label: "Process", skills: (skillCategories.process ?? []).map((s) => s.name) },
   { id: "resourceManagement", label: "Resource Management", skills: (skillCategories.crossFunctional?.resourceManagement ?? []).map((s) => s.name) },
   { id: "technical", label: "Technical", skills: (skillCategories.crossFunctional?.technical ?? []).map((s) => s.name) },
 ];
-
 const buildKnowledgeCats = (): AbilityCategory[] => [
   { id: "management", label: "Management", skills: (knowledgeCategories.management ?? []).map((s) => s.name) },
   { id: "production", label: "Production", skills: (knowledgeCategories.production ?? []).map((s) => s.name) },
@@ -73,7 +69,6 @@ const buildKnowledgeCats = (): AbilityCategory[] => [
   { id: "public", label: "Public", skills: (knowledgeCategories.public ?? []).map((s) => s.name) },
   { id: "communication", label: "Communication", skills: (knowledgeCategories.communication ?? []).map((s) => s.name) },
 ];
-
 const buildTechSkillCats = (): AbilityCategory[] => [
   { id: "business", label: "Business", skills: (techSkillCategories.business ?? []).map((s) => s.name) },
   { id: "productivity", label: "Productivity", skills: (techSkillCategories.productivity ?? []).map((s) => s.name) },
@@ -96,20 +91,17 @@ type AnalyzerAbilitiesProps = {
 
 function PageImpl(
   { occupationCodes, abilities = [], onNext }: AnalyzerAbilitiesProps,
-  ref: React.Ref<{ commitAndNext: () => void }>,
+  ref: React.Ref<{ commitAndNext: () => void }>
 ) {
   const dispatch = useAppDispatch();
   const { goPrev, goNext } = useStepNav();
-
-  // Route fallback (roles/region/industries may be carried via navigation state)
   const { state } = useLocation();
   const routeState = (state as AnalyzerRouteState) || undefined;
 
-  // Read persisted abilities to hydrate local list on first mount
   const persisted = useSelector((s: RootState) => s.analyzer);
   const reduxAbilities = persisted.chosenAbilities;
 
-  // If Redux lost parts (after storage fallback), repopulate from route state
+  // Route fallback for missing Redux data
   useEffect(() => {
     if (!persisted.chosenRoles.length && routeState?.roles?.length) {
       dispatch(setChosenRoles(routeState.roles));
@@ -126,13 +118,11 @@ function PageImpl(
     }
   }, [persisted, routeState, dispatch]);
 
-  // Local selections hydrate once from props or Redux
+  // Local list hydrated from props or Redux
   const [localAbilities, setLocalAbilities] = useState<AbilityLite[]>(
     () => (abilities.length ? abilities.map(normalizeOne) : reduxAbilities)
   );
-
-  // Guard: if first render had empty props and Redux later rehydrates, fill once
-  const hydratedOnce = useRef<boolean>(false);
+  const hydratedOnce = useRef(false);
   useEffect(() => {
     if (hydratedOnce.current) return;
     if (!localAbilities.length && reduxAbilities.length) {
@@ -141,8 +131,7 @@ function PageImpl(
     }
   }, [reduxAbilities, localAbilities.length]);
 
-  const [errorMsg, setErrorMsg] = useState<string>("");
-
+  const [errorMsg, setErrorMsg] = useState("");
   const [open, setOpen] = useState<Record<AType, boolean>>({
     knowledge: true,
     tech: true,
@@ -156,18 +145,16 @@ function PageImpl(
   const [pickerType, setPickerType] = useState<AType>("skill");
 
   const pickerMeta = useMemo(
-    () =>
-      ({
-        knowledge: { title: "Edit knowledge by category", cats: buildKnowledgeCats() },
-        tech: { title: "Edit tech skills by category", cats: buildTechSkillCats() },
-        skill: { title: "Edit skills by category", cats: buildSkillCats() },
-      }) as const,
+    () => ({
+      knowledge: { title: "Edit knowledge by category", cats: buildKnowledgeCats() },
+      tech: { title: "Edit tech skills by category", cats: buildTechSkillCats() },
+      skill: { title: "Edit skills by category", cats: buildSkillCats() },
+    }),
     []
   );
 
-  // Occupation codes from props or Redux roles
+  // Determine occupation codes
   const chosenRoles = useSelector((s: RootState) => s.analyzer.chosenRoles);
-
   const codes = useMemo<string[]>(() => {
     const fromProp =
       typeof occupationCodes === "string"
@@ -176,8 +163,8 @@ function PageImpl(
         ? occupationCodes
         : [];
     const base = fromProp.length ? fromProp : (chosenRoles ?? []).map((r) => r.id);
-    const uniq: string[] = [];
     const seen = new Set<string>();
+    const uniq: string[] = [];
     for (const c of base) {
       const v = (c ?? "").trim();
       if (!v || seen.has(v)) continue;
@@ -187,10 +174,10 @@ function PageImpl(
     return uniq.slice(0, 5);
   }, [occupationCodes, chosenRoles]);
 
-  // Fetch abilities by occupation codes
+  // Fetch by codes
   const { loading, error, data } = useAbilitiesByCodes(codes);
 
-  // Merge fetched abilities into current list (never clear on failure)
+  // Merge fetched abilities into local list
   useEffect(() => {
     if (!data) return;
     try {
@@ -212,44 +199,62 @@ function PageImpl(
     }
   }, [data]);
 
-  // Keep Redux in sync so SelectedSummary shows ability count
+  // Keep Redux in sync
   useEffect(() => {
     dispatch(setChosenAbilities(localAbilities));
   }, [localAbilities, dispatch]);
 
-  // Group by type for lists and counters
+  // Groups for rendering
   const groups = useMemo(() => {
     const knowledge: AbilityLite[] = [];
     const tech: AbilityLite[] = [];
     const skill: AbilityLite[] = [];
-    localAbilities.forEach((it) => {
+    for (const it of localAbilities) {
       if (it.aType === "knowledge") knowledge.push(it);
       else if (it.aType === "tech") tech.push(it);
       else skill.push(it);
-    });
+    }
     return { knowledge, tech, skill };
   }, [localAbilities]);
 
-  // Bulk add from picker
-  const addMany = (names: string[], aType: AType): void => {
+  /** Apply only diff (add/remove) for one category */
+  const applyPickerDiff = (pickedNames: string[], aType: AType): void => {
+    const currentNames = new Set(
+      localAbilities.filter((x) => x.aType === aType).map((x) => x.name)
+    );
+    const nextNames = new Set(pickedNames);
+    const toAdd: string[] = [];
+    const toRemove: string[] = [];
+
+    for (const n of nextNames) if (!currentNames.has(n)) toAdd.push(n);
+    for (const n of currentNames) if (!nextNames.has(n)) toRemove.push(n);
+
     setLocalAbilities((prev) => {
-      const seen = new Set(prev.map(identityOf));
-      const next = [...prev];
-      for (const n of names) {
-        const candidate: AbilityLite = { name: n, aType };
-        const key = identityOf(candidate);
-        if (!seen.has(key)) next.push(candidate);
+      const next = prev.filter(
+        (x) => !(x.aType === aType && toRemove.includes(x.name))
+      );
+      const seen = new Set(next.map(identityOf));
+      for (const n of toAdd) {
+        const cand = { name: n, aType } as AbilityLite;
+        const key = identityOf(cand);
+        if (!seen.has(key)) {
+          next.push(cand);
+          seen.add(key);
+        }
       }
       return next;
     });
   };
 
-  // Remove one by name+aType
-  const removeOne = (name: string, aType: AType): void => {
-    setLocalAbilities((xs) => xs.filter((x) => !(x.name === name && x.aType === aType)));
+  /** Open manual editor starting from skills category */
+  const openManual = (): void => {
+    const meta = pickerMeta.skill;
+    setPickerType("skill");
+    setPickerTitle(meta.title);
+    setPickerCats(meta.cats);
+    setPickerOpen(true);
   };
 
-  // Open picker for a specific type
   const openEditor = (type: AType): void => {
     const meta = pickerMeta[type];
     setPickerType(type);
@@ -258,7 +263,6 @@ function PageImpl(
     setPickerOpen(true);
   };
 
-  // Expose imperative API
   useImperativeHandle(ref, () => ({
     commitAndNext: () => onNext?.(localAbilities),
   }));
@@ -266,8 +270,16 @@ function PageImpl(
   const nextDisabled = localAbilities.length === 0;
   const nextTitle = nextDisabled ? "Select at least one ability to continue" : undefined;
 
-  // Analyzing state: nothing selected yet and still loading without an error
+  // Loading state when nothing yet
   const showAnalyzing = loading && localAbilities.length === 0 && !error;
+
+  // API succeeded but returned an empty list
+  const apiEmpty =
+    !loading &&
+    !error &&
+    Array.isArray(data) &&
+    data.length === 0 &&
+    localAbilities.length === 0;
 
   const handleNext = (): void => {
     if (nextDisabled) return;
@@ -282,21 +294,11 @@ function PageImpl(
       helpContent={{
         title: "How to use this page",
         subtitle: "Review suggested abilities and edit by category when needed.",
-        features: [
-          "Use Edit to add abilities by category.",
-          "Collapse sections you do not need to view.",
-        ],
-        tips: [
-          "At least one ability is required to proceed.",
-          "Your selections sync to the summary panel automatically.",
-        ],
+        features: ["Use Edit to add abilities by category.", "Collapse sections you do not need to view."],
+        tips: ["At least one ability is required to proceed.", "Your selections sync to the summary panel automatically."],
       }}
     >
-      {showAnalyzing && (
-        <div className="mt-4 text-sm text-ink-soft" aria-live="polite">
-          Analyzing...
-        </div>
-      )}
+      {showAnalyzing && <div className="mt-4 text-sm text-ink-soft">Analyzing...</div>}
 
       {(error || errorMsg) && (
         <div className="mt-4">
@@ -307,83 +309,54 @@ function PageImpl(
         </div>
       )}
 
+      {apiEmpty && (
+        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-900">
+          <p className="mb-3">
+            The occupation you selected has no required abilities in our data. You can customize abilities manually, or go back to choose another occupation.
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={openManual}>Customize</Button>
+            <Button variant="ghost" onClick={goPrev}>Go back</Button>
+          </div>
+        </div>
+      )}
+
       <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {/* Knowledge */}
-        <div className="rounded-2xl border border-border p-4 min-w-0">
-          <div className="mb-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => toggleCard("knowledge")}
-              aria-expanded={open.knowledge}
-              className="h-7 w-7 rounded-full border border-border text-xs grid place-items-center"
-              title={open.knowledge ? "Collapse" : "Expand"}
-            >
-              {open.knowledge ? "−" : "+"}
-            </button>
-            <h3 className="font-semibold text-sm sm:text-base md:text-lg">Knowledge</h3>
+        {(["knowledge", "tech", "skill"] as AType[]).map((type) => (
+          <div key={type} className="rounded-2xl border border-border p-4 min-w-0">
+            <div className="mb-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => toggleCard(type)}
+                aria-expanded={open[type]}
+                className="h-7 w-7 rounded-full border border-border text-xs grid place-items-center"
+                title={open[type] ? "Collapse" : "Expand"}
+              >
+                {open[type] ? "−" : "+"}
+              </button>
+              <h3 className="font-semibold text-sm sm:text-base md:text-lg capitalize">
+                {type === "tech" ? "Tech Skills" : type}
+              </h3>
+            </div>
+            {open[type] && (
+              <AbilityList
+                items={groups[type]}
+                tag={type}
+                onEdit={openEditor}
+                onRemove={(name) =>
+                  setLocalAbilities((xs) => xs.filter((x) => !(x.name === name && x.aType === type)))
+                }
+              />
+            )}
           </div>
-          {open.knowledge && (
-            <AbilityList
-              items={groups.knowledge}
-              tag="knowledge"
-              onEdit={openEditor}
-              onRemove={removeOne}
-            />
-          )}
-        </div>
-
-        {/* Tech */}
-        <div className="rounded-2xl border border-border p-4 min-w-0">
-          <div className="mb-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => toggleCard("tech")}
-              aria-expanded={open.tech}
-              className="h-7 w-7 rounded-full border border-border text-xs grid place-items-center"
-              title={open.tech ? "Collapse" : "Expand"}
-            >
-              {open.tech ? "−" : "+"}
-            </button>
-            <h3 className="font-semibold text-sm sm:text-base md:text-lg">Tech Skills</h3>
-          </div>
-          {open.tech && (
-            <AbilityList
-              items={groups.tech}
-              tag="tech"
-              onEdit={openEditor}
-              onRemove={removeOne}
-            />
-          )}
-        </div>
-
-        {/* Skills */}
-        <div className="rounded-2xl border border-border p-4 min-w-0">
-          <div className="mb-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => toggleCard("skill")}
-              aria-expanded={open.skill}
-              className="h-7 w-7 rounded-full border border-border text-xs grid place-items-center"
-              title={open.skill ? "Collapse" : "Expand"}
-            >
-              {open.skill ? "−" : "+"}
-            </button>
-            <h3 className="font-semibold text-sm sm:text-base md:text-lg">Skills</h3>
-          </div>
-          {open.skill && (
-            <AbilityList
-              items={groups.skill}
-              tag="skill"
-              onEdit={openEditor}
-              onRemove={removeOne}
-            />
-          )}
-        </div>
+        ))}
       </section>
 
       <footer className="mt-10 flex items-center justify-end gap-3">
-        <Button variant="ghost" onClick={goPrev}>Back</Button>
-        <Button onClick={handleNext} disabled={nextDisabled} title={nextTitle}>
+        <Button variant="ghost" onClick={goPrev}>
+          Back
+        </Button>
+        <Button onClick={handleNext} disabled={nextDisabled} title={nextTitle} tooltipWhenDisabled="Please add at least one ability first">
           Next
         </Button>
       </footer>
@@ -395,7 +368,7 @@ function PageImpl(
         categories={pickerCats}
         initiallySelected={localAbilities.filter((x) => x.aType === pickerType).map((x) => x.name)}
         onConfirm={(picked) => {
-          addMany(picked, pickerType);
+          applyPickerDiff(picked, pickerType);
           setPickerOpen(false);
         }}
       />
@@ -403,10 +376,8 @@ function PageImpl(
   );
 }
 
-/** Named forwardRef export if parent needs imperative API */
 export const AnalyzerAbilitiesInner = forwardRef(PageImpl);
 
-/** Default export with page-level ErrorBoundary */
 export default function AnalyzerAbilities(): React.ReactElement {
   return (
     <ErrorBoundary feedbackHref="/feedback">
