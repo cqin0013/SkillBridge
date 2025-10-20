@@ -86,11 +86,10 @@ node index.js
 ## Visit:
 
 Swagger UI: http://localhost:8080/docs
-(The UI loads same-origin OpenAPI docs; the server list also includes local & public URLs when present. 
+(The UI loads same-origin OpenAPI docs; the server list also includes local & public URLs when present. )
 
 swagger.i18n
 
-)
 
 Health check: GET /health → { ok: true }
 
@@ -167,6 +166,28 @@ Or, equivalently:
   "major_first": "2"
 }
 
+## Glossary
+GET /api/glossary/detail
+Get glossary detail by term or acronym.
+Returns term details (including also_called / see_also) based on a keyword or abbreviation.
+Example: /api/glossary/detail?q=ICT
+
+## Career growth
+GET /api/career-growth/{code}
+Career growth metrics by 4-digit ANZSCO unit group.
+Returns 5-year / 10-year growth rate, ranking, current employment, projected new jobs, and national vs related-occupation averages.
+
+## Feedback
+POST /api/contact
+Submit feedback form (JSON) and forward it to a mailbox.
+
+## Admin
+POST /api/admin/shortage/prewarm
+Pre-warm cache for all 4-digit ANZSCO prefixes.
+
+POST /api/admin/redis/flush-all
+Flush all Redis keys (dangerous operation; admin only).
+
 # Swagger / OpenAPI
 
 The multi-locale Swagger UI mounts at /docs, populated by two OpenAPI specs (EN/中文). The generator searches route files in ./ and ./routes/** to build the docs, and the server list favors same-origin URLs to avoid “localhost” leaks in production. 
@@ -223,7 +244,3 @@ swagger.i18n
 # License
 
 MIT.
-
-
--------------
-Ctrl+Shift+V
