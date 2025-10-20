@@ -368,8 +368,11 @@ export default function buildRouter(pool) {
    *     summary: Prewarm cache for all 4-digit ANZSCO prefixes
    *     x-summary-zh: 预热所有 4 位 ANZSCO 前缀的缓存
    *     description: |
-   *       扫描 `temp_nero_extract` 中所有出现过的 4 位前缀，逐一计算
-   *       `/api/shortage/by-anzsco` 的结果并写入 Redis。
+   *       Scans all distinct 4-digit prefixes in `temp_nero_extract`,
+   *       computes `/api/shortage/by-anzsco` results for each, and writes them to Redis.
+   *     x-description-zh: |
+   *       扫描 `temp_nero_extract` 中所有出现过的 4 位前缀，
+   *       逐一计算 `/api/shortage/by-anzsco` 的结果并写入 Redis。
    *     requestBody:
    *       required: false
    *       content:
@@ -377,16 +380,38 @@ export default function buildRouter(pool) {
    *           schema:
    *             type: object
    *             properties:
-   *               ttlSec: { type: integer, example: 604800, description: "缓存 TTL（秒），默认 12 小时" }
-   *               concurrency: { type: integer, example: 4, description: "并发 worker 数（1-8），默认 4" }
-   *               dryRun: { type: boolean, example: false, description: "只列出将处理的前缀，不实际落库" }
-   *               onlyMiss: { type: boolean, example: true, description: "仅处理未命中缓存的前缀" }
+   *               ttlSec:
+   *                 type: integer
+   *                 example: 604800
+   *                 description: Cache TTL (seconds), default 12 hours.
+   *                 x-description-zh: 缓存 TTL（秒），默认 12 小时。
+   *               concurrency:
+   *                 type: integer
+   *                 example: 4
+   *                 description: Number of concurrent workers (1–8), default 4.
+   *                 x-description-zh: 并发 worker 数（1–8），默认 4。
+   *               dryRun:
+   *                 type: boolean
+   *                 example: false
+   *                 description: List prefixes to process without actually writing to Redis.
+   *                 x-description-zh: 仅列出待处理的前缀，不实际写入 Redis。
+   *               onlyMiss:
+   *                 type: boolean
+   *                 example: true
+   *                 description: Only process prefixes that are missing in cache.
+   *                 x-description-zh: 仅处理未命中缓存的前缀。
    *     responses:
    *       200:
-   *         description: 预热结果摘要
+   *         description: Summary of prewarm execution.
+   *         x-description-zh: 预热执行结果摘要。
    *       401:
-   *         description: 未授权（缺少或错误的 x-admin-secret）
+   *         description: Unauthorized (missing or invalid x-admin-secret).
+   *         x-description-zh: 未授权（缺少或错误的 x-admin-secret）。
+   *       500:
+   *         description: Internal server error.
+   *         x-description-zh: 服务器内部错误。
    */
+
   router.post("/admin/shortage/prewarm", async (req, res) => {
     try {
 
@@ -488,19 +513,66 @@ export default function buildRouter(pool) {
   });
 
   /**
-   * @openapi
-   * /api/admin/redis/flush-all:
-   *   post:
-   *     tags: [Admin]
-   *     summary: Flush all keys in Redis (DANGEROUS)
-   *     x-summary-zh: 清空 Redis 全部键（危险操作）
-   *     description: |
-   *       调用 FLUSHALL 清空 Redis，包括 session 前缀 sbridg:* 与所有业务缓存。
-   *       生产环境慎用。
-   *     responses:
-   *       200: { description: 已清空 }
-   *       401: { description: 未授权（缺少或错误的 x-admin-secret） }
-   */
+ * @openapi
+ * /api/admin/redis/flush-all:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Flush all keys in Redis (DANGEROUS)
+ *     x-summary-zh: 清空 Redis 全部键（危险操作）
+ *     description: |
+ *       Executes **FLUSHALL** to clear the entire Redis database,  
+ *       including session keys (`sbridg:*`) and all business caches.  
+ *       ⚠️ Use with caution in production.
+ *     x-description-zh: |
+ *       调用 **FLUSHALL** 命令清空 Redis 数据库，  
+ *       包括会话键（`sbridg:*`）及所有业务缓存。  
+ *       ⚠️ 生产环境慎用。
+ *     responses:
+ *       200:
+ *         description: All keys flushed successfully.
+ *         x-description-zh: 已成功清空全部键。
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 flushed:
+ *                   type: string
+ *                   example: ALL
+ *             examples:
+ *               success:
+ *                 summary: Example success response
+ *                 x-summary-zh: 成功示例响应
+ *                 value: { "ok": true, "flushed": "ALL" }
+ *       401:
+ *         description: Unauthorized (missing or invalid x-admin-secret).
+ *         x-description-zh: 未授权（缺少或错误的 x-admin-secret）。
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               unauthorized:
+ *                 summary: Example unauthorized response
+ *                 x-summary-zh: 未授权示例响应
+ *                 value: { "error": "unauthorized" }
+ *       500:
+ *         description: Internal server error.
+ *         x-description-zh: 服务器内部错误。
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               internal_error:
+ *                 summary: Example internal error
+ *                 x-summary-zh: 内部错误示例
+ *                 value: { "error": "internal_error" }
+ */
+
   router.post("/admin/redis/flush-all", async (req, res) => {
     try {
       const adminSecret = process.env.ADMIN_SECRET;

@@ -3,7 +3,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import { fileURLToPath } from 'url';
 import path from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 // ================
 const isProd = process.env.NODE_ENV === 'production';
@@ -51,7 +51,7 @@ function buildBaseSpec() {
                 type: 'object',
                 properties: {
                   first: { type: 'string', example: '2' },
-                  name:  { type: 'string', example: 'Professionals' },
+                  name: { type: 'string', example: 'Professionals' },
                 }
               },
               items: {
@@ -68,7 +68,7 @@ function buildBaseSpec() {
                 properties: {
                   code: { type: 'string', example: '261313' },
                   major_first: { type: 'string', example: '2' },
-                  major_name:  { type: 'string', example: 'Professionals' }
+                  major_name: { type: 'string', example: 'Professionals' }
                 }
               },
               occupations: {
@@ -77,30 +77,36 @@ function buildBaseSpec() {
                   type: 'object',
                   properties: {
                     occupation_code: { type: 'string', example: '15-2031.00' },
-                    occupation_title:{ type: 'string', example: 'Operations Research Analysts' }
+                    occupation_title: { type: 'string', example: 'Operations Research Analysts' }
                   }
                 }
               },
               knowledge_titles: {
                 type: 'array',
-                items: { type: 'object', properties: {
-                  code: { type: 'string', example: '2.C.1.a' },
-                  title:{ type: 'string', example: 'Administration and Management' }
-                }}
+                items: {
+                  type: 'object', properties: {
+                    code: { type: 'string', example: '2.C.1.a' },
+                    title: { type: 'string', example: 'Administration and Management' }
+                  }
+                }
               },
               skill_titles: {
                 type: 'array',
-                items: { type: 'object', properties: {
-                  code: { type: 'string', example: '2.B.1.e' },
-                  title:{ type: 'string', example: 'Instructing' }
-                }}
+                items: {
+                  type: 'object', properties: {
+                    code: { type: 'string', example: '2.B.1.e' },
+                    title: { type: 'string', example: 'Instructing' }
+                  }
+                }
               },
               tech_titles: {
                 type: 'array',
-                items: { type: 'object', properties: {
-                  code: { type: 'string', example: '43233208' },
-                  title:{ type: 'string', example: 'Version control software' }
-                }}
+                items: {
+                  type: 'object', properties: {
+                    code: { type: 'string', example: '43233208' },
+                    title: { type: 'string', example: 'Version control software' }
+                  }
+                }
               }
             }
           },
@@ -108,14 +114,14 @@ function buildBaseSpec() {
             type: 'object',
             properties: {
               anzsco: { $ref: '#/components/schemas/AnzscoItem' },
-              total:  { type: 'integer', example: 128 },
+              total: { type: 'integer', example: 128 },
               vet_courses: {
                 type: 'array',
                 items: {
                   type: 'object',
                   properties: {
                     vet_course_code: { type: 'string', example: 'BSB20112' },
-                    course_name:    { type: 'string', example: 'Certificate II in Business' }
+                    course_name: { type: 'string', example: 'Certificate II in Business' }
                   }
                 }
               }
@@ -139,11 +145,57 @@ function buildBaseSpec() {
               anzsco: { $ref: '#/components/schemas/AnzscoItem' },
               skill_level: { type: 'string', example: '1' },
               national_rating: { type: 'string', example: 'Shortage' },
-              state:       { type: 'string', example: 'Victoria' },
-              state_code:  { type: 'string', example: 'VIC' },
-              state_rating:{ type: 'string', example: 'Shortage' }
+              state: { type: 'string', example: 'Victoria' },
+              state_code: { type: 'string', example: 'VIC' },
+              state_rating: { type: 'string', example: 'Shortage' }
+            }
+          },
+
+          GlossaryItem: {
+            type: 'object',
+            properties: {
+              term: {
+                type: 'string',
+                description: 'Term or full form.',
+                'x-description-zh': '术语或全称。'
+              },
+              description: {
+                type: 'string',
+                description: 'Definition or explanation.',
+                'x-description-zh': '定义或解释。'
+              },
+              acronym: {
+                type: 'string',
+                nullable: true,
+                description: 'Acronym (if any).',
+                'x-description-zh': '缩写（若有）。'
+              },
+              also_called: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Alternative names.',
+                'x-description-zh': '其他叫法。'
+              },
+              see_also: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Related terms.',
+                'x-description-zh': '相关术语。'
+              }
+            }
+          },
+
+          ErrorResponse: {
+            type: 'object',
+            properties: {
+              message: {
+                type: 'string',
+                description: 'Error message.',
+                'x-description-zh': '错误信息。'
+              }
             }
           }
+
         }
       }
     },
